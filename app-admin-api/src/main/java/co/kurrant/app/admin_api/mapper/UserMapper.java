@@ -34,6 +34,7 @@ public interface UserMapper {
     @Mapping(target = "generalEmail", expression = "java(user.getProviderEmail(Provider.GENERAL))")
     @Mapping(target = "kakaoEmail", expression = "java(user.getProviderEmail(Provider.KAKAO))")
     @Mapping(target = "naverEmail", expression = "java(user.getProviderEmail(Provider.NAVER))")
+    @Mapping(target = "googleEmail", expression = "java(user.getProviderEmail(Provider.GOOGLE))")
     @Mapping(target = "facebookEmail", expression = "java(user.getProviderEmail(Provider.FACEBOOK))")
     @Mapping(target = "appleEmail", expression = "java(user.getProviderEmail(Provider.APPLE))")
     UserInfoResponseDto toDto(User user);

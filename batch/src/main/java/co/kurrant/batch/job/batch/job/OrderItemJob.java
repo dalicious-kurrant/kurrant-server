@@ -1,11 +1,19 @@
 package co.kurrant.batch.job.batch.job;
 
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.order.entity.OrderItem;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.util.OrderMembershipUtil;
+import co.dalicious.domain.order.util.OrderUtil;
+import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.batch.service.OrderItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -35,6 +43,7 @@ public class OrderItemJob {
     private final StepBuilderFactory stepBuilderFactory;
     private final EntityManagerFactory entityManagerFactory;
     private final OrderItemService orderItemService;
+    private final OrderMembershipUtil orderMembershipUtil;
     private final int CHUNK_SIZE = 500;
 
     @Bean("orderStatusToDeliveringJob")
@@ -68,10 +77,10 @@ public class OrderItemJob {
     public Step orderStatusToDeliveredJob_step() {
         // pickup time 지나면 order status -> OrderStatus.DELIVERED
         return stepBuilderFactory.get("orderStatusToDeliveredJob_step")
-                .<OrderItem, OrderItem>chunk(CHUNK_SIZE)
+                .<OrderItemDailyFood, OrderItemDailyFood>chunk(CHUNK_SIZE)
                 .reader(forChangingStatusToDeliveredInOrderItemReader())
                 .processor(OrderStatusToDeliveredProcessor())
-                .writer(forChangingStatusInOrderItemWriter())
+                .writer(forChangingStatusInOrderItemDailyFoodWriter())
                 .build();
     }
 
@@ -98,17 +107,22 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public JpaPagingItemReader<OrderItem> forChangingStatusToDeliveredInOrderItemReader() {
+    public JpaPagingItemReader<OrderItemDailyFood> forChangingStatusToDeliveredInOrderItemReader() {
         List<BigInteger> orderItemIds = orderItemService.matchingOrderStatusByWaitDelivering();
         log.info("[OrderItemDailyFood 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("orderItemIds", orderItemIds);
 
-        String queryString = "SELECT oi " +
-                "FROM OrderItem oi " +
-                "WHERE oi.id IN :orderItemIds";
+        String queryString = "SELECT oidf " +
+                "FROM OrderItemDailyFood oidf " +
+                "JOIN FETCH oidf.dailyFood df " +
+                "JOIN FETCH oidf.order o " +
+                "JOIN FETCH o.user u " +
+                "JOIN FETCH df.group g " +
+                "LEFT JOIN Corporation c ON g.id = c.id " +
+                "WHERE oidf.id IN :orderItemIds";
 
-        return new JpaPagingItemReaderBuilder<OrderItem>()
+        return new JpaPagingItemReaderBuilder<OrderItemDailyFood>()
                 .entityManagerFactory(entityManagerFactory)
                 .pageSize(100)
                 .parameterValues(parameterValues)
@@ -132,11 +146,16 @@ public class OrderItemJob {
 
     @Bean
     @JobScope
-    public ItemProcessor<OrderItem, OrderItem> OrderStatusToDeliveredProcessor() {
-        return new ItemProcessor<OrderItem, OrderItem>() {
+    public ItemProcessor<OrderItemDailyFood, OrderItemDailyFood> OrderStatusToDeliveredProcessor() {
+        return new ItemProcessor<OrderItemDailyFood, OrderItemDailyFood>() {
             @Override
-            public OrderItem process(OrderItem item) throws Exception {
+            public OrderItemDailyFood process(OrderItemDailyFood item) throws Exception {
                 log.info("[OrderItem 상태 업데이트 시작] : {}", item.getId());
+                User user = item.getOrder().getUser();
+                Group group = item.getDailyFood().getGroup();
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                    orderMembershipUtil.joinCorporationMembership(user, corporation);
+                }
                 item.updateOrderStatus(OrderStatus.DELIVERED);
                 return item;
             }
@@ -148,6 +167,13 @@ public class OrderItemJob {
     public JpaItemWriter<OrderItem> forChangingStatusInOrderItemWriter() {
         log.info("orderItem 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
         return new JpaItemWriterBuilder<OrderItem>().entityManagerFactory(entityManagerFactory).build();
+    }
+
+    @Bean
+    @JobScope
+    public JpaItemWriter<OrderItemDailyFood> forChangingStatusInOrderItemDailyFoodWriter() {
+        log.info("OrderItemDailyFood 상태 저장 시작 : {}", DateUtils.localDateTimeToString(LocalDateTime.now()));
+        return new JpaItemWriterBuilder<OrderItemDailyFood>().entityManagerFactory(entityManagerFactory).build();
     }
 
 }

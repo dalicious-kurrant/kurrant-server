@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 public class UserInfoDto {
     private String gourmetType;
     private String avatar;
+    private String nickname;
     private String name;
     private Boolean isMembership;
     private Integer membershipPeriod;
@@ -24,6 +25,7 @@ public class UserInfoDto {
     public UserInfoDto(User user, Integer membershipPeriod, Integer dailyMealCount) {
         this.gourmetType = user.getGourmetType().getGourmetType();
         this.avatar = (user.getAvatar() == null) ? null : user.getAvatar().getLocation();
+        this.nickname = user.getNickname();
         this.name = user.getName();
         this.isMembership = user.getIsMembership();
         this.point = user.getPoint();

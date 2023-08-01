@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
 import co.dalicious.domain.file.entity.embeddable.enums.ImageType;
 import co.dalicious.domain.food.converter.ServiceFormConverter;
@@ -283,5 +284,13 @@ public class Makers {
         return this.makersCapacities.stream()
                 .map(MakersCapacity::getCapacity)
                 .reduce(0, Integer::sum);
+    }
+
+    public DayAndTime getLastOrderTime(DiningType diningType) {
+        return this.makersCapacities.stream()
+                .filter(v -> v.getDiningType().equals(diningType))
+                .findAny()
+                .map(MakersCapacity::getLastOrderTime)
+                .orElse(null);
     }
 }

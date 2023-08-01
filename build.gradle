@@ -175,8 +175,6 @@ project(':app-public-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-event')
-        implementation project(':integration-client-user')
-        implementation project(':data-mysql')
     }
 }
 
@@ -199,8 +197,7 @@ project(':app-admin-api') {
         implementation project(':client-alarm')
         implementation project(':domain-application-form')
         implementation project(':data-redis')
-        implementation project(':integration-client-user')
-        implementation project(':data-mysql')
+        implementation project(':client-sse')
     }
 }
 
@@ -218,8 +215,8 @@ project(':app-client-api') {
         implementation project(':domain-order')
         implementation project(':domain-makers')
         implementation project(':domain-paycheck')
-        implementation project(':integration-client-user')
-        implementation project(':data-mysql')
+        implementation project(':client-alarm')
+        implementation project(':client-sse')
     }
 }
 
@@ -243,7 +240,6 @@ project(':app-makers-api') {
         implementation project(':client-sse')
         implementation project(':domain-recommend')
         implementation project(':domain-paycheck')
-        implementation project(':data-mysql')
     }
 }
 
@@ -259,6 +255,7 @@ project(':batch') {
         implementation project(':domain-payment')
         implementation project(':domain-paycheck')
         implementation project(':domain-delivery')
+        implementation project(':client-sse')
     }
 }
 
@@ -337,7 +334,6 @@ project(':domain-order') {
         implementation project(':domain-client')
         implementation project(':domain-payment')
         implementation project(':domain-event')
-        implementation project(':integration-client-user')
     }
 }
 
@@ -392,7 +388,6 @@ project(':domain-review') {
 project(':domain-recommend') {
     dependencies {
         implementation project(':system-core')
-        implementation project(':client-core')
     }
 }
 
@@ -441,16 +436,6 @@ project(':client-alarm') {
     }
 }
 
-project(':integration-client-user') {
-    dependencies {
-        implementation project(':system-core')
-        implementation project(':domain-user')
-        implementation project(':domain-client')
-        implementation project(':domain-application-form')
-        implementation project(':domain-address')
-    }
-}
-
 project(':data-flyway') {
     dependencies {
         rootProject.subprojects.each { subproject ->
@@ -459,5 +444,6 @@ project(':data-flyway') {
             }
         }
         implementation project(':data-mysql')
+        implementation project(':client-alarm')
     }
 }

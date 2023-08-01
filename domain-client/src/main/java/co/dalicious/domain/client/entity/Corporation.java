@@ -101,11 +101,11 @@ public class Corporation extends Group {
     @Comment("특정 상품 제외")
     private List<BigInteger> excludedFood;
 
-    @Column(name = "minimum_spend")
+    @Column(name = "minimum_spend", columnDefinition = "DECIMAL(15, 2)")
     @Comment("최소 구매 가능 금액")
     private BigDecimal minimumSpend;
 
-    @Column(name = "maximum_spend")
+    @Column(name = "maximum_spend", columnDefinition = "DECIMAL(15, 2)")
     @Comment("최대 구매 가능 금액")
     private BigDecimal maximumSpend;
 

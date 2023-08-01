@@ -1,23 +1,20 @@
 package co.dalicious.domain.address.entity.embeddable;
 
-import ch.qos.logback.core.util.LocationUtil;
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.address.utils.AddressUtil;
 import exception.CustomException;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Comment;
+import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.WKTWriter;
 import org.springframework.http.HttpStatus;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -140,4 +137,5 @@ public class Address {
         }
     }
 
+    public void updateAddress2(String address2) { this.address2 = address2; }
 }

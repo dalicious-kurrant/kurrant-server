@@ -15,6 +15,9 @@ import javax.persistence.Embeddable;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Component
@@ -43,100 +46,96 @@ public class CustomPostUpdateEventListener implements PostUpdateEventListener {
         List<String> logs = new ArrayList<>();
         for (int i = 0; i < properties.length; i++) {
             if (!Objects.equals(oldState[i], newState[i]) && !properties[i].equals("updatedDateTime")) {
-                if (oldState[i] instanceof Collection<?> oldCollection && newState[i] instanceof Collection<?> newCollection) {
-                    if (!oldCollection.equals(newCollection)) {
-                        String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 값이 " + '"' + oldCollection + '"' + "에서 " + '"' + newCollection + '"' + "로 변경.";
-                        logs.add(logEntry);
-                        System.out.println(logEntry);
-                        continue;
-                    }
+                if (newState[i] instanceof Collection<?> newCollection) {
+                    if (oldState[i] instanceof Collection<?> oldCollection) {
+                        Iterator<?> oldIterator = oldCollection.iterator();
+                        Iterator<?> newIterator = newCollection.iterator();
+                        int index = 0;
 
-                    Iterator<?> oldIterator = oldCollection.iterator();
-                    Iterator<?> newIterator = newCollection.iterator();
-                    int index = 0;
-
-                    while (oldIterator.hasNext() && newIterator.hasNext()) {
-                        Object oldElement = oldIterator.next();
-                        Object newElement = newIterator.next();
-                        Field[] fields = oldElement.getClass().getDeclaredFields();
-
-                        for (Field field : fields) {
-                            try {
-                                field.setAccessible(true);
-                                Object oldValue = field.get(oldElement);
-                                Object newValue = field.get(newElement);
-
-                                // Check if both values are of type Number (integer, float, double, etc.)
-                                if (oldValue instanceof Number && newValue instanceof Number) {
-                                    // Convert both numbers to double and compare.
-                                    if (!BigDecimal.valueOf(((Number) oldValue).doubleValue()).setScale(2, RoundingMode.HALF_UP)
-                                            .equals(BigDecimal.valueOf(((Number) newValue).doubleValue()).setScale(2, RoundingMode.HALF_UP))) {
-                                        // Add to logs only if values are numerically different.
-                                        String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "[" + index + "]" + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
-                                        logs.add(logEntry);
-                                        System.out.println(logEntry);
-                                    }
-                                } else if (!Objects.equals(oldValue, newValue)) {
-                                    // If not numbers, compare normally.
-                                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "[" + index + "]" + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
-                                    logs.add(logEntry);
-                                    System.out.println(logEntry);
-                                }
-                                // Your existing logic here...
-
-                            } catch (IllegalAccessException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        index++;
-                    }
-                }
-                // 필드가 Embeddable 속성인지 체크
-                else if (oldState[i] != null && newState[i] != null && oldState[i].getClass().getAnnotation(Embeddable.class) != null) {
-                    Field[] fields = oldState[i].getClass().getDeclaredFields();
-                    for (Field field : fields) {
-                        field.setAccessible(true);
-                        try {
-                            Object oldValue = field.get(oldState[i]);
-                            Object newValue = field.get(newState[i]);
-
-                            // Check if both values are of type Number (integer, float, double, etc.)
-                            if (oldValue instanceof Number && newValue instanceof Number) {
-                                // Convert both numbers to double and compare.
-                                if (!BigDecimal.valueOf(((Number) oldValue).doubleValue()).setScale(2, RoundingMode.HALF_UP)
-                                        .equals(BigDecimal.valueOf(((Number) newValue).doubleValue()).setScale(2, RoundingMode.HALF_UP))) {
-                                    // Add to logs only if values are numerically different.
-                                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
-                                    logs.add(logEntry);
-                                    System.out.println(logEntry);
-                                }
-                            } else if (!Objects.equals(oldValue, newValue)) {
-                                // If not numbers, compare normally.
-                                String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 " + field.getName() + "값이 " + '"' + oldValue + '"' + "에서 " + '"' + newValue + '"' + "로 변경.";
-                                logs.add(logEntry);
-                                System.out.println(logEntry);
-                            }
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
+                        while (oldIterator.hasNext() && newIterator.hasNext()) {
+                            Object oldElement = oldIterator.next();
+                            Object newElement = newIterator.next();
+                            processObjectForLogging(entity, oldElement, newElement, event, properties, i, index, hardwareName, logs);
+                            index++;
                         }
                     }
+                } else if (oldState[i] != null && newState[i] != null && oldState[i].getClass().getAnnotation(Embeddable.class) != null) {
+                    processObjectForLogging(entity, oldState[i], newState[i], event, properties, i, null, hardwareName, logs);
                 } else {
-                    String logEntry = hardwareName + " 기기에서 " + entity.getClass().getSimpleName() + " " + event.getId() + "번 " + properties[i] + "의 값이 " + '"' + oldState[i] + '"' + "에서 " + '"' + newState[i] + '"' + "로 변경.";
+                    String logEntry = generateLogEntry(entity, event, properties[i], null, null, oldState[i], newState[i], hardwareName);
                     logs.add(logEntry);
-                    System.out.println(logEntry);
                 }
             }
         }
-        if (logs.isEmpty()) return;
-        adminLogsRepository.save(AdminLogs.builder()
-                .logType(LogType.UPDATE)
-                .controllerType(RequestContextHolder.getCurrentControllerType())
-                .baseUrl(RequestContextHolder.getCurrentBaseUrl())
-                .endPoint(RequestContextHolder.getCurrentEndpoint())
-                .entityName(entity.getClass().getSimpleName())
-                .userCode(hardwareName)
-                .logs(logs)
-                .build());
+
+        if (!logs.isEmpty()) {
+            adminLogsRepository.save(AdminLogs.builder()
+                    .logType(LogType.UPDATE)
+                    .controllerType(RequestContextHolder.getCurrentControllerType())
+                    .baseUrl(RequestContextHolder.getCurrentBaseUrl())
+                    .endPoint(RequestContextHolder.getCurrentEndpoint())
+                    .entityName(entity.getClass().getSimpleName())
+                    .userCode(hardwareName)
+                    .logs(logs)
+                    .build());
+        }
+    }
+
+    private void processObjectForLogging(Object entity, Object oldState, Object newState, PostUpdateEvent event, String[] properties, int propertyIndex, Integer collectionIndex, String hardwareName, List<String> logs) {
+        if (oldState instanceof LocalDate || oldState instanceof LocalTime || oldState instanceof LocalDateTime) {
+            if (!oldState.equals(newState)) {
+                String logEntry = generateLogEntry(entity, event, properties[propertyIndex], properties[propertyIndex], collectionIndex, oldState, newState, hardwareName);
+                logs.add(logEntry);
+                System.out.println(logEntry);
+            }
+        }
+        else {
+            Field[] fields = oldState.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                if (!field.getDeclaringClass().getName().startsWith("co.dalicious")) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object oldValue = field.get(oldState);
+                    Object newValue = field.get(newState);
+
+                    if (oldValue instanceof Number && newValue instanceof Number) {
+                        BigDecimal oldBigDecimal = BigDecimal.valueOf(((Number) oldValue).doubleValue()).stripTrailingZeros();
+                        BigDecimal newBigDecimal = BigDecimal.valueOf(((Number) newValue).doubleValue()).stripTrailingZeros();
+                        if (!oldBigDecimal.equals(newBigDecimal)) {
+                            String logEntry = generateLogEntry(entity, event, properties[propertyIndex], field.getName(), collectionIndex, oldValue, newValue, hardwareName);
+                            logs.add(logEntry);
+                        }
+                    } else if (!Objects.equals(oldValue, newValue)) {
+                        String logEntry = generateLogEntry(entity, event, properties[propertyIndex], field.getName(), collectionIndex, oldValue, newValue, hardwareName);
+                        logs.add(logEntry);
+                        System.out.println(logEntry);
+                    }
+
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private String generateLogEntry(Object entity, PostUpdateEvent event, String propertyName, String fieldName, Integer collectionIndex, Object oldValue, Object newValue, String hardwareName) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(hardwareName).append(" 기기에서 ")
+                .append(entity.getClass().getSimpleName()).append(" ")
+                .append(event.getId()).append("번 ")
+                .append(propertyName);
+        if (collectionIndex != null) {
+            sb.append("[").append(collectionIndex).append("]");
+        }
+        if (fieldName != null) {
+            sb.append("의 ").append(fieldName);
+        }
+        sb.append(" 값이 ").append('"').append(oldValue.toString()).append('"')
+                .append("에서 ").append('"').append(newValue.toString()).append('"')
+                .append("로 변경.");
+        return sb.toString();
     }
 
     @Override

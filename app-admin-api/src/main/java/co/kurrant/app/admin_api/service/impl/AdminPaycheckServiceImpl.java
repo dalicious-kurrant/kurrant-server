@@ -184,6 +184,15 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
         makersPaycheckRepository.deleteAll(makersPaychecks);
     }
+
+    @Override
+    public void deleteMakersPaycheckById(BigInteger makersPaycheckId) {
+        MakersPaycheck makersPaycheck = makersPaycheckRepository.findById(makersPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        imageService.delete(getImagePrefix(makersPaycheck.getExcelFile()));
+        imageService.delete(getImagePrefix(makersPaycheck.getPdfFile()));
+        makersPaycheckRepository.delete(makersPaycheck);
+    }
     //메이커스 정산 삭제
 
     @Override
@@ -245,7 +254,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
         expectedPaycheckRepository.deleteAll(expectedPaychecks);
         corporationPaycheckRepository.deleteAll(corporationPaychecks);
-        
+
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupsAndPeriod(request.getId(), yearMonth);
         List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupIdsAndPeriod(request.getId(), yearMonth);
 
@@ -260,7 +269,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
             groups.add(dailyFoodSupportPrice.getGroup());
         }
         for (Group group : groups) {
-            if(((Corporation) Hibernate.unproxy(group)).getIsGarbage()) {
+            if (((Corporation) Hibernate.unproxy(group)).getIsGarbage()) {
                 garbageUseGroups.add(group);
             }
         }
@@ -395,6 +404,19 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         }
         expectedPaycheckRepository.deleteAll(expectedPaychecks);
         corporationPaycheckRepository.deleteAll(corporationPaychecks);
+    }
+
+    @Override
+    public void deleteCorporationPaycheckById(BigInteger corporationPaycheckId) {
+        CorporationPaycheck corporationPaycheck = corporationPaycheckRepository.findById(corporationPaycheckId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+        ExpectedPaycheck expectedPaycheck = corporationPaycheck.getExpectedPaycheck();
+
+        imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
+        imageService.delete(getImagePrefix(corporationPaycheck.getPdfFile()));
+
+        if (expectedPaycheck != null) expectedPaycheckRepository.delete(expectedPaycheck);
+        corporationPaycheckRepository.delete(corporationPaycheck);
     }
 
     @Override

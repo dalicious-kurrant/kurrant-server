@@ -1,8 +1,6 @@
 package co.dalicious.domain.delivery.utils;
 
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.domain.client.entity.OpenGroupSpot;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
@@ -11,6 +9,7 @@ import co.dalicious.domain.delivery.repository.DeliveryInstanceRepository;
 import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
@@ -33,7 +32,7 @@ public class DeliveryUtils {
     public void saveDeliveryInstance(OrderItemDailyFood orderItemDailyFood, Spot spot, User user, DailyFood dailyFood, LocalTime deliveryTime) {
         DeliveryInstance deliveryInstance = getDeliveryInstance(spot, user, dailyFood, deliveryTime);
         if(deliveryInstance == null) {
-            Integer deliveryOrderNumber = getNewOrderNumber(dailyFood, deliveryTime);
+            Integer deliveryOrderNumber = getNewOrderNumber(spot, dailyFood, deliveryTime);
             deliveryInstance = deliveryInstanceMapper.toEntity(dailyFood, spot, deliveryOrderNumber, deliveryTime);
             deliveryInstanceRepository.save(deliveryInstance);
         }
@@ -50,7 +49,8 @@ public class DeliveryUtils {
                 .orElse(null);
     }
 
-    public Integer getNewOrderNumber(DailyFood dailyFood, LocalTime deliveryTime) {
+    public Integer getNewOrderNumber(Spot spot, DailyFood dailyFood, LocalTime deliveryTime) {
+        if(spot instanceof CorporationSpot) return null;
         Integer currentMaxNumber = qDeliveryInstanceRepository.getMaxOrderNumber(dailyFood.getServiceDate(), dailyFood.getDiningType(), deliveryTime, dailyFood.getFood().getMakers());
         return ++currentMaxNumber;
     }

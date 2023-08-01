@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -50,9 +51,9 @@ public class AuthController {
 
     @Operation(summary = "휴대폰 인증번호 발송", description = "휴대폰 인증번호를 발송한다.")
     @PostMapping("/certification/phone")
-    public ResponseMessage smsConfirm(@RequestBody SmsMessageRequestDto smsMessageRequestDto, @RequestParam("type") String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
-        authService.sendSms(smsMessageRequestDto, type);
+    public ResponseMessage smsConfirm(@RequestBody SmsMessageRequestDto smsMessageRequestDto, @RequestParam("type") String type) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
         return ResponseMessage.builder()
+                .data(authService.sendSms(smsMessageRequestDto, type))
                 .message("인증번호가 발송되었습니다.")
                 .build();
     }

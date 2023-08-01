@@ -1,46 +1,74 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.repository.PushAlarmRepository;
+import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
+import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.client.core.dto.request.LoginTokenDto;
+import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.entity.Driver;
+import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
+import co.dalicious.domain.delivery.repository.DeliveryInstanceRepository;
+import co.dalicious.domain.delivery.repository.DriverRepository;
 import co.dalicious.domain.delivery.repository.QDailyFoodDeliveryRepository;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
-import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
-import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.OrderStatus;
+import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.PushCondition;
+import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
+import co.kurrant.app.admin_api.dto.Code;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
-import co.kurrant.app.admin_api.dto.delivery.DeliveryDto;
+import co.kurrant.app.admin_api.dto.delivery.DeliveryStatusVo;
+import co.kurrant.app.admin_api.dto.delivery.DeliveryVo;
+import co.kurrant.app.admin_api.dto.user.LoginResponseDto;
 import co.kurrant.app.admin_api.mapper.DeliveryMapper;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
+import co.kurrant.app.admin_api.model.SecurityUser;
 import co.kurrant.app.admin_api.service.DeliveryService;
+import co.kurrant.app.admin_api.util.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryMapper deliveryMapper;
-    private final QDailyFoodRepository qDailyFoodRepository;
     private final QDailyFoodDeliveryRepository qDailyFoodDeliveryRepository;
     private final MakersRepository makersRepository;
     private final UserRepository userRepository;
@@ -48,10 +76,31 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final MakersMapper makersMapper;
     private final GroupMapper groupMapper;
     private final QGroupRepository qGroupRepository;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final SimpleJwtTokenProvider jwtTokenProvider;
+    private final DriverRepository driverRepository;
+    private final Map<BigInteger, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+    private final TaskScheduler taskScheduler;
+    private final DeliveryInstanceRepository deliveryInstanceRepository;
+    private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
+    private final QPushAlarmsRepository qPushAlarmsRepository;
+    private final SseService sseService;
+    private final PushService pushService;
+    private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final PushUtil pushUtil;
+
+
+    @Override
+    public LoginResponseDto login(Code loginCode) {
+        Driver driver = driverRepository.findByCode(loginCode.getCode())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+        LoginTokenDto loginResponseDto = jwtTokenProvider.createToken(driver.getCode(), Collections.singletonList(Role.USER.getAuthority()));
+        return new LoginResponseDto(loginResponseDto.getAccessToken(), loginResponseDto.getAccessTokenExpiredIn(), driver.getName());
+    }
 
     @Override
     @Transactional(readOnly = true)
-    public DeliveryDto getDeliverySchedule(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
+    public DeliveryVo getDelivery(String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
         LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
         LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
 
@@ -61,17 +110,33 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<Spot> spotAllList = groups == null || groups.isEmpty() ? groupAllList.stream().flatMap(group -> group.getSpots().stream()).toList() : groups.stream().flatMap(group -> group.getSpots().stream()).toList();
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
 
-        List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllFilterGroupAndSpot(startDate, endDate, groups, spots);
-        List<DeliveryInstance> deliveryInstanceList = qDeliveryInstanceRepository.findByDailyFoodAndOrderStatus(dailyFoodList);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(startDate, endDate, groups, spots);
 
-        List<DeliveryDto.DeliveryInfo> deliveryInfoList = new ArrayList<>();
-        if(deliveryInstanceList.isEmpty()) return DeliveryDto.create(groupAllList, deliveryInfoList, spotAllList);
-        return DeliveryDto.create(groupAllList, deliveryMapper.getDeliveryInfoList(deliveryInstanceList), spotAllList);
+        if (orderItemDailyFoods.isEmpty()) return DeliveryVo.create(groupAllList, null, spotAllList);
+        return DeliveryVo.create(groupAllList, deliveryMapper.getDeliveryInfoListByOrderItemDailyFood(orderItemDailyFoods), spotAllList);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DeliveryVo getDeliverySchedule(SecurityUser driver, String start, String end, List<BigInteger> groupIds, List<BigInteger> spotIds, Integer isAll) {
+            String driverCode = UserUtil.getCode(driver) == null ? null : driver.getUsername().equals("admin") ? null : UserUtil.getCode(driver);
+
+        LocalDate startDate = (start == null) ? null : DateUtils.stringToDate(start);
+        LocalDate endDate = (end == null) ? null : DateUtils.stringToDate(end);
+
+        List<DailyFoodDelivery> dailyFoodDeliveries = qDailyFoodDeliveryRepository.findAllFilterGroupAndSpot(startDate, endDate, groupIds, spotIds, driverCode);
+        Set<DeliveryInstance> deliveryInstanceList = dailyFoodDeliveries.stream().map(DailyFoodDelivery::getDeliveryInstance).collect(Collectors.toSet());
+
+        Set<Spot> spotAllList = deliveryInstanceList.stream().map(DeliveryInstance::getSpot).collect(Collectors.toSet());
+        Set<Group> groupAllList = spotAllList.stream().map(Spot::getGroup).collect(Collectors.toSet());
+
+        if (deliveryInstanceList.isEmpty()) return DeliveryVo.create(groupAllList, null, spotAllList);
+        return DeliveryVo.create(groupAllList, deliveryMapper.getDeliveryInfoList(deliveryInstanceList, scheduledTasks), spotAllList);
     }
 
     @Override
     @Transactional
-    public List<DeliveryDto.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters) {
+    public List<DeliveryVo.DeliveryManifest> getDeliveryManifest(Map<String, Object> parameters) {
         LocalDate startDate = !parameters.containsKey("startDate") || parameters.get("startDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("startDate"));
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         Integer spotType = !parameters.containsKey("spotType") || parameters.get("spotType").equals("") ? null : Integer.parseInt((String) parameters.get("spotType"));
@@ -83,17 +148,98 @@ public class DeliveryServiceImpl implements DeliveryService {
 
         Makers makers = null;
         User user = null;
-        if(makersId != null) {
+        if (makersId != null) {
             makers = makersRepository.findById(makersId).orElse(null);
 
         }
-        if(userId != null) {
+        if (userId != null) {
             user = userRepository.findById(userId).orElse(null);
         }
 
         List<DailyFoodDelivery> dailyFoodDeliveries = qDailyFoodDeliveryRepository.findByFilter(startDate, endDate, (spotType == null) ? null : GroupDataType.ofCode(spotType), makers, (diningTypeCode == null) ? null : DiningType.ofCode(diningTypeCode), deliveryTime, orderNumber, user);
 
         return deliveryMapper.toDeliveryManifests(dailyFoodDeliveries);
+    }
+
+    @Override
+    @Transactional
+    public Integer requestDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
+        final int cancelableTime = 60 * 1000;
+        if (securityUser == null || securityUser.getUsername().equals("admin")) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllWaitDeliveryBySpotAndTimeAndDriver(deliveryStatusVo.getSpotId(), DateUtils.stringToLocalTime(deliveryStatusVo.getDeliveryTime()), securityUser.getUsername());
+        for (DeliveryInstance deliveryInstance : deliveryInstances) {
+            if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.WAIT_DELIVERY)) {
+                deliveryInstance.updateDeliveryStatus(DeliveryStatus.REQUEST_DELIVERED);
+
+                ScheduledFuture<?> scheduledFuture = taskScheduler.schedule(() -> finalizeDelivery(deliveryInstance.getId()), new Date(System.currentTimeMillis() + cancelableTime));
+                scheduledTasks.put(deliveryInstance.getId(), scheduledFuture);
+            }
+        }
+        return cancelableTime;
+    }
+
+    @Transactional
+    public void finalizeDelivery(BigInteger deliveryInstanceId) {
+        DeliveryInstance deliveryInstance = qDeliveryInstanceRepository.findByIdJoinFetch(deliveryInstanceId);
+        PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.DELIVERED_ORDER_ITEM);
+        List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
+        List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
+        if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
+            deliveryInstance.updateDeliveryStatus(DeliveryStatus.DELIVERED);
+            deliveryInstanceRepository.save(deliveryInstance);
+            List<OrderItemDailyFood> orderItemDailyFoods = deliveryInstance.getOrderItemDailyFoods();
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                if(OrderStatus.beforeDelivered().contains(orderItemDailyFood.getOrderStatus())) {
+                    orderItemDailyFood.updateOrderStatus(OrderStatus.DELIVERED);
+                }
+
+                // PUSH ALARM 옵션
+                User user = orderItemDailyFood.getOrder().getUser();
+                String foodName = orderItemDailyFood.getName();
+                String spotName = orderItemDailyFood.getDailyFood().getGroup().getName();
+                String message = PushUtil.getContextDeliveredOrderItem(pushAlarms.getMessage(), user.getName(), foodName, spotName);
+                PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(user, PushCondition.DELIVERED_ORDER_ITEM, message);
+                if(pushRequestDtoByUser != null) {
+                    pushRequestDtoByUsers.add(pushRequestDtoByUser);
+                }
+                PushAlarmHash pushAlarmHash = PushAlarmHash.builder()
+                        .title(PushCondition.DELIVERED_ORDER_ITEM.getTitle())
+                        .isRead(false)
+                        .message(message)
+                        .userId(user.getId())
+                        .type(AlarmType.ORDER_STATUS.getAlarmType())
+                        .build();
+                pushAlarmHashes.add(pushAlarmHash);
+                sseService.send(user.getId(), 6, null, null, null);
+            }
+            orderItemDailyFoodRepository.saveAll(orderItemDailyFoods);
+            pushService.sendToPush(pushRequestDtoByUsers);
+            pushAlarmHashRepository.saveAll(pushAlarmHashes);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelDeliveryComplete(SecurityUser securityUser, DeliveryStatusVo deliveryStatusVo) {
+        if (securityUser == null || securityUser.getUsername().equals("admin")) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+        List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllRequestDeliveredBySpotAndTimeAndDriver(deliveryStatusVo.getSpotId(), DateUtils.stringToLocalTime(deliveryStatusVo.getDeliveryTime()), securityUser.getUsername());
+
+        for (DeliveryInstance deliveryInstance : deliveryInstances) {
+            if (deliveryInstance.getDeliveryStatus().equals(DeliveryStatus.REQUEST_DELIVERED)) {
+                deliveryInstance.updateDeliveryStatus(DeliveryStatus.WAIT_DELIVERY);
+            }
+
+            ScheduledFuture<?> scheduledFuture = scheduledTasks.get(deliveryInstance.getId());
+            if (scheduledFuture != null) {
+                scheduledFuture.cancel(true);
+                scheduledTasks.remove(deliveryInstance.getId());
+            }
+        }
+
     }
 
     @Override

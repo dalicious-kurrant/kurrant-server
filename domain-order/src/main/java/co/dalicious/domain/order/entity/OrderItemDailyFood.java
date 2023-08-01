@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.NumberUtils;
@@ -34,11 +35,11 @@ public class OrderItemDailyFood extends OrderItem {
     @Comment("식품 이름")
     private String name;
 
-    @Column(name = "price")
+    @Column(name = "price", columnDefinition="Decimal(15,2) default '0.00'")
     @Comment("상품 가격")
     private BigDecimal price;
 
-    @Column(name = "discounted_price")
+    @Column(name = "discounted_price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("할인된 가격")
     private BigDecimal discountedPrice;
 
@@ -129,4 +130,18 @@ public class OrderItemDailyFood extends OrderItem {
         }
         return null;
     }
+
+    public String getLastOrderTime(){
+
+        DayAndTime makersLastOrderTime = this.dailyFood.getFood().getMakers().getMakersCapacity(this.dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTIme = this.dailyFood.getGroup().getMealInfo(this.dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, mealInfoLastOrderTIme)){
+            return makersLastOrderTime.dayAndTimeToStringByDate(this.dailyFood.getServiceDate());
+        }
+        return mealInfoLastOrderTIme.dayAndTimeToStringByDate(this.dailyFood.getServiceDate());
+
+    }
+
 }

@@ -3,9 +3,9 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
-import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
@@ -27,7 +27,8 @@ import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ReviewService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
+import co.kurrant.app.public_api.util.WordsUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +78,6 @@ public class ReviewServiceImpl implements ReviewService {
         synchronized (userLocks.computeIfAbsent(user, u -> new Object())) {
             // 필요한 정보 가져오기 - 상품
             OrderItem orderItem = qOrderItemRepository.findByUserAndOrderId(user, reviewDto.getOrderItemId());
-            List<Reviews> reviewsList = qReviewRepository.findByUserAndOrderItem(user, orderItem);
             if (orderItem == null) throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
 
             validate(reviewDto.getSatisfaction(), reviewDto.getContent());
@@ -94,23 +94,15 @@ public class ReviewServiceImpl implements ReviewService {
                 count = orderItemDailyFood.getCount();
             }
 
-            // 이미 review를 작성한 건인지 검증
-            if (reviewsList != null && !reviewsList.isEmpty()) {
-                reviewsList.stream().filter(r -> r.getIsDelete().equals(false))
-                        .findFirst()
-                        .orElseThrow(() -> new ApiException(ExceptionEnum.ALREADY_WRITING_REVIEW));
-            }
             // 리뷰 가능 일이 맞는지 검증
-            LocalDate reviewableDate = Objects.requireNonNull(dailyFood).getServiceDate().plusDays(7);
-            LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
-            if (reviewableDate.isBefore(today)) {
+            LocalDate reviewableDate = Objects.requireNonNull(dailyFood).getServiceDate().plusDays(5);
+            if (reviewableDate.isBefore(LocalDate.now(ZoneId.of("Asia/Seoul")))) {
                 throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM_FOR_REVIEW);
             }
 
-
             List<Image> images = new ArrayList<>();
             if (fileList != null && !fileList.isEmpty()) {
-                List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+                List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, DirName.REVIEW.getName());
                 images.addAll(Image.toImages(imageResponseDtos));
             }
 
@@ -133,7 +125,8 @@ public class ReviewServiceImpl implements ReviewService {
             List<String> keywordList = qKeywordRepository.findAllByFoodId(((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId());
             qKeywordRepository.plusKeyword(keywordList, ((OrderItemDailyFood) orderItem).getDailyFood().getFood().getId(), reviewDto.getContent());
 
-
+            // 리뷰 비속어
+            reviews.updateContent(WordsUtil.isContainingSwearWordsInContent(reviews.getContent()));
         }
     }
 
@@ -144,7 +137,7 @@ public class ReviewServiceImpl implements ReviewService {
         LocalDateTime today = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         //리뷰 가능한 상품이 있는 지 확인 - 유저 구매했고, 이미 수령을 완료한 식단
-        List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today.toLocalDate());
+        List<OrderItem> receiptCompleteItem = qOrderItemRepository.findByUserAndOrderStatusBeforeToday(user, OrderStatus.RECEIPT_COMPLETE, today.toLocalDate().minusDays(5), today.toLocalDate());
         List<ReviewableItemResDto.OrderFood> orderFoodList = new ArrayList<>();
         BigDecimal redeemablePoints = BigDecimal.ZERO;
         if(receiptCompleteItem == null || receiptCompleteItem.isEmpty()) { return ReviewableItemResDto.create(orderFoodList, redeemablePoints, 0); }
@@ -208,7 +201,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, false);
         if(!notificationHashList.isEmpty()) {
-            sseService.send(user.getId(), 3, null);
+            sseService.send(user.getId(), 3, null, null, null);
         }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
@@ -247,9 +240,8 @@ public class ReviewServiceImpl implements ReviewService {
         validate(updateReqDto.getSatisfaction(), updateReqDto.getContent());
 
         // 작성일에서 3일이 지났는지 확인 - 리뷰 수정 불가
-        LocalDate createdDate = reviews.getCreatedDateTime().toLocalDateTime().toLocalDate();
-        LocalDate limitedDate = createdDate.plusDays(3);
-        if(createdDate.isAfter(limitedDate)) throw new ApiException(ExceptionEnum.CANNOT_UPDATE_REVIEW);
+        LocalDate limitedDate = reviews.getCreatedDateTime().toLocalDateTime().toLocalDate().plusDays(3);
+        if(LocalDate.now(ZoneId.of("Asia/Seoul")).isAfter(limitedDate)) throw new ApiException(ExceptionEnum.CANNOT_UPDATE_REVIEW);
 
         // 이미지가 삭제되었다면 S3에서도 삭제
         List<Image> imageList = new ArrayList<>();
@@ -271,7 +263,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         if(fileList != null && !fileList.isEmpty()) {
-            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, "reviews");
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(fileList, DirName.REVIEW.getName());
             imageList.addAll(Image.toImages(imageResponseDtos));
             // 기존 리뷰가 사진이 없다가 수정시 사진을 넣으면 포인트 지급
             BigDecimal rewardPoint = pointUtil.findReviewPointWhenUpdate(user, reviews.getId());
@@ -304,9 +296,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Object reviewStarCount(BigInteger dailyFoodId) {
-        Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
-        List<Reviews> reviewsList = reviewRepository.findAllByFoodId(dailyFood.getFood().getId());
+        Map<Integer, Integer> starCountMap = new ConcurrentHashMap<>();
+        List<Reviews> reviewsList = qReviewRepository.findAllByFoodIdForStar(dailyFood.getFood().getId());
             starCountMap.put(1, 0);
             starCountMap.put(2, 0);
             starCountMap.put(3, 0);

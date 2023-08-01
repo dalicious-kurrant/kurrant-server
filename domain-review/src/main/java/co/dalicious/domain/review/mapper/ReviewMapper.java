@@ -22,12 +22,14 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.springframework.util.MultiValueMap;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class, UserRepository.class})
@@ -76,33 +78,37 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.updatedDateTime", target = "updateDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "user.name", target = "userName")
+    @Mapping(source = "user", target = "userName", qualifiedByName = "getNameOrNickname")
     @Mapping(source = "reviews.good", target = "good")
     @Mapping(source = "reviews.id", target = "reviewId")
     FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isGood, boolean isWriter);
 
+    @Named("getNameOrNickname")
+    default String getNameOrNickname(User user) {
+        return user.getNickname();
+    }
     @Named("getCreateDate")
-    default String getCreateDate(Timestamp createdDateTime){
-        return createdDateTime.toString().substring(0,10);
+    default String getCreateDate(Timestamp createdDateTime) {
+        return createdDateTime.toString().substring(0, 10);
     }
 
     @Named("setCommentList")
     default List<ReviewListDto.Comment> setCommentList(List<Comments> commentsList) {
         List<ReviewListDto.Comment> commentList = new ArrayList<>();
 
-        if(commentsList.isEmpty()) return commentList;
+        if (commentsList.isEmpty()) return commentList;
 
         commentsList = commentsList.stream().sorted(Comparator.comparing(Comments::getCreatedDateTime)).toList();
 
-        for(Comments comments : commentsList) {
+        for (Comments comments : commentsList) {
             ReviewListDto.Comment comment = new ReviewListDto.Comment();
-            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+            if (comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                 comment.setWriter(makersComments.getReviews().getFood().getMakers().getName());
                 comment.setContent(makersComments.getContent());
                 comment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
                 comment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
                 commentList.add(comment);
-            } else if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+            } else if (comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
                 comment.setWriter("admin");
                 comment.setContent(adminComments.getContent());
                 comment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
@@ -117,19 +123,19 @@ public interface ReviewMapper {
     default List<FoodReviewListDto.Comment> setCommentList2(List<Comments> commentsList) {
         List<FoodReviewListDto.Comment> commentList = new ArrayList<>();
 
-        if(commentsList.isEmpty()) return commentList;
+        if (commentsList.isEmpty()) return commentList;
 
         commentsList = commentsList.stream().sorted(Comparator.comparing(Comments::getCreatedDateTime)).toList();
 
-        for(Comments comments : commentsList) {
+        for (Comments comments : commentsList) {
             FoodReviewListDto.Comment comment = new FoodReviewListDto.Comment();
-            if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+            if (comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                 comment.setWriter(makersComments.getReviews().getFood().getMakers().getName());
                 comment.setContent(makersComments.getContent());
                 comment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
                 comment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
                 commentList.add(comment);
-            } else if(comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+            } else if (comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
                 comment.setWriter("admin");
                 comment.setContent(adminComments.getContent());
                 comment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
@@ -150,8 +156,13 @@ public interface ReviewMapper {
     @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
-    @Mapping(source = "reviews.user.name", target = "writer")
+    @Mapping(source = "reviews.user", target = "writer", qualifiedByName = "getNameAndNickname")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
+
+    @Named("getNameAndNickname")
+    default String getNameAndNickname(User user) {
+        return user.getNameAndNickname();
+    }
 
     default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
         ReviewAdminResDto.ReviewDetail reviewDetail = new ReviewAdminResDto.ReviewDetail();
@@ -163,7 +174,7 @@ public interface ReviewMapper {
         reviewDetail.setContentOrigin(reviews.getContentOrigin());
         reviewDetail.setSatisfactionOrigin(reviews.getSatisfactionOrigin());
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getNickname());
         reviewDetail.setFoodName(reviews.getFood().getName());
         reviewDetail.setIsDelete(reviews.getIsDelete());
         reviewDetail.setIsReport(reviews.getIsReports());
@@ -171,7 +182,9 @@ public interface ReviewMapper {
         reviewDetail.setAdminComment(getAdminComment(reviews.getComments()));
 
         return reviewDetail;
-    };
+    }
+
+    ;
 
     @Mapping(source = "reqDto.content", target = "content")
     @Mapping(source = "reviews", target = "reviews")
@@ -194,21 +207,23 @@ public interface ReviewMapper {
         reviewListDto.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
         reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewListDto.setForMakers(reviews.getForMakers());
-        reviewListDto.setWriter(reviews.getUser().getName());
+        reviewListDto.setWriter(reviews.getUser().getNickname());
         reviewListDto.setIsReport(reviews.getIsReports());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
         reviewListDto.setIsMakersComments(false);
 
         List<Comments> commentsList = reviews.getComments();
-        for(Comments comment : commentsList) {
-            if(comment instanceof MakersComments) {
+        for (Comments comment : commentsList) {
+            if (comment instanceof MakersComments) {
                 reviewListDto.setIsMakersComments(true);
                 break;
             }
         }
 
-        return  reviewListDto;
-    };
+        return reviewListDto;
+    }
+
+    ;
 
 
     default ReviewMakersResDto.ReviewDetail toMakersReviewDetails(Reviews reviews, MultiValueMap<LocalDate, Integer> dateAndScore) {
@@ -221,16 +236,16 @@ public interface ReviewMapper {
         reviewDetail.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
         reviewDetail.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getNickname());
         reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
         reviewDetail.setIsReport(reviews.getIsReports());
 
         List<Comments> commentList = reviews.getComments();
-        if(commentList.isEmpty()) reviewDetail.setMakersComment(null);
+        if (commentList.isEmpty()) reviewDetail.setMakersComment(null);
         else {
             ReviewMakersResDto.MakersComment makersComment = new ReviewMakersResDto.MakersComment();
-            for(Comments comments : commentList) {
-                if(comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+            for (Comments comments : commentList) {
+                if (comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                     makersComment.setCommentId(makersComments.getId());
                     makersComment.setContent(makersComments.getContent());
                 }
@@ -240,16 +255,18 @@ public interface ReviewMapper {
         reviewDetail.setReviewScoreList(getAverageReviewScore(dateAndScore));
 
         return reviewDetail;
-    };
+    }
+
+    ;
 
     default List<ReviewMakersResDto.AverageReviewScore> getAverageReviewScore(MultiValueMap<LocalDate, Integer> dateAndScore) {
-        if(dateAndScore == null) return null;
+        if (dateAndScore == null) return null;
         List<ReviewMakersResDto.AverageReviewScore> averageReviewScoreList = new ArrayList<>();
-        for(LocalDate serviceDate : dateAndScore.keySet()) {
+        for (LocalDate serviceDate : dateAndScore.keySet()) {
             List<Integer> scoreList = dateAndScore.get(serviceDate);
 
             Integer score = 0;
-            for(Integer s : scoreList) {
+            for (Integer s : scoreList) {
                 score += s;
             }
             Double average = Math.ceil(score / scoreList.size());
@@ -265,9 +282,9 @@ public interface ReviewMapper {
     }
 
     @Named("getImagesLocations")
-    default List<String>  getImagesLocations(List<Image> imageList) {
+    default List<String> getImagesLocations(List<Image> imageList) {
         List<String> nullList = new ArrayList<>();
-        if(imageList != null && !imageList.isEmpty()) {
+        if (imageList != null && !imageList.isEmpty()) {
             return imageList.stream().map(Image::getLocation).toList();
         }
         return nullList;
@@ -276,7 +293,7 @@ public interface ReviewMapper {
     @Named("getMakersName")
     default String getMakersName(OrderItem orderItem) {
         OrderItem item = (OrderItem) Hibernate.unproxy(orderItem);
-        if(item instanceof OrderItemDailyFood orderItemDailyFood) {
+        if (item instanceof OrderItemDailyFood orderItemDailyFood) {
             return orderItemDailyFood.getDailyFood().getFood().getMakers().getName();
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS);
@@ -285,7 +302,7 @@ public interface ReviewMapper {
     @Named("getItemName")
     default String getItemName(OrderItem orderItem) {
         OrderItem item = (OrderItem) Hibernate.unproxy(orderItem);
-        if(item instanceof OrderItemDailyFood orderItemDailyFood) {
+        if (item instanceof OrderItemDailyFood orderItemDailyFood) {
             return orderItemDailyFood.getDailyFood().getFood().getName();
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_ITEM);
@@ -294,7 +311,7 @@ public interface ReviewMapper {
     @Named("getServiceDate")
     default String getServiceDate(OrderItem orderItem) {
         String serviceDate = null;
-        if(Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
+        if (Hibernate.unproxy(orderItem) instanceof OrderItemDailyFood orderItemDailyFood) {
             serviceDate = DateUtils.localDateToString(orderItemDailyFood.getDailyFood().getServiceDate());
         }
         return serviceDate;
@@ -302,10 +319,10 @@ public interface ReviewMapper {
 
     @Named("getMakersComment")
     default ReviewAdminResDto.MakersComment getMakersComment(List<Comments> comments) {
-        if(comments.isEmpty()) return null;
+        if (comments.isEmpty()) return null;
         ReviewAdminResDto.MakersComment makersComment = new ReviewAdminResDto.MakersComment();
-        for(Comments comment : comments) {
-            if(comment instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
+        for (Comments comment : comments) {
+            if (comment instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
                 makersComment.setCommentId(makersComments.getId());
                 makersComment.setMakersName(makersComments.getReviews().getFood().getMakers().getName());
                 makersComment.setComment(makersComments.getContent());
@@ -317,10 +334,10 @@ public interface ReviewMapper {
 
     @Named("getAdminComment")
     default ReviewAdminResDto.AdminComment getAdminComment(List<Comments> comments) {
-        if(comments.isEmpty()) return null;
+        if (comments.isEmpty()) return null;
         ReviewAdminResDto.AdminComment adminComment = new ReviewAdminResDto.AdminComment();
-        for(Comments comment : comments) {
-            if(comment instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
+        for (Comments comment : comments) {
+            if (comment instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
                 adminComment.setCommentId(adminComments.getId());
                 adminComment.setComment(adminComments.getContent());
                 adminComment.setIsDelete(adminComments.getIsDelete());
@@ -335,41 +352,22 @@ public interface ReviewMapper {
     }
 
     default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
-                                                                BigInteger reviewWrite){
+                                                                BigInteger reviewWrite, List<String> keywords, Map<Integer, Integer> stars) {
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
-
         getFoodReviewResponseDto.setReviewList(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarAverage(starAverage);
         getFoodReviewResponseDto.setTotalReview(totalReview);
         getFoodReviewResponseDto.setFoodId(foodId);
         getFoodReviewResponseDto.setReviewWrite(reviewWrite);
+        getFoodReviewResponseDto.setKeywords(keywords);
+        getFoodReviewResponseDto.setStars(stars);
 
 
-        if (sort == 0){ //별점순 같을 경우 최신순
-            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getSatisfaction)
-                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
-        }
-        if (sort == 1){ //최신순 같을 경우 별점순
-            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getCreateDate)
-                    .thenComparing(FoodReviewListDto::getSatisfaction).reversed()).collect(Collectors.toList()));
-        }
-        if (sort == 2){ //좋아요(도움이돼요)순 같을 경우 최신순
-            getFoodReviewResponseDto.setReviewList(getFoodReviewResponseDto.getReviewList().stream().sorted(Comparator.comparing(FoodReviewListDto::getGood)
-                    .thenComparing(FoodReviewListDto::getCreateDate).reversed()).collect(Collectors.toList()));
-        }
 
         return getFoodReviewResponseDto;
 
-    };
+    }
 
+    ;
 
-
-    /* point쪽 무한스크롤 참고해서 만들기
-    * private BigInteger reviewId;
-    private String userName;
-    private String content;
-    private String writeDate;
-    private Integer like;
-    *
-    * */
 }

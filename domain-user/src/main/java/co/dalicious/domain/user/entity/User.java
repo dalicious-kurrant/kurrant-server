@@ -1,5 +1,7 @@
 package co.dalicious.domain.user.entity;
 
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.user.converter.GourmetTypeConverter;
 import co.dalicious.domain.user.converter.PushConditionsConverter;
@@ -28,6 +30,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @DynamicInsert
@@ -85,6 +88,10 @@ public class User {
     @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(32)")
     @Comment("사용자 명")
     private String name;
+
+    @Column(name = "nickname", columnDefinition = "VARCHAR(32)")
+    @Comment("사용자 닉네임")
+    private String nickname;
 
     @Embedded
     private Image avatar;
@@ -166,24 +173,26 @@ public class User {
     private List<PushCondition> pushConditionList;
 
     @Builder
-    public User(BigInteger id, String password, String name, Role role, String email, String phone) {
+    public User(BigInteger id, String password, String name, Role role, String email, String phone, String nickname) {
         this.id = id;
         this.password = password;
         this.name = name;
         this.role = role;
         this.email = email;
         this.phone = phone;
+        this.nickname = nickname;
     }
 
     @Builder
-    public User(BigInteger id, String password, String name, Role role,
+    public User(BigInteger id, String password, String name, String nickname, Role role,
                 UserStatus userStatus, String phone, String email,
                 BigDecimal point, GourmetType gourmetType, Boolean isMembership, Boolean marketingAgree,
                 Timestamp marketingAgreedDateTime, Boolean marketingAlarm, Boolean orderAlarm, Timestamp recentLoginDateTime,
-                Timestamp createdDateTime, Timestamp updatedDateTime, List<PushCondition> pushConditionList){
+                List<PushCondition> pushConditionList){
         this.id = id;
         this.password = password;
         this.name = name;
+        this.nickname = nickname;
         this.role = role;
         this.userStatus = userStatus;
         this.phone = phone;
@@ -196,10 +205,10 @@ public class User {
         this.marketingAlarm = marketingAlarm;
         this.orderAlarm = orderAlarm;
         this.recentLoginDateTime = recentLoginDateTime;
-        this.createdDateTime = createdDateTime;
-        this.updatedDateTime = updatedDateTime;
         this.pushConditionList = pushConditionList;
     }
+
+
 
 
     public void changePassword(String password) {
@@ -309,15 +318,9 @@ public class User {
         }
     }
 
-    public List<UserGroup> getActiveUserGroup() {
-        return this.getGroups().stream()
-                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
-                .collect(Collectors.toList());
-    }
-
     public String getActiveUserGrouptoString() {
-        if(getActiveUserGroup() == null) return null;
-        List<String> groupNames = getActiveUserGroup().stream()
+        if(getActiveUserGroups() == null) return null;
+        List<String> groupNames = getActiveUserGroups().stream()
                 .map(v -> v.getGroup().getName())
                 .toList();
         if(groupNames.isEmpty()) {
@@ -409,5 +412,52 @@ public class User {
 
     public void updatePhone(String phone) {
         this.phone = phone;
+    }
+
+    public List<UserGroup> getActiveUserGroups() {
+        return this.getGroups().stream()
+                .filter(v -> v.getGroup().getIsActive() == null || v.getGroup().getIsActive())
+                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                .toList();
+    }
+
+    public List<UserSpot> getActiveUserSpot() {
+        return this.getUserSpots().stream()
+                .filter(v -> v.getSpot().getStatus().equals(SpotStatus.ACTIVE))
+                .toList();
+    }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getNameAndNickname() {
+        String nickname = Optional.ofNullable(this.nickname).orElse("");
+        String name = Optional.ofNullable(this.name).orElse("");
+
+        if(nickname.isEmpty() && name.isEmpty()) {
+            return null;
+        } else if(nickname.isEmpty()) {
+            return name;
+        } else if(name.isEmpty()) {
+            return nickname;
+        } else {
+            return nickname + "(" + name + ")";
+        }
+    }
+
+    public String getNickname() {
+        return this.nickname == null ? this.name : this.nickname;
+    }
+    
+    public Boolean hasNickname() {
+        return this.nickname != null && !this.nickname.isEmpty();
+    }
+
+    public UserGroup getUserGroupByGroup(Group group) {
+        return this.groups.stream()
+                .filter(v -> v.getGroup().equals(group))
+                .findAny()
+                .orElse(null);
     }
 }

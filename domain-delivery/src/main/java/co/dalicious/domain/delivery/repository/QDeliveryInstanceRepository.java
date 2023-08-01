@@ -1,32 +1,35 @@
 package co.dalicious.domain.delivery.repository;
 
-import co.dalicious.domain.client.entity.CorporationSpot;
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.domain.client.entity.OpenGroupSpot;
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.domain.delivery.entity.DailyFoodDelivery;
-import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.entity.enums.DeliveryStatus;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
 import static co.dalicious.domain.delivery.entity.QDeliveryInstance.deliveryInstance;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
+import static co.dalicious.domain.user.entity.QUser.user;
 
 @Repository
 @RequiredArgsConstructor
@@ -41,6 +44,26 @@ public class QDeliveryInstanceRepository {
                         deliveryInstance.makers.eq(makers),
                         deliveryInstance.spot.eq(spot))
                 .fetchOne());
+    }
+
+    public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Makers makers, Group group) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.deliveryTime.eq(deliveryTime),
+                        deliveryInstance.diningType.eq(diningType),
+                        deliveryInstance.serviceDate.eq(serviceDate),
+                        deliveryInstance.makers.eq(makers),
+                        deliveryInstance.spot.group.eq(group))
+                .fetch();
+    }
+
+    public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Collection<String> makersNames, String groupName) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.deliveryTime.eq(deliveryTime),
+                        deliveryInstance.diningType.eq(diningType),
+                        deliveryInstance.serviceDate.eq(serviceDate),
+                        deliveryInstance.makers.name.in(makersNames),
+                        deliveryInstance.spot.group.name.eq(groupName))
+                .fetch();
     }
 
     public List<DeliveryInstance> findByFilter(LocalDate startDate, LocalDate endDate, List<DiningType> diningTypes, Makers makers) {
@@ -86,13 +109,43 @@ public class QDeliveryInstanceRepository {
         return Objects.requireNonNullElse(maxOrderNumber, 0);
     }
 
-    public List<DeliveryInstance> findByDailyFoodAndOrderStatus(List<DailyFood> dailyFoodList) {
+    public List<DeliveryInstance> findByDailyFoodAndOrderStatus(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if (start != null) {
+            whereClause.and(deliveryInstance.serviceDate.goe(start));
+        }
+        if (end != null) {
+            whereClause.and(deliveryInstance.serviceDate.loe(end));
+        }
+        if (groups != null && !groups.isEmpty()) {
+            whereClause.and(group.in(groups));
+        }
+        if (spotList != null && !spotList.isEmpty()) {
+            whereClause.and(deliveryInstance.spot.in(spotList));
+        }
+
         return queryFactory.selectFrom(deliveryInstance)
                 .leftJoin(dailyFoodDelivery).on(deliveryInstance.dailyFoodDeliveries.contains(dailyFoodDelivery))
                 .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .where(dailyFood.in(dailyFoodList), orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .leftJoin(dailyFood.group, group)
+                .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .distinct()
                 .fetch();
+    }
+
+    public DeliveryInstance findByIdJoinFetch(BigInteger id) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .leftJoin(deliveryInstance.dailyFoodDeliveries, dailyFoodDelivery).fetchJoin()
+                .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood).fetchJoin()
+                .leftJoin(orderItemDailyFood.order, order).fetchJoin()
+                .leftJoin(order.user, user).fetchJoin()
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood).fetchJoin()
+                .leftJoin(dailyFood.group, group).fetchJoin()
+                .where(deliveryInstance.id.eq(id)
+                        .and(orderItemDailyFood.orderStatus.in(OrderStatus.completePayment())))
+                .fetchOne();
     }
 
     public List<LocalTime> getTodayDeliveryTimes() {
@@ -100,6 +153,22 @@ public class QDeliveryInstanceRepository {
                 .from(deliveryInstance)
                 .where(deliveryInstance.serviceDate.eq(LocalDate.now()))
                 .distinct()
+                .fetch();
+    }
+
+    public List<DeliveryInstance> findAllWaitDeliveryBySpotAndTimeAndDriver(BigInteger spotId, LocalTime deliveryTime, String driver) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.spot.id.eq(spotId), deliveryInstance.serviceDate.eq(LocalDate.now()),
+                        deliveryInstance.deliveryTime.eq(deliveryTime), deliveryInstance.driver.code.eq(driver),
+                        deliveryInstance.deliveryStatus.in(DeliveryStatus.WAIT_DELIVERY))
+                .fetch();
+    }
+
+    public List<DeliveryInstance> findAllRequestDeliveredBySpotAndTimeAndDriver(BigInteger spotId, LocalTime deliveryTime, String driver) {
+        return queryFactory.selectFrom(deliveryInstance)
+                .where(deliveryInstance.spot.id.eq(spotId), deliveryInstance.serviceDate.eq(LocalDate.now()),
+                        deliveryInstance.deliveryTime.eq(deliveryTime), deliveryInstance.driver.code.eq(driver),
+                        deliveryInstance.deliveryStatus.in(DeliveryStatus.REQUEST_DELIVERED))
                 .fetch();
     }
 }

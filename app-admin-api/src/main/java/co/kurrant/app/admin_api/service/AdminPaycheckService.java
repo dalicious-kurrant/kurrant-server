@@ -22,6 +22,7 @@ public interface AdminPaycheckService {
     PaycheckDto.MakersDetail getMakersPaycheckDetail(BigInteger makersPaycheckId);
 //    void updateMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersResponse paycheckDto) throws IOException;
     void deleteMakersPaycheck(PaycheckDto.Request request);
+    void deleteMakersPaycheckById(BigInteger makersPaycheckId);
     void postMakersPaycheckAdd(BigInteger makersPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
     void updateMakersPaycheckStatus(Integer status, List<BigInteger> ids);
     void postMakersMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);
@@ -32,6 +33,7 @@ public interface AdminPaycheckService {
     PaycheckDto.Invoice getCorporationInvoice(BigInteger corporationPaycheckId);
     void updateCorporationPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.CorporationResponse paycheckDto) throws IOException;
     void deleteCorporationPaycheck(PaycheckDto.Request request);
+    void deleteCorporationPaycheckById(BigInteger corporationPaycheckId);
     void updateCorporationPaycheckStatus(Integer status, List<BigInteger> ids);
     void postCorporationPaycheckAdd(BigInteger corporationPaycheckId, List<PaycheckDto.PaycheckAddDto> paycheckAddDtos);
     void postCorporationMemo(BigInteger paycheckId, PaycheckDto.MemoDto memoDto);

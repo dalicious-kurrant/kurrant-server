@@ -21,7 +21,7 @@ import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.integration.client.user.utils.ClientUtil;
+import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.GenerateRandomNumber;
@@ -30,7 +30,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.AuthService;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.CustomException;
@@ -53,6 +53,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -181,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
 
     // Sms 인증
     @Override
-    public void sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public String sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
@@ -205,6 +206,11 @@ public class AuthServiceImpl implements AuthService {
         // Redis에 인증번호 저장
         CertificationHash certificationHash = CertificationHash.builder().id(null).type(type).to(smsMessageRequestDto.getTo()).certificationNumber(key).build();
         certificationHashRepository.save(certificationHash);
+
+        if (requiredAuth == RequiredAuth.SIGNUP) {
+            return UserUtil.generateRandomNickName();
+        }
+        return null;
     }
 
     // 회원가입
@@ -237,7 +243,14 @@ public class AuthServiceImpl implements AuthService {
 
         // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if (user == null) {
-            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
+            UserDto userDto = UserDto.builder()
+                    .email(signUpRequestDto.getEmail().trim())
+                    .phone(signUpRequestDto.getPhone())
+                    .password(hashedPassword)
+                    .name(signUpRequestDto.getName())
+                    .nickname(signUpRequestDto.getNickname())
+                    .role(Role.USER)
+                    .build();
 
             // Corporation가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);
@@ -289,6 +302,7 @@ public class AuthServiceImpl implements AuthService {
                 .spotStatus(spotStatus.getCode())
                 .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
                 .leftWithdrawDays(leftWithdrawDays)
+                .hasNickname(user.hasNickname())
                 .build();
     }
 
@@ -314,7 +328,9 @@ public class AuthServiceImpl implements AuthService {
         SpotStatus spotStatus = clientUtil.getSpotStatus(user);
 
         //fcm토큰 저장 로직 추가
-        qUserRepository.saveFcmToken(dto.getFcmToken(), user.getId());
+        if (dto.getFcmToken() != null && dto.getFcmToken().equals("")){
+            qUserRepository.saveFcmToken(dto.getFcmToken(), user.getId());
+        }
 
         return getLoginAccessToken(user, spotStatus);
     }

@@ -1,17 +1,17 @@
 package co.dalicious.domain.order.mapper;
 
-import co.dalicious.domain.client.entity.CorporationSpot;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.OpenGroupSpot;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.food.entity.FoodCapacity;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
+import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
+import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.dto.SpotDeliveryTimeDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import org.hibernate.Hibernate;
@@ -19,15 +19,17 @@ import org.mapstruct.Mapper;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", imports = {DateUtils.class, FoodUtils.class})
 public interface OrderDailyFoodByMakersMapper {
-    default OrderDailyFoodByMakersDto.ByPeriod toDto(List<OrderItemDailyFood> orderItemDailyFoodList) {
+    default OrderDailyFoodByMakersDto.ByPeriod toDto(List<OrderItemDailyFood> orderItemDailyFoodList, List<FoodCapacity> foodCapacities) {
         OrderDailyFoodByMakersDto.ByPeriod byPeriod = new OrderDailyFoodByMakersDto.ByPeriod();
         MultiValueMap<ServiceDiningDto, OrderItemDailyFood> diningTypeServiceDateMap = new LinkedMultiValueMap<>();
         MultiValueMap<Food, OrderItemDailyFood> foodMap = new LinkedMultiValueMap<>();
@@ -37,8 +39,8 @@ public interface OrderDailyFoodByMakersMapper {
             diningTypeServiceDateMap.add(serviceDiningDto, orderItemDailyFood);
             foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
         }
-        List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(diningTypeServiceDateMap);
-        List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = toDeliveryGroupsByDate(diningTypeServiceDateMap);
+        List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = toFoodByDateDiningType(diningTypeServiceDateMap, foodCapacities);
+        List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = toDeliveryGroupsByDate(diningTypeServiceDateMap, foodCapacities);
         List<OrderDailyFoodByMakersDto.Foods> foods = toFoods(foodMap);
 
         byPeriod.setFoodByDateDiningTypes(foodByDateDiningTypes);
@@ -48,7 +50,7 @@ public interface OrderDailyFoodByMakersMapper {
         return byPeriod;
     }
 
-    default List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> toDeliveryGroupsByDate(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> diningTypeServiceDateMap) {
+    default List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> toDeliveryGroupsByDate(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> diningTypeServiceDateMap, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = new ArrayList<>();
         for (ServiceDiningDto serviceDiningDto : diningTypeServiceDateMap.keySet()) {
             OrderDailyFoodByMakersDto.DeliveryGroupsByDate deliveryGroupsByDate = new OrderDailyFoodByMakersDto.DeliveryGroupsByDate();
@@ -57,6 +59,12 @@ public interface OrderDailyFoodByMakersMapper {
             deliveryGroupsByDate.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             deliveryGroupsByDate.setDeliveryGroups(toDeliveryGroups(orderItemDailyFoods));
             deliveryGroupsByDate.setSpotCount(deliveryGroupsByDate.getSpotCount());
+
+            LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(foodCapacities.get(0).getFood().getMakers(), serviceDiningDto.getDiningType(), serviceDiningDto.getServiceDate(), foodCapacities);
+            deliveryGroupsByDate.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
+            if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) deliveryGroupsByDate.setBeforeLastOrderTime(false);
+            deliveryGroupsByDate.setBeforeLastOrderTime(true);
+
             deliveryGroupsByDates.add(deliveryGroupsByDate);
         }
         deliveryGroupsByDates = deliveryGroupsByDates.stream()
@@ -71,13 +79,19 @@ public interface OrderDailyFoodByMakersMapper {
         MultiValueMap<LocalTime, OrderItemDailyFood> itemsByTime = new LinkedMultiValueMap<>();
         List<OrderDailyFoodByMakersDto.DeliveryGroups> deliveryGroupsList = new ArrayList<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            itemsByTime.add(orderItemDailyFood.getDeliveryTime(), orderItemDailyFood);
+            List<DeliverySchedule> deliverySchedules = orderItemDailyFood.getDailyFood().getDailyFoodGroup().getDeliverySchedules();
+            LocalTime pickupTime = deliverySchedules.stream()
+                    .filter(v -> v.getDeliveryTime().equals(orderItemDailyFood.getDeliveryTime()))
+                    .findAny()
+                    .map(DeliverySchedule::getPickupTime)
+                    .orElse(null);
+            itemsByTime.add(pickupTime, orderItemDailyFood);
         }
         for (LocalTime localTime : itemsByTime.keySet()) {
             OrderDailyFoodByMakersDto.DeliveryGroups deliveryGroups = new OrderDailyFoodByMakersDto.DeliveryGroups();
             // FIXME: OrderItemDailyFood에 LocalTime이 없을 경우?
             List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = toFoodBySpot(itemsByTime.get(localTime));
-            deliveryGroups.setDeliveryTime(DateUtils.timeToString(localTime));
+            deliveryGroups.setPickUpTime(localTime == null ? null : DateUtils.timeToString(localTime));
             deliveryGroups.setFoods(toFoods(itemsByTime.get(localTime)));
             deliveryGroups.setFoodCount(deliveryGroups.getFoodCount());
             deliveryGroups.setFoodBySpots(foodBySpots);
@@ -85,7 +99,7 @@ public interface OrderDailyFoodByMakersMapper {
             deliveryGroupsList.add(deliveryGroups);
         }
         deliveryGroupsList = deliveryGroupsList.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.DeliveryGroups::getDeliveryTime))
+                .sorted(Comparator.comparing(v -> (v.getPickUpTime() != null ? LocalTime.parse(v.getPickUpTime()) : LocalTime.MIN), Comparator.nullsLast(LocalTime::compareTo)))
                 .toList();
         return deliveryGroupsList;
     }
@@ -114,37 +128,38 @@ public interface OrderDailyFoodByMakersMapper {
     }
 
     default List<OrderDailyFoodByMakersDto.FoodBySpot> toFoodBySpot(List<OrderItemDailyFood> orderItemDailyFoods) {
-        MultiValueMap<Spot, OrderItemDailyFood> spotMap = new LinkedMultiValueMap<>();
+        MultiValueMap<SpotDeliveryTimeDto, OrderItemDailyFood> spotMap = new LinkedMultiValueMap<>();
         List<OrderDailyFoodByMakersDto.FoodBySpot> foodBySpots = new ArrayList<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            spotMap.add(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot(), orderItemDailyFood);
+            SpotDeliveryTimeDto spotDeliveryTimeDto = new SpotDeliveryTimeDto(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot(), orderItemDailyFood.getDeliveryTime());
+            spotMap.add(spotDeliveryTimeDto, orderItemDailyFood);
         }
-        for (Spot spot : spotMap.keySet()) {
+        for (SpotDeliveryTimeDto spot : spotMap.keySet()) {
             OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
             //FIXME: 배송 ID 설정
-            foodBySpot.setDeliveryId(null);
-            foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
-            foodBySpot.setPickUpTime(DateUtils.timeToString(spotMap.get(spot).get(0).getDailyFood().getDailyFoodGroup().getPickUpTime(spotMap.get(spot).get(0).getDeliveryTime())));
-            foodBySpot.setAddress1(spot.getAddress().addressToString());
-            foodBySpot.setAddress2(spot.getAddress().getAddress2()); //수정 필요
-            foodBySpot.setSpotName(spot.getName());
-            foodBySpot.setGroupName(spot instanceof MySpot ? null : spot.getGroup().getName());
-            foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getName());
-            foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getPhone());
+            foodBySpot.setDeliveryId(spot.getSpot().getId().toString());
+            foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot.getSpot())).getCode());
+            foodBySpot.setDeliveryTime(DateUtils.timeToString(spot.getDeliveryTime()));
+            foodBySpot.setAddress1(spot.getSpot().getAddress().addressToString());
+            foodBySpot.setAddress2(spot.getSpot().getAddress().getAddress2()); //수정 필요
+            foodBySpot.setSpotName(spot.getSpot().getName());
+            foodBySpot.setGroupName(spot.getSpot() instanceof MySpot ? null : spot.getSpot().getGroup().getName());
+            foodBySpot.setUserName(Hibernate.getClass(spot.getSpot()) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getName());
+            foodBySpot.setPhone(Hibernate.getClass(spot.getSpot()) == CorporationSpot.class ? null : spotMap.get(spot).get(0).getOrder().getUser().getPhone());
             foodBySpot.setFoods(toFoods(spotMap.get(spot)));
             foodBySpot.setFoodCount(foodBySpot.getFoodCount());
             foodBySpots.add(foodBySpot);
         }
         foodBySpots = foodBySpots.stream()
                 .sorted(Comparator.comparing(
-                        OrderDailyFoodByMakersDto.FoodBySpot::getPickUpTime,
+                        OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime,
                         Comparator.nullsLast(Comparator.naturalOrder())
                 ))
                 .collect(Collectors.toList());
         return foodBySpots;
     }
 
-    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> multiValueMap) {
+    default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(MultiValueMap<ServiceDiningDto, OrderItemDailyFood> multiValueMap, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = new ArrayList<>();
         for (ServiceDiningDto serviceDiningDto : multiValueMap.keySet()) {
             List<OrderItemDailyFood> orderItemDailyFoods = multiValueMap.get(serviceDiningDto);
@@ -164,6 +179,11 @@ public interface OrderDailyFoodByMakersMapper {
             foodByDateDiningType.setDiningType(serviceDiningDto.getDiningType().getDiningType());
             foodByDateDiningType.setTotalCount(totalCount);
             foodByDateDiningType.setFoods(foodList);
+
+            LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(foodCapacities.get(0).getFood().getMakers(), serviceDiningDto.getDiningType(), serviceDiningDto.getServiceDate(), foodCapacities);
+            foodByDateDiningType.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
+            if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) foodByDateDiningType.setBeforeLastOrderTime(false);
+            foodByDateDiningType.setBeforeLastOrderTime(true);
 
             foodByDateDiningTypes.add(foodByDateDiningType);
         }

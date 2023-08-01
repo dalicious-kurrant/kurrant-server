@@ -2,6 +2,7 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
@@ -15,6 +16,7 @@ import co.dalicious.domain.application_form.entity.RequestedShareSpot;
 import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
 import co.dalicious.domain.application_form.mapper.RequestedShareSpotMapper;
 import co.dalicious.domain.application_form.repository.*;
+import co.dalicious.domain.application_form.utils.ApplicationSlackUtil;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.application_form.mapper.MySpotMapper;
@@ -27,13 +29,13 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
 import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.mapper.*;
 import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
@@ -49,11 +51,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
 
+    private final ApplicationSlackUtil applicationSlackUtil;
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
@@ -130,7 +134,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 동일한 우편번호가 없으면? -> 생성
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(createRequestDto.getZipcode(), createRequestDto.getCounty(), createRequestDto.getVillage());
         if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
-        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(createRequestDto.getWaitingUserCount(), createRequestDto.getMemo(), region, null);
+        RequestedMySpotZones requestedMySpotZones = requestedMySpotZonesMapper.toRequestedMySpotZones(0, createRequestDto.getMemo(), region, null);
         requestedMySpotZonesRepository.save(requestedMySpotZones);
     }
 
@@ -142,7 +146,8 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         Region region = qRegionRepository.findRegionByZipcodeAndCountyAndVillage(requestedMySpotDetailDto.getZipcode(), requestedMySpotDetailDto.getCounty(), requestedMySpotDetailDto.getVillage());
         if(region == null) throw new ApiException(ExceptionEnum.NOT_FOUND_REGION);
-        existRequestedMySpotZones.updateRequestedMySpotZones(requestedMySpotDetailDto, region);
+        requestedMySpotZonesMapper.updateRequestedMySpotZoneFromRequest(requestedMySpotDetailDto, existRequestedMySpotZones);
+        existRequestedMySpotZones.updateRegion(region);
     }
 
     @Override
@@ -161,7 +166,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Transactional
     public void createMySpotZonesFromRequest(List<BigInteger> ids) {
         List<RequestedMySpotZones> existRequestedMySpotZones = qRequestedMySpotZonesRepository.findRequestedMySpotZonesByIds(ids);
-        List<BigInteger> pushAlarmUserIds = existRequestedMySpotZones.stream().flatMap(v -> v.getPushAlarmUserIds().stream()).toList();
+        List<BigInteger> pushAlarmUserIds = existRequestedMySpotZones.stream()
+                .flatMap(requestedMySpotZones -> {
+                    List<BigInteger> alarmUserIds = requestedMySpotZones.getPushAlarmUserIds();
+                    return alarmUserIds != null ? alarmUserIds.stream() : Stream.empty();
+                })
+                .collect(Collectors.toList());
 
         // 마이스팟 생성
         MySpotZone mySpotZone = mySpotZoneMapper.toMySpotZone(existRequestedMySpotZones);
@@ -200,6 +210,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         // 신청된 마이스팟 존 삭제
         requestedMySpotRepository.deleteAll(requestedMySpots);
         requestedMySpotZonesRepository.deleteAll(existRequestedMySpotZones);
+
     }
 
     @Override
@@ -215,6 +226,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     public void createShareSpotRequest(ShareSpotDto.AdminRequest request) throws ParseException {
         RequestedShareSpot requestedShareSpot = requestedShareSpotMapper.toEntity(request);
         requestedShareSpotRepository.save(requestedShareSpot);
+
     }
 
     @Override
@@ -250,12 +262,11 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             Optional<RequestedMySpotZones> requestedMySpotZone = requestedMySpotZones.stream().filter(v -> mySpotZones.get(mySpotZone).contains(v.getRegion().getZipcode())).findAny();
             requestedMySpotZone.ifPresent(v -> {
 
-                List<BigInteger> userIds = v.getPushAlarmUserIds();
+                List<BigInteger> userIds = v.getPushAlarmUserIds() == null || v.getPushAlarmUserIds().isEmpty() ? null : v.getPushAlarmUserIds();
                 List<MySpot> mySpots = mySpotMapper.toEntityList(mySpotZone, v.getRequestedMySpots(), userIds);
                 spotRepository.saveAll(mySpots);
 
                 createUserGroupAndUserSpot(v.getRequestedMySpots(), mySpotZone, mySpots);
-
 
                 deleteRequestedMySpot.addAll(v.getRequestedMySpots());
             });
