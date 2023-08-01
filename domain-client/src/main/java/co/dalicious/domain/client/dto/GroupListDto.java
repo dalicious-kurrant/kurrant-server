@@ -26,7 +26,6 @@ public class GroupListDto {
 
     @Getter
     @Setter
-    @NoArgsConstructor
     public static class GroupInfoList {
         private BigInteger id;
         private Integer groupType;
@@ -56,6 +55,49 @@ public class GroupListDto {
         private BigDecimal maximumSpend;
         private String memo;
         private List<MealInfo> mealInfos;
+        private List<PrepaidCategory> prepaidCategoryList;
+        private List<CategoryPrice> categoryPrices;
+
+        public GroupInfoList() {
+            List<CategoryPrice> categoryPrices1 = new ArrayList<>();
+            for (co.dalicious.system.enums.CategoryPrice categoryPrice : co.dalicious.system.enums.CategoryPrice.values()) {
+                categoryPrices1.add(new CategoryPrice(categoryPrice));
+            }
+            this.categoryPrices = categoryPrices1;
+        }
+    }
+
+    @Getter
+    public static class CategoryPrice {
+        private final Integer code;
+        private final String category;
+        private final Integer price;
+
+        public CategoryPrice(co.dalicious.system.enums.CategoryPrice categoryPrice) {
+            this.code = categoryPrice.getCode();
+            this.category = categoryPrice.getCategory();
+            this.price = categoryPrice.getPrice().intValue();
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class PrepaidCategory {
+        private Integer code;
+        private String paycheckCategoryItem;
+        private Integer count;
+        private Integer price;
+        private Integer totalPrice;
+
+        @Builder
+        public PrepaidCategory(String paycheckCategoryItem, Integer count, Integer price, Integer totalPrice, Integer code) {
+            this.code = code;
+            this.paycheckCategoryItem = paycheckCategoryItem;
+            this.count = count;
+            this.price = price;
+            this.totalPrice = totalPrice;
+        }
     }
 
     @Getter
