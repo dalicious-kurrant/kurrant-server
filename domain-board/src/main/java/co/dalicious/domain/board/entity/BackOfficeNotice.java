@@ -1,5 +1,6 @@
 package co.dalicious.domain.board.entity;
 
+import co.dalicious.domain.board.converter.BoardTypeConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
@@ -52,6 +53,7 @@ public class BackOfficeNotice {
     private Boolean isStatus;
 
     @Column(name="e_type")
+    @Convert(converter = BoardTypeConverter.class)
     private BoardType boardType;
 
     @ColumnDefault(value = "0")

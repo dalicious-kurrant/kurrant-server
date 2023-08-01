@@ -28,7 +28,7 @@ public class BoardController {
     private final BoardService boardService;
 
     @Operation(summary = "메이커스 공지사항 조회", description = "메이커스 공지사항을 조회한다")
-    @GetMapping("/makers")
+    @GetMapping("")
     public ResponseMessage getMakersBoard(Authentication authentication, @RequestParam Integer type,
                                           @RequestParam(required = false, defaultValue = "15") Integer limit,
                                           @RequestParam Integer page) {

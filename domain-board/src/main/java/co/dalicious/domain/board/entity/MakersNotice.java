@@ -16,7 +16,7 @@ import java.util.List;
 @Setter
 public class MakersNotice extends BackOfficeNotice {
 
-    @Column(name = "makers_id")
+    @Column(name = "makers_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("메이커스 ID")
     private BigInteger makersId;
 

@@ -65,7 +65,7 @@ public class QBackOfficeNoticeRepository {
 
     public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, BoardType type, Pageable pageable) {
         QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
-                .where(makersNotice.boardType.eq(type), makersNotice.makersId.isNull(), makersNotice.makersId.eq(makersId))
+                .where(makersNotice.boardType.eq(type), makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
                 .orderBy(makersNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
