@@ -218,6 +218,7 @@ project(':app-client-api') {
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
         implementation project(':client-sse')
+        implementation project(':domain-board')
     }
 }
 

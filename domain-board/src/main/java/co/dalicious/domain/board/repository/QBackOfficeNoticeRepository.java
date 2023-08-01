@@ -63,4 +63,14 @@ public class QBackOfficeNoticeRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
+    public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, BoardType type, Pageable pageable) {
+        QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
+                .where(makersNotice.boardType.eq(type), makersNotice.makersId.isNull(), makersNotice.makersId.eq(makersId))
+                .orderBy(makersNotice.createdDateTime.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
 }
