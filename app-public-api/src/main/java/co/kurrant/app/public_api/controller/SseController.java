@@ -37,8 +37,11 @@ public class SseController {
 
     @Description(value = "메세지 전송")
     @PostMapping(value = "/v1/notification/send")
-    public void subscribe(@RequestBody OrderDto.IdList idList) {
+    public ResponseMessage subscribe(@RequestBody OrderDto.IdList idList) {
         applicationEventPublisher.publishEvent(idList.getIdList());
+        return ResponseMessage.builder()
+                .message("메세지 전송 성공")
+                .build();
     }
 
     @Description(value = "sse 알림 조회")
