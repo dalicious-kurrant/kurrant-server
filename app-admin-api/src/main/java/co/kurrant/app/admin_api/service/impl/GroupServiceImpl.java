@@ -18,6 +18,7 @@ import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
@@ -232,7 +233,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     // TODO: 스팟으로 설정되어 있지만 그룹으로 변경
-    public void updateGroupDetail(GroupListDto.GroupInfoList groupInfoList) throws ParseException {
+    public void updateGroupDetail(UpdateGroupListDto.GroupInfoList groupInfoList) throws ParseException {
         // 그룹 찾기.
         Group group = groupRepository.findById(groupInfoList.getId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
         List<DiningType> diningTypeList = DiningTypesUtils.codesToDiningTypes(groupInfoList.getDiningTypes());
