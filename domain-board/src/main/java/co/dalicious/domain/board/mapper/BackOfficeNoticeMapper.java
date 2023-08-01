@@ -2,6 +2,7 @@ package co.dalicious.domain.board.mapper;
 
 import co.dalicious.domain.board.dto.*;
 import co.dalicious.domain.board.entity.BackOfficeNotice;
+import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardType;
@@ -23,7 +24,7 @@ public interface BackOfficeNoticeMapper {
     @Mapping(target = "isAlarmTalk", defaultValue = "false")
     MakersNotice toMakersNotice(MakersBoardRequestDto requestDto);
 
-    default List<MakersBoardResponseDto> toDto(Page<MakersNotice> notices, Map<BigInteger, String> makersNameMap){
+    default List<MakersBoardResponseDto> toMakersBoardResponseDto(Page<MakersNotice> notices, Map<BigInteger, String> makersNameMap){
         List<MakersBoardResponseDto> appBoardResponseDtos = new ArrayList<>();
 
         for (MakersNotice notice : notices) {
@@ -60,4 +61,42 @@ public interface BackOfficeNoticeMapper {
     default List<NoticeDto> getNoticeDtoList(Page<MakersNotice> makersNotices) {
         return makersNotices.stream().map(this::toDto).toList();
     }
+
+    default List<ClientBoardResponseDto> toClientBoardResponseDto(Page<ClientNotice> notices, Map<BigInteger, String> groupNameMap){
+        List<ClientBoardResponseDto> boardResponseDtos = new ArrayList<>();
+
+        for (ClientNotice notice : notices) {
+            ClientBoardResponseDto boardResponseDto = new ClientBoardResponseDto();
+
+            boardResponseDto.setId(notice.getId());
+            boardResponseDto.setTitle(notice.getTitle());
+            boardResponseDto.setContent(notice.getContent());
+            boardResponseDto.setBoardType(notice.getBoardType().getCode());
+            boardResponseDto.setGroupNames(notice.getGroupIds() == null || notice.getGroupIds().isEmpty() ? null : groupNameMap.keySet().stream().filter(v -> notice.getGroupIds().contains(v)).map(groupNameMap::get).toList());
+            boardResponseDto.setIsStatus(notice.getIsStatus() != null && notice.getIsStatus());
+            boardResponseDto.setIsAlarmTalk(notice.getIsAlarmTalk());
+            boardResponseDto.setCreateDate(DateUtils.toISOLocalDate(notice.getCreatedDateTime()));
+
+            boardResponseDtos.add(boardResponseDto);
+        }
+
+        return boardResponseDtos;
+    }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "isAlarmTalk", ignore = true)
+    @Mapping(target = "updatedDateTime", ignore = true)
+    @Mapping(target = "createdDateTime", ignore = true)
+    @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
+    void updateNotice(ClientBoardRequestDto requestDto, @MappingTarget ClientNotice notice);
+
+    @Mapping(target = "created", expression = "java(DateUtils.toISOLocalDate(notice.getCreatedDateTime()))")
+    @Mapping(target = "updated", expression = "java(DateUtils.toISOLocalDate(notice.getUpdatedDateTime()))")
+    @Mapping(target = "boardType", expression = "java(notice.getBoardType().getCode())")
+    @Mapping(source = "isStatus", target = "status")
+    NoticeDto toDto(ClientNotice notice);
+
+    @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
+    @Mapping(target = "isAlarmTalk", defaultValue = "false")
+    ClientNotice toClientNotice(ClientBoardRequestDto requestDto);
 }

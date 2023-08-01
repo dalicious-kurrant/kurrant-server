@@ -8,10 +8,10 @@ import java.util.List;
 
 @Getter
 @Setter
-public class MakersBoardRequestDto {
+public class ClientBoardRequestDto {
     private String title;
     private String content;
-    private BigInteger makersId;
+    private List<BigInteger> groupIds;
     private Integer boardType;
     private Boolean isStatus;
     private Boolean isAlarmTalk;

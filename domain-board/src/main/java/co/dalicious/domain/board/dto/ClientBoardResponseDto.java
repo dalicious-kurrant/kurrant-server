@@ -8,11 +8,13 @@ import java.util.List;
 
 @Getter
 @Setter
-public class MakersBoardRequestDto {
+public class ClientBoardResponseDto {
+    private BigInteger id;
     private String title;
     private String content;
-    private BigInteger makersId;
+    private List<String> groupNames;
     private Integer boardType;
     private Boolean isStatus;
+    private String createDate;
     private Boolean isAlarmTalk;
 }

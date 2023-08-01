@@ -44,4 +44,13 @@ public enum BoardType {
         return list;
     }
 
+    public static List<BoardType> showMakers() {
+        List<BoardType> list = new ArrayList<>();
+        list.add(BoardType.ALL);
+        list.add(BoardType.MAKERS);
+        list.add(BoardType.APPROVE_CHANGE_INFO);
+        list.add(BoardType.APPROVE_CHANGE_PRICE);
+        list.add(BoardType.PAYCHECK_COMPLETE);
+        return list;
+    }
 }
