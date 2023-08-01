@@ -1,10 +1,10 @@
 package co.kurrant.app.client_api.service;
 
-public interface BoardService {
-  /*
-  public ListItemResponseDto<ArticleListResponseDto> findAll(ArticleListRequestDto query,
-      String boardName, Pageable pageable);
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.board.dto.NoticeDto;
+import co.kurrant.app.client_api.model.SecurityUser;
 
-  public ArticleDetailResponseDto getOne(String boardName, BigInteger articleId);
-  */
+public interface BoardService {
+    ListItemResponseDto<NoticeDto> getClientBoard(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable);
 }
