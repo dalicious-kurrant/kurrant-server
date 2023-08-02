@@ -42,7 +42,12 @@ public class SseEventService {
 
         // MessageListener that reacts to Redis messages.
         MessageListener messageListener = (message, pattern) -> {
-            System.out.println("Received message from Redis on pattern: " + pattern);
+            try {
+                System.out.println("Received message from Redis on pattern: " + pattern);
+                sendToClient(emitter, id, message.toString());
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
         };
 
         redisMessageListenerContainer.addMessageListener(messageListener, ChannelTopic.of(getChannelName(id)));
