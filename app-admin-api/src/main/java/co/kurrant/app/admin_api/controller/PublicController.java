@@ -28,7 +28,7 @@ import java.util.List;
 public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final SseEventService sseEventService;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -84,7 +84,7 @@ public class PublicController {
     @Description(value = "메세지 전송")
     @PostMapping(value = "/notification/send")
     public ResponseMessage subscribe(@RequestBody OrderDto.IdList idList) {
-        applicationEventPublisher.publishEvent(idList.getIdList());
+        sseEventService.send(idList.getIdList());
         return ResponseMessage.builder()
                 .message("메세지 전송 성공")
                 .build();
