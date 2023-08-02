@@ -27,36 +27,57 @@ public class QBackOfficeNoticeRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public Page<? extends BackOfficeNotice> findAllByParameters(BigInteger makersId, List<BigInteger> groupIds, Boolean isStatus, Boolean isAlarmTalk, BoardType type, Pageable pageable) {
+    public Page<MakersNotice> findAllByParameters(BigInteger makersId, Boolean isStatus, Boolean isAlarmTalk, BoardType type, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
-        if(groupIds != null && !groupIds.isEmpty()) {
-            List<Tuple> groupIdResults = queryFactory.select(backOfficeNotice.id, clientNotice.groupIds).from(backOfficeNotice).fetch();
-            List<BigInteger> noticeIds = groupIdResults.stream()
-                    .filter(v -> v.get(clientNotice.groupIds) != null && v.get(clientNotice.groupIds).stream().anyMatch(groupIds::contains))
-                    .map(v -> v.get(backOfficeNotice.id))
-                    .toList();
-
-            whereCause.and(backOfficeNotice.id.in(noticeIds));
-        }
         if(makersId != null) {
             whereCause.and(makersNotice.makersId.eq(makersId));
         }
         if(type != null) {
-            whereCause.and(backOfficeNotice.boardType.eq(type));
+            whereCause.and(makersNotice.boardType.eq(type));
         }
         if(isStatus != null) {
-            whereCause.and(backOfficeNotice.isStatus.eq(isStatus));
+            whereCause.and(makersNotice.isStatus.eq(isStatus));
         }
         if(isAlarmTalk != null) {
-            whereCause.and(backOfficeNotice.isAlarmTalk.eq(isAlarmTalk));
+            whereCause.and(makersNotice.isAlarmTalk.eq(isAlarmTalk));
         }
 
-        QueryResults<BackOfficeNotice> results = queryFactory.selectFrom(backOfficeNotice)
-                .leftJoin(makersNotice).on(backOfficeNotice.id.eq(makersNotice.id))
-                .leftJoin(clientNotice).on(backOfficeNotice.id.eq(clientNotice.id))
+        QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
                 .where(whereCause)
-                .orderBy(backOfficeNotice.createdDateTime.desc())
+                .orderBy(makersNotice.createdDateTime.desc())
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+    }
+
+    public Page<ClientNotice> findAllByParameters(List<BigInteger> groupIds, Boolean isStatus, Boolean isAlarmTalk, BoardType type, Pageable pageable) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(groupIds != null && !groupIds.isEmpty()) {
+            List<Tuple> groupIdResults = queryFactory.select(clientNotice.id, clientNotice.groupIds).from(backOfficeNotice).fetch();
+            List<BigInteger> noticeIds = groupIdResults.stream()
+                    .filter(v -> v.get(clientNotice.groupIds) != null && v.get(clientNotice.groupIds).stream().anyMatch(groupIds::contains))
+                    .map(v -> v.get(clientNotice.id))
+                    .toList();
+
+            whereCause.and(clientNotice.id.in(noticeIds));
+        }
+        if(type != null) {
+            whereCause.and(clientNotice.boardType.eq(type));
+        }
+        if(isStatus != null) {
+            whereCause.and(clientNotice.isStatus.eq(isStatus));
+        }
+        if(isAlarmTalk != null) {
+            whereCause.and(clientNotice.isAlarmTalk.eq(isAlarmTalk));
+        }
+
+        QueryResults<ClientNotice> results = queryFactory.selectFrom(clientNotice)
+                .where(whereCause)
+                .orderBy(clientNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetchResults();

@@ -1,5 +1,6 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.AlimtalkRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
@@ -8,7 +9,6 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.board.dto.*;
-import co.dalicious.domain.board.entity.BackOfficeNotice;
 import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
@@ -30,7 +30,6 @@ import co.kurrant.app.admin_api.service.BoardService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +38,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,7 +95,7 @@ public class BoardServiceImpl implements BoardService {
     public void postPushAlarm(BigInteger noticeId) {
         Notice notice = noticeRepository.findByIdAndIsStatus(noticeId, true);
         if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
-        if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_PUSH_ALARM);
+        if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
         int sseType;
         List<User> users;
@@ -111,6 +109,7 @@ public class BoardServiceImpl implements BoardService {
 
         System.out.println("notice.getTitle() = " + notice.getTitle());
         String customMessage = pushUtil.getContextAppNotice(notice.getTitle(), PushCondition.NEW_NOTICE);
+        System.out.println("customMessage = " + customMessage);
         List<PushRequestDtoByUser> pushRequestDtoByUserList = new ArrayList<>();
         for (User user : users) {
             PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(user, PushCondition.NEW_NOTICE, customMessage);
@@ -140,7 +139,7 @@ public class BoardServiceImpl implements BoardService {
         Boolean isAlarmTalk = !parameters.containsKey("isAlarmTalk") || parameters.get("isAlarmTalk") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isAlarmTalk")));
         BoardType boardType = !parameters.containsKey("boardType") || parameters.get("boardType") == null ? null : BoardType.ofCode(Integer.parseInt(String.valueOf(parameters.get("boardType"))));
 
-        Page<MakersNotice> backOfficeNoticeList = (Page<MakersNotice>) qBackOfficeNoticeRepository.findAllByParameters(makersId, null, isStatus, isAlarmTalk, boardType, pageable);
+        Page<MakersNotice> backOfficeNoticeList = qBackOfficeNoticeRepository.findAllByParameters(makersId, isStatus, isAlarmTalk, boardType, pageable);
 
         if(backOfficeNoticeList.isEmpty()) ListItemResponseDto.<MakersBoardResponseDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) backOfficeNoticeList.getTotalPages()).build();
 
@@ -173,7 +172,7 @@ public class BoardServiceImpl implements BoardService {
         Boolean isAlarmTalk = !parameters.containsKey("isAlarmTalk") || parameters.get("isAlarmTalk") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isAlarmTalk")));
         BoardType boardType = !parameters.containsKey("boardType") || parameters.get("boardType") == null ? null : BoardType.ofCode(Integer.parseInt(String.valueOf(parameters.get("boardType"))));
 
-        Page<ClientNotice> backOfficeNoticeList = (Page<ClientNotice>) qBackOfficeNoticeRepository.findAllByParameters(null, groupIds, isStatus, isAlarmTalk, boardType, pageable);
+        Page<ClientNotice> backOfficeNoticeList = qBackOfficeNoticeRepository.findAllByParameters(groupIds, isStatus, isAlarmTalk, boardType, pageable);
 
         if(backOfficeNoticeList.isEmpty()) ListItemResponseDto.<ClientBoardResponseDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) backOfficeNoticeList.getTotalPages()).build();
 
@@ -189,6 +188,18 @@ public class BoardServiceImpl implements BoardService {
     public void updateClientBoard(BigInteger noticeId, ClientBoardRequestDto requestDto) {
         ClientNotice clientNotice = (ClientNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         backOfficeNoticeMapper.updateNotice(requestDto, clientNotice);
+    }
+
+    @Override
+    @Transactional
+    public void postAlarmTalk(BigInteger noticeId) {
+//        Notice notice = noticeRepository.findByIdAndIsStatus(noticeId, true);
+//        if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
+//        if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
+//
+//        AlimtalkRequestDto alimtalkRequestDto =
+//        pushService.sendToTalk();
+
     }
 
 
