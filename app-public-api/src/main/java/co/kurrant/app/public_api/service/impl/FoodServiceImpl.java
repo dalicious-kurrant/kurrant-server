@@ -12,6 +12,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.mapper.FoodMapper;
@@ -59,6 +60,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -201,7 +203,7 @@ public class FoodServiceImpl implements FoodService {
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
 
-        String lastOrderTime = getLastOrderTime(dailyFood);
+        String lastOrderTime = FoodUtils.getEarliestLastOrderTime(dailyFood);
 
         Spot spot = user.getDefaultUserSpot().getSpot();
         DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, dailyFood.getGroup(), spot, dailyFood);
@@ -215,28 +217,6 @@ public class FoodServiceImpl implements FoodService {
         foodDetailDto.setIsMembership(user.getIsMembership() || ((Group) Hibernate.unproxy(dailyFood.getGroup()) instanceof Corporation corporation && corporation.getIsMembershipSupport()));
 
         return foodDetailDto;
-    }
-
-    private String getLastOrderTime(DailyFood dailyFood) {
-        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
-        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
-        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
-
-        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간과 상품 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
-        if (makersLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, mealInfoLastOrderTime)){
-            if (foodLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, foodLastOrderTime)){
-                return makersLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
-            } else if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, makersLastOrderTime)){
-                return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
-            }
-        }
-
-        //위에 조건에 해당되지 않고 상품 마감시간이 밀인포 마감시간보다 빠르면 상품 마감시간 리턴
-        if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, mealInfoLastOrderTime)){
-            return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
-        }
-
-        return mealInfoLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
     }
 
     @Override

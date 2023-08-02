@@ -8,6 +8,7 @@ import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.FoodDiscountPolicy;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -33,7 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, UserSupportPriceUtil.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, UserSupportPriceUtil.class, FoodUtils.class})
 public interface PublicDailyFoodMapper {
     default DailyFoodResDto toDailyFoodResDto(List<DailyFood> dailyFoods, Group group, Spot spot, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Map<DailyFood, Integer> dailyFoodCountMap, List<UserRecommends> userRecommendList, List<Reviews> reviewList, User user) {
         // 1. 해당 스팟의 정보 가져오기
@@ -136,17 +137,7 @@ public interface PublicDailyFoodMapper {
 
     @Named("getLastOrderTime")
     default String getLastOrderTime(DailyFood dailyFood){
-        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
-        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
-        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
-
-        List<DayAndTime> lastOrderTimes = Stream.of(makersLastOrderTime, mealInfoLastOrderTime, foodLastOrderTime)
-                .filter(Objects::nonNull) // Exclude null values
-                .toList();
-        DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
-                .orElse(null);
-
-        return DayAndTime.dayAndTimeToString(lastOrderTime);
+        return FoodUtils.getEarliestLastOrderTime(dailyFood);
     }
 
     @Named("getStatus")
