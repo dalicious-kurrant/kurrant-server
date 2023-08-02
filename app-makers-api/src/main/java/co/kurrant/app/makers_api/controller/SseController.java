@@ -23,7 +23,9 @@ public class SseController {
     public SseEmitter subscribe(Authentication authentication,
                                 @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId,
                                 HttpServletResponse response) {
-//        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Connection", "keep-alive");
         return sseEventService.subscribe(UserUtil.getMakersId(authentication), lastEventId);
     }
 }

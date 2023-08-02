@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 @RequiredArgsConstructor
 public class SseEventService {
-    private static final Long DEFAULT_TIMEOUT = 1000L * 45;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
 
@@ -42,7 +42,12 @@ public class SseEventService {
 
         // MessageListener that reacts to Redis messages.
         MessageListener messageListener = (message, pattern) -> {
-            System.out.println("Received message from Redis on pattern: " + pattern);
+            try {
+                System.out.println("Received message from Redis on pattern: " + pattern);
+                sendToClient(emitter, id, message.toString());
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
         };
 
         redisMessageListenerContainer.addMessageListener(messageListener, ChannelTopic.of(getChannelName(id)));
