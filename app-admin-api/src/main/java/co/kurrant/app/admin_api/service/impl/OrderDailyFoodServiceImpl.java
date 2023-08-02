@@ -66,7 +66,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,7 +90,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
     private final MakersMapper makersMapper;
-    private final UserGroupRepository userGroupRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final MakersRepository makersRepository;
     private final OrderRepository orderRepository;
@@ -123,7 +121,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final SseService sseService;
     private final SseEventService sseEventService;
     private final QFoodCapacityRepository qFoodCapacityRepository;
-    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -326,7 +323,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
-        applicationEventPublisher.publishEvent(makersIds);
+        sseEventService.send(makersIds);
         return failMessage.toString();
     }
 
@@ -440,7 +437,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             order.updateTotalDeliveryFee(BigDecimal.ZERO);
             order.updatePoint(BigDecimal.ZERO);
         }
-        applicationEventPublisher.publishEvent(makersIds);
+        sseEventService.send(makersIds);
     }
 
     @Override
