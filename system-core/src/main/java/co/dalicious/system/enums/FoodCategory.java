@@ -15,7 +15,8 @@ public enum FoodCategory {
     CATEGORY_FEATURE("메뉴성격", 7),
     CATEGORY_ALLERGY("알레르기 체크", 8),
     CATEGORY_APPETITE("특이식성", 9),
-    CATEGORY_SPICY("맵기", 10);
+    CATEGORY_SPICY("맵기", 10),
+    CATEGORY_TAG_TYPE("식품타입", 11);
 
     private final String foodCategory;
     private final Integer code;

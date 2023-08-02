@@ -5,28 +5,28 @@ import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.mapper.CartDailyFoodMapper;
-import co.dalicious.domain.order.mapper.CartDailyFoodsResMapper;
-import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.repository.CartDailyFoodRepository;
+import co.dalicious.domain.order.repository.CartRepository;
+import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.dalicious.system.enums.DiningType;
 import co.kurrant.app.public_api.dto.order.UpdateCart;
 import co.kurrant.app.public_api.dto.order.UpdateCartDto;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserUtil;
 import co.kurrant.app.public_api.service.CartService;
+import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.CustomException;
 import exception.ExceptionEnum;
@@ -40,11 +40,9 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -117,7 +115,7 @@ public class CartServiceImpl implements CartService {
                 // 중복되는 DailyFood가 장바구니에 존재하지 않는다면 추가하기
                 LocalTime deliveryTime = DateUtils.stringToLocalTime(cartDto.getDeliveryTime());
                 if(deliveryTime == null || !mealInfo.getDeliveryTimes().contains(deliveryTime)) {
-                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400011", "올바른 배송시간이 아닙니다.");
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400011", "배송시간을 선택해주세요.");
                 }
                 CartDailyFood cartDailyFood = new CartDailyFood(user, cartDto.getCount(), dailyFood, spot, deliveryTime);
                 cartDailyFoodRepository.save(cartDailyFood);
@@ -170,6 +168,11 @@ public class CartServiceImpl implements CartService {
                 DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, group, spot, dailyFood);
                 CartDailyFoodDto.DailyFood cartFood = cartDailyFoodMapper.toDto(cartDailyFood, discountDto);
                 cartFood.setCapacity(dailyFoodCapacityMap.get(dailyFood));
+
+                //주문마감시간 추가
+                String lastOrderTime = getLastOrderTime(dailyFood);
+
+                cartFood.setLastOrderTime(lastOrderTime);
                 cartDailyFoodDtoMap.add(serviceDiningDto, cartFood);
             }
             // ServiceDate의 가장 빠른 날짜와 늦은 날짜 구하기
@@ -205,8 +208,9 @@ public class CartServiceImpl implements CartService {
                     .spotId(spot.getId())
                     .spotName(spot.getName())
                     .groupName(spot.getGroup().getName())
+                    .phone(getPhoneNumberForOrder(user, spot))
                     // TODO: 스팟 변경시 변경 필요
-                    .clientStatus(GroupDataType.ofClass(spot.getClass()).getCode())
+                    .groupType(GroupDataType.ofClass(spot.getClass()).getCode())
                     .cartDailyFoodDtoList(cartDailyFoodListDtos)
                     .build();
             spotCartsList.add(spotCarts);
@@ -217,6 +221,28 @@ public class CartServiceImpl implements CartService {
                 .spotCarts(spotCartsList)
                 .userPoint(user.getPoint())
                 .build();
+    }
+
+    private String getLastOrderTime(DailyFood dailyFood) {
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간과 상품 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, mealInfoLastOrderTime)){
+            if (foodLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, foodLastOrderTime)){
+                return makersLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            } else if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, makersLastOrderTime)){
+                return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            }
+        }
+
+        //위에 조건에 해당되지 않고 상품 마감시간이 밀인포 마감시간보다 빠르면 상품 마감시간 리턴
+        if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, mealInfoLastOrderTime)){
+            return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+
+        return mealInfoLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
     }
 
     @Override
@@ -266,5 +292,12 @@ public class CartServiceImpl implements CartService {
                     .findAny();
             selectedCart.ifPresent(cartDailyFood -> cartDailyFood.updateCount(updateCart.getCount()));
         }
+    }
+
+    private String getPhoneNumberForOrder(User user, Spot spot) {
+        if(spot instanceof MySpot mySpot && mySpot.getPhone() != null) {
+            return mySpot.getPhone();
+        }
+        return user.getPhone();
     }
 }

@@ -12,6 +12,8 @@ import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.SimpleExpression;
@@ -23,10 +25,12 @@ import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import javax.crypto.spec.PSource;
 import java.beans.Expression;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -246,7 +250,8 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByfoodIds(Collection<BigInteger> ids) {
         return queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.in(ids))
+                .where(reviews.food.id.in(ids),
+                        reviews.forMakers.eq(Boolean.FALSE)) //사장님만 보이기는 제외
                 .fetch();
     }
 
@@ -276,22 +281,51 @@ public class QReviewRepository {
     }
 
 
-    public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable) {
+    public Page<Reviews> findAllByFoodIdSort(BigInteger id, Integer photo, String star,String keyword, Pageable pageable, Integer sort) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(photo != null && photo != 0) {
+            whereClause.and(reviews.images.isNotEmpty());
+        }
+        if(star != null && star.length() != 0) {
+            whereClause.and(starFilter(star));
+        }
+        if(keyword != null && !keyword.equals("")) {
+            whereClause.and(keywordFilter(keyword));
+        }
 
-        QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id), photoFilter(photo), starFilter(star), keywordFilter(keyword))
+        if (sort == 0){ //별점순
+            QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                    .orderBy(reviews.satisfaction.desc(),
+                            reviews.createdDateTime.desc())
                     .offset(pageable.getOffset())
                     .limit(pageable.getPageSize())
                     .fetchResults();
-
+            return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+        }
+        if (sort == 1){    //최신순
+            QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
+                 .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                 .orderBy(reviews.createdDateTime.desc(),
+                         reviews.satisfaction.desc())
+                 .offset(pageable.getOffset())
+                 .limit(pageable.getPageSize())
+                 .fetchResults();
+            return new PageImpl<>(result.getResults(), pageable, result.getTotal());
+        }
+        //추천순
+        QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                .orderBy(reviews.good.desc(),
+                        reviews.createdDateTime.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetchResults();
         return new PageImpl<>(result.getResults(), pageable, result.getTotal());
     }
 
     //별점필터
     private BooleanExpression starFilter(String starFilter){
-        if (starFilter == null){
-            return null;
-        }
         List<Integer> stars = new ArrayList<>();
         List<String> list = Arrays.stream(starFilter.split(",")).toList();
         for (String star : list){
@@ -302,16 +336,7 @@ public class QReviewRepository {
 
     //키워드필터
     private BooleanExpression keywordFilter(String keywordFilter){
-        if (keywordFilter == null || keywordFilter.equals("")) return null;
-
         return reviews.content.contains(keywordFilter);
-    }
-
-    //포토필터
-    private BooleanExpression photoFilter(Integer photo){
-        if (photo == null) return null;
-
-        return reviews.images.isNotEmpty();
     }
 
     public void plusLike(BigInteger reviewId) {
@@ -339,15 +364,46 @@ public class QReviewRepository {
                 .execute();
     }
 
-    public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable) {
+    public Page<Reviews> findAllByFoodId(BigInteger foodId, Pageable pageable, Integer sort) {
+
+        if (sort == 0){ //별점순, 같으면 최신순
+            QueryResults<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(false))
+                    .orderBy(reviews.satisfaction.desc(),
+                            reviews.createdDateTime.desc())
+                    .limit(pageable.getPageSize())
+                    .offset(pageable.getOffset())
+                    .fetchResults();
+
+
+            return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
+        }
+
+        if (sort == 1){ //최신순, 같으면 별점순
+            QueryResults<Reviews> reviewsList = queryFactory.selectFrom(reviews)
+                    .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(false))
+                    .orderBy(reviews.createdDateTime.desc(),
+                            reviews.satisfaction.desc())
+                    .limit(pageable.getPageSize())
+                    .offset(pageable.getOffset())
+                    .fetchResults();
+
+
+            return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
+        }
+
+        //추천순 같으면 최신순
         QueryResults<Reviews> reviewsList = queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.eq(foodId))
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(false))
+                .orderBy(reviews.good.desc(),
+                        reviews.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
                 .fetchResults();
 
 
         return new PageImpl<>(reviewsList.getResults(), pageable, reviewsList.getTotal());
+
     }
 
     public Long findKeywordCount(String name, BigInteger foodId) {
@@ -377,5 +433,17 @@ public class QReviewRepository {
         }
 
         return averageAndTotalCount;
+    }
+
+    public List<Reviews> findAllByfoodIdsAndForMakers(BigInteger foodId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .fetch();
+    }
+
+    public List<Reviews> findAllByFoodIdForStar(BigInteger foodId) {
+        return queryFactory.selectFrom(reviews)
+                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .fetch();
     }
 }

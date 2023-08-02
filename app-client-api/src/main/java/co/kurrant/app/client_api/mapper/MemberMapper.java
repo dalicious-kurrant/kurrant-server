@@ -25,6 +25,7 @@ public interface MemberMapper {
     @Mapping(source = "user.point", target = "point")
     @Mapping(source = "user.gourmetType", target = "gourmetType")
     @Mapping(source = "user.isMembership", target = "isMembership")
+    @Mapping(source = "user.nickname", target = "nickname")
     MemberListResponseDto toMemberListDto(User user, String groupName);
 
 

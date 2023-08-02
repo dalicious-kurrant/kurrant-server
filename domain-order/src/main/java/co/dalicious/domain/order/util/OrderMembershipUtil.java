@@ -26,6 +26,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -44,6 +45,7 @@ public class OrderMembershipUtil {
     private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
 
     // 기업 멤버십 가입 로직
+    @Transactional
     public void joinCorporationMembership(User user, Corporation corporation) {
         // 멤버십을 지원하는 기업의 식사를 주문하면서, 멤버십에 가입되지 않은 회원이라면 멤버십 가입.
         LocalDate now = LocalDate.now();

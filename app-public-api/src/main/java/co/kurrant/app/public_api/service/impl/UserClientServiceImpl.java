@@ -2,17 +2,12 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.domain.client.dto.ClientSpotDetailResDto;
-import co.dalicious.domain.client.dto.OpenGroupDetailDto;
-import co.dalicious.domain.client.dto.OpenGroupListForKeywordDto;
-import co.dalicious.domain.client.dto.OpenGroupResponseDto;
+import co.dalicious.domain.client.dto.*;
 import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.QGroupRepository;
-import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
@@ -20,23 +15,25 @@ import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.SpotStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotDetailResMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotMapper;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserSpotDetailResMapper;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DistanceUtil;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserClientService;
-import co.kurrant.app.public_api.service.UserUtil;
-import com.querydsl.core.Tuple;
+import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.*;
@@ -54,20 +51,32 @@ public class UserClientServiceImpl implements UserClientService {
     private final QGroupRepository qGroupRepository;
     private final OpenGroupMapper openGroupMapper;
     private final UserGroupMapper userGroupMapper;
+    private final MySpotZoneRepository mySpotZoneRepository;
+    private final EntityManager entityManager;
 
     @Override
     @Transactional
     public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        Spot spot = spotRepository.findOneById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = spot.getGroup();
         isGroupMember(user, group);
 
         UserSpot userSpot = getUserSpot(spotId, user);
       
         if(userSpot == null) throw new ApiException(ExceptionEnum.NOT_SET_SPOT);
         return userSpotDetailResMapper.toDto(userSpot);
+    }
+
+    @Override
+    @Transactional
+    public GroupDetailDto getGroupDetail(SecurityUser securityUser, BigInteger groupId) {
+        User user = userUtil.getUser(securityUser);
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        isGroupMember(user, group);
+        return userGroupMapper.toGroupDetailDto(group, user);
     }
 
     @Override
@@ -87,7 +96,7 @@ public class UserClientServiceImpl implements UserClientService {
         if (spot instanceof MySpot mySpot && !user.getId().equals(mySpot.getUserId())) {
             throw new ApiException(ExceptionEnum.UNAUTHORIZED);
         }
-        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        Group group = spot.getGroup();
         isGroupMember(user, group);
 
         // 유저 스팟에 등록되지 않은 경우
@@ -96,7 +105,6 @@ public class UserClientServiceImpl implements UserClientService {
         }
         userSpot.updateDefault(true);
         return spot.getId();
-
     }
 
     //TODO :  추후 마이 스팟 이용 갯수가 늘어나면 spotId 삭제 방식으로 변경 필요
@@ -112,6 +120,7 @@ public class UserClientServiceImpl implements UserClientService {
         UserGroup userGroup = isGroupMember(user, unproxiedGroup);
         // 유저 그룹 상태를 탈퇴로 만든다.
         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+        if(userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
         List<UserSpot> userSpots = user.getUserSpots();
         Optional<UserSpot> userSpot = userSpots.stream().filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                 .findAny();
@@ -167,15 +176,35 @@ public class UserClientServiceImpl implements UserClientService {
 
     @Override
     @Transactional
+    public void updateMySpotInformation(SecurityUser securityUser, BigInteger mySpotZoneId, String target, String value) {
+        User user = userUtil.getUser(securityUser);
+        MySpotZone mySpotZone = mySpotZoneRepository.findById(mySpotZoneId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        MySpot mySpot = mySpotZone.getMySpot(user.getId());
+        if(mySpot == null) {
+            throw new ApiException(ExceptionEnum.UNAUTHORIZED);
+        }
+        if(target.equals("name")) {
+            mySpot.updateName(value);
+            return;
+        }
+        if(target.equals("phone")) {
+            mySpot.updatePhone(value);
+            return;
+        }
+        throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000016", "파라미터(target)의 명칭이 일치하지 않습니다.");
+    }
+
+    @Override
+    @Transactional
     public ListItemResponseDto<OpenGroupResponseDto> getOpenGroups(SecurityUser securityUser, Map<String, Object> location, Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
         Boolean isRestriction = parameters.get("isRestriction") == null || !parameters.containsKey("isRestriction") ? null : Boolean.valueOf(String.valueOf(parameters.get("isRestriction")));
         List<DiningType> diningType = parameters.get("diningType") == null || !parameters.containsKey("diningType") ? null : StringUtils.parseIntegerList(String.valueOf(parameters.get("diningType"))).stream().map(DiningType::ofCode).toList();
-        Double latitude = Double.valueOf(String.valueOf(location.get("lat")));
-        Double longitude = Double.valueOf(String.valueOf(location.get("long")));
+        double latitude = Double.parseDouble(String.valueOf(location.get("lat")));
+        double longitude = Double.parseDouble(String.valueOf(location.get("long")));
 
         Page<Group> groups = qGroupRepository.findOPenGroupByFilter(isRestriction, diningType, pageable, latitude, longitude);
         List<OpenGroupResponseDto> openGroupResponseDtos = new ArrayList<>();
-        if (groups.isEmpty() || groups == null) {
+        if (groups.isEmpty()) {
             return ListItemResponseDto.<OpenGroupResponseDto>builder().items(openGroupResponseDtos).limit(pageable.getPageSize()).total(0L).count(0).offset(0L).isLast(true).build();
         }
 
@@ -199,14 +228,25 @@ public class UserClientServiceImpl implements UserClientService {
     }
 
     private void resetDefaultSpot(User user) {
-        UserSpot defaultSpot = user.getDefaultUserSpot();
-        if (defaultSpot != null) defaultSpot.updateDefault(false);
+        List<UserSpot> userSpots = user.getUserSpots();
+        List<UserSpot> deleteSpots = new ArrayList<>();
+        for (UserSpot userSpot : userSpots) {
+            if(!Hibernate.unproxy(userSpot.getSpot()).equals(MySpot.class)) {
+                deleteSpots.add(userSpot);
+            }
+            else {
+                userSpot.updateDefault(false);
+            }
+        }
+        userSpotRepository.deleteAllInBatch(deleteSpots);
+        userSpotRepository.flush();
+        entityManager.refresh(user);
     }
 
     private UserGroup isGroupMember(User user, Group group) {
         List<UserGroup> groups = userGroupRepository.findAllByUserAndClientStatus(user, ClientStatus.BELONG);
         return groups.stream()
-                .filter(v -> Hibernate.unproxy(v.getGroup()).equals(group))
+                .filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
     }

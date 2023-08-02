@@ -40,4 +40,8 @@ public class PushAlarmHash {
         this.isRead = isRead;
         this.reviewId = reviewId;
     }
+
+    public void setRead(Boolean read) {
+        isRead = read;
+    }
 }

@@ -6,10 +6,14 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.delivery.entity.DeliveryInstance;
+import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
+import co.dalicious.domain.food.entity.embebbed.DeliverySchedule;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.dto.DailyFoodGroupDto;
@@ -80,8 +84,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushService pushService;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
+    private final SseService sseService;
     private final FoodCapacityRepository foodCapacityRepository;
-
+    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     @Override
     @Transactional
     public void approveSchedule(PeriodDto.PeriodStringDto periodStringDto) {
@@ -142,6 +147,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .type(AlarmType.MEAL.getAlarmType())
                     .build();
             pushAlarmHashes.add(pushAlarmHash);
+
+            sseService.send(user.getId(), 6, null, null, null);
         }
         pushService.sendToPush(pushRequestDtoByUsers);
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
@@ -220,6 +227,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<Food> updateFoods = qFoodRepository.findByMakers(updateMakersList);
         List<Group> updateGroups = qGroupRepository.findAllByNames(updateGroupNames);
 
+        // FIXME: DailyFoodGroup의 재정의. 제대로 사용하지 못하고 있음.
         MultiValueMap<DailyFoodGroupDto, FoodDto.DailyFood> dailyFoodGroupMap = new LinkedMultiValueMap<>();
 
         for (FoodDto.DailyFood dailyFood : dailyFoodList) {
@@ -403,6 +411,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .type(AlarmType.MEAL.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
+                sseService.send(user.getId(), 6, null, null, null);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);

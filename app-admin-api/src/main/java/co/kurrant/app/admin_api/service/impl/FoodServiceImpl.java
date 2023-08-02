@@ -8,6 +8,7 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.*;
@@ -180,7 +181,7 @@ public class FoodServiceImpl implements FoodService {
                 // 푸드 capacity 생성
                 List<MakersCapacity> makersCapacityList = maker.getMakersCapacities();
                 if (makersCapacityList == null) {
-                    throw new ApiException(ExceptionEnum.NOT_FOUND_MAKERS_CAPACITY);
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000017", maker.getId() + "번 메이커스의 주문가능 수량이 입력되지 않았습니다.");
                 }
                 for (MakersCapacity makersCapacity : makersCapacityList) {
                     DiningType diningType = makersCapacity.getDiningType();
@@ -252,7 +253,7 @@ public class FoodServiceImpl implements FoodService {
         }
 
         if (files != null && !files.isEmpty()) {
-            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, "food");
+            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, DirName.FOOD.getName());
             images.addAll(Image.toImages(imageResponseDtos));
         }
 

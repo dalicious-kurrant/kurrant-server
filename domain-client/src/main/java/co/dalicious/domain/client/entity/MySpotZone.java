@@ -7,11 +7,13 @@ import co.dalicious.domain.client.entity.enums.SpotStatus;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import lombok.*;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -57,5 +59,12 @@ public class MySpotZone extends Group {
 
     public void updateMySpotZoneStatus(MySpotZoneStatus mySpotZoneStatus) {
         this.mySpotZoneStatus = mySpotZoneStatus;
+    }
+
+    public MySpot getMySpot(BigInteger userId) {
+        return (MySpot) this.getSpots().stream()
+                .filter(v -> ((MySpot) Hibernate.unproxy(v)).getUserId().equals(userId))
+                .findAny()
+                .orElse(null);
     }
 }

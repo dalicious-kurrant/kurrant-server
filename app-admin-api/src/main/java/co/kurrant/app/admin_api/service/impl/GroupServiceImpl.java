@@ -8,6 +8,10 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.address.utils.AddressUtil;
@@ -21,7 +25,6 @@ import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
 import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
@@ -35,7 +38,6 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
@@ -54,7 +56,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,6 +81,7 @@ public class GroupServiceImpl implements GroupService {
     private final PushService pushService;
     private final QUserGroupRepository qUserGroupRepository;
     private final UserSpotRepository userSpotRepository;
+    private final SseService sseService;
 
     @Override
     @Transactional
@@ -162,7 +167,7 @@ public class GroupServiceImpl implements GroupService {
                     groupMapper.updateCorporation(groupInfoList, corporation);
                     corporation.updateAddress(address);
                 } else if (group instanceof OpenGroup openGroup) {
-                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
+                    openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
                 }
 
                 // dining type 체크해서 있으면 업데이트, 없으면 생성
@@ -249,7 +254,7 @@ public class GroupServiceImpl implements GroupService {
             corporation.updateAddress(address);
             corporation.updatePrepaidCategories(groupMapper.toPrepaidCategories(groupInfoList.getPrepaidCategoryList()));
         } else if (group instanceof OpenGroup openGroup) {
-            openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), groupInfoList.getEmployeeCount(), true);
+            openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
         }
 
         // dining type 체크해서 있으면 업데이트, 없으면 생성
@@ -355,6 +360,7 @@ public class GroupServiceImpl implements GroupService {
         MySpotZone mySpotZone = qMySpotZoneRepository.findMySpotZoneById(updateRequestDto.getId());
         if (mySpotZone == null) throw new ApiException(ExceptionEnum.NOT_FOUND_MY_SPOT_ZONE);
 
+        MySpotZoneStatus defaultStatus = mySpotZone.getMySpotZoneStatus();
         // my spot zone 수정
         mySpotZoneMapper.updateMySpotZone(updateRequestDto, mySpotZone);
 
@@ -388,18 +394,26 @@ public class GroupServiceImpl implements GroupService {
         });
 
         // push alarm
-        List<BigInteger> userIds = mySpotZone.getSpots().stream().filter(s -> s instanceof MySpot).map(spot -> ((MySpot) spot).getUserId()).toList();
-        List<User> users = qUserRepository.getUserAllById(userIds);
-        PushCondition pushCondition = PushCondition.NEW_SPOT;
+        if(!defaultStatus.equals(MySpotZoneStatus.OPEN) && updateRequestDto.getStatus().equals(MySpotZoneStatus.OPEN.getCode())) {
+            List<MySpot> mySpotList = mySpotZone.getSpots().stream().map(s -> ((MySpot) s)).toList();
+            List<BigInteger> userIds = mySpotList.stream().map(MySpot::getUserId).toList();
+            List<BigInteger> pushAlarmUserIds = mySpotList.stream().filter(MySpot::getIsAlarm).map(MySpot::getUserId).toList();
+            List<User> users = qUserRepository.getUserAllById(userIds);
+            PushCondition pushCondition = PushCondition.NEW_SPOT_2;
 
-        users.forEach(user -> {
-            String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
+            users.forEach(user -> {
+                if(pushAlarmUserIds.contains(user.getId())) {
+                    String customMessage = pushUtil.getContextOpenOrMySpot(user.getName(), GroupDataType.MY_SPOT.getType(), pushCondition);
 
-            PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
-            BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
-            pushService.sendToPush(batchAlarmDto, pushCondition);
-            pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
-        });
+                    PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
+                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                    pushService.sendToPush(batchAlarmDto, pushCondition);
+                    pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
+                    sseService.send(user.getId(), 6, null, null, null);
+                }
+                sseService.send(user.getId(), 7, null, mySpotZone.getId(), null);
+            });
+        }
     }
 
     @Override

@@ -22,6 +22,7 @@ public class DailyFoodDto {
     private String makersName;
     private String minTime;
     private String maxTime;
+    private String lastOrderTime;
     private String spicy;
     private String vegan;
     private String image;
@@ -37,4 +38,5 @@ public class DailyFoodDto {
     private BigDecimal periodDiscountPrice;
     private Integer periodDiscountRate;
     private Integer rank;
+    private Integer sort;
 }

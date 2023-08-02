@@ -49,7 +49,7 @@ public class RequestedMySpot {
     private String phone;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "application_form__requested_my_spot_zones_id")
+    @JoinColumn(name = "application_form__requested_my_spot_zones_id", columnDefinition = "BIGINT UNSIGNED")
     @JsonManagedReference(value = "application_form__requested_my_spot_zones_fk")
     @Comment("신청 마이스팟 존 ID")
     private RequestedMySpotZones requestedMySpotZones;

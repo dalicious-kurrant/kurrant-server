@@ -3,16 +3,18 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
+import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor

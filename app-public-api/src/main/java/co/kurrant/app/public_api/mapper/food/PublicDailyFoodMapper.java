@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.mapper.food;
 
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
+import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -14,6 +14,7 @@ import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.entity.UserRecommends;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
@@ -53,6 +54,19 @@ public interface PublicDailyFoodMapper {
                     .toList();
             List<String> serviceDays = DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays());
             DailyFoodResDto.ServiceInfo diningTypeDto = new DailyFoodResDto.ServiceInfo(diningType.getCode(), serviceDays, deliveryTimesStr);
+
+            // 요일별 식사 지원금
+            if(Hibernate.getClass(group).equals(Corporation.class) && group.getMealInfo(diningType) != null) {
+                List<DailyFoodResDto.SupportPriceByDay> supportPriceByDays = new ArrayList<>();
+                CorporationMealInfo corporationMealInfo = (CorporationMealInfo) Hibernate.unproxy(group.getMealInfo(diningType));
+                List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices = corporationMealInfo.getServiceDaysAndSupportPrices();
+                for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPrices) {
+                    for (Days supportDay : serviceDaysAndSupportPrice.getSupportDays()) {
+                        supportPriceByDays.add(new DailyFoodResDto.SupportPriceByDay(supportDay.getDays(), serviceDaysAndSupportPrice.getSupportPrice()));
+                    }
+                }
+                diningTypeDto.setSupportPriceByDays(supportPriceByDays);
+            }
             diningTypeDtos.add(diningTypeDto);
         }
         return diningTypeDtos;
@@ -87,13 +101,15 @@ public interface PublicDailyFoodMapper {
                     dailyFoodByDate.setServiceDate(DateUtils.localDateToString(entry.getKey().getKey()));
                     dailyFoodByDate.setDiningType(entry.getKey().getValue().getCode());
                     dailyFoodByDate.setSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, entry.getKey().getKey(), entry.getKey().getValue()));
-                    dailyFoodByDate.setDailyFoodDtos(dailyFoodDtos);
+                    dailyFoodByDate.setDailyFoodDtos(dailyFoodDtos.stream().sorted(Comparator.comparing(DailyFoodDto::getSort).reversed()).toList());
                     return dailyFoodByDate;
                 })
                 .toList();
 
     }
 
+    @Mapping(source = "sort", target = "sort")
+    @Mapping(source = "dailyFood", target = "lastOrderTime" , qualifiedByName = "getLastOrderTime")
     @Mapping(source = "totalCount", target = "totalReviewCount")
     @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
@@ -116,6 +132,30 @@ public interface PublicDailyFoodMapper {
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
     DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
+
+    @Named("getLastOrderTime")
+    default String getLastOrderTime(DailyFood dailyFood){
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간과 상품 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, mealInfoLastOrderTime)){
+            if (foodLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, foodLastOrderTime)){
+                return makersLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            } else if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, makersLastOrderTime)){
+                return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            }
+        }
+
+        //위에 조건에 해당되지 않고 상품 마감시간이 밀인포 마감시간보다 빠르면 상품 마감시간 리턴
+        if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, mealInfoLastOrderTime)){
+            return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+
+        return mealInfoLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+
+    }
 
     @Named("getStatus")
     default Integer getStatus(DailyFoodStatus dailyFoodStatus) {
@@ -156,26 +196,49 @@ public interface PublicDailyFoodMapper {
     }
     default Integer sortByFoodTag(DailyFood dailyFood) {
         if (!dailyFood.getFood().getFoodTags().isEmpty()) {
-            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11003))) {    //정찬도시락
+            //판매중이 아닌 상품은 10부터 시작
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11003))) {    //정찬도시락
                 return 10;
             }
-            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11007))) {    //한그릇음식
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11007))) {    //한그릇음식
                 return 9;
             }
-            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11004))) {    //산후조리식
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11004))) {    //산후조리식
                 return 8;
             }
-            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11005))) {    //다이어트식
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11005))) {    //다이어트식
                 return 7;
             }
-            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11006))) {    //프로틴식
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11006))) {    //프로틴식
                 return 6;
             }
-            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11002))) {    //샐러드
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11002))) {    //샐러드
                 return 5;
             }
+            if (dailyFood.getDailyFoodStatus().getCode() != 1 && dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11001))) {    //간편식
+                return 4;
+            }
+            //판매중인 상품은 20부터 시작
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11003))) {    //정찬도시락
+                return 20;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11007))) {    //한그릇음식
+                return 19;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11004))) {    //산후조리식
+                return 18;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11005))) {    //다이어트식
+                return 17;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11006))) {    //프로틴식
+                return 16;
+            }
+            if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11002))) {    //샐러드
+                return 15;
+            }
             if (dailyFood.getFood().getFoodTags().stream().anyMatch(v -> v.getCode().equals(11001))) {    //간편식
-                return 3;
+                return 14;
             }
         }
         return 0;

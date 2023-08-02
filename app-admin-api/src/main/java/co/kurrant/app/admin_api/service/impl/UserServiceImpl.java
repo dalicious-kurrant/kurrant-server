@@ -1,21 +1,25 @@
 package co.kurrant.app.admin_api.service.impl;
 
+import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.client.sse.SseService;
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.mapper.DepartmentMapper;
-import co.dalicious.domain.client.repository.DepartmentRepository;
+import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.dalicious.domain.user.dto.TestDataResponseDto;
 import co.dalicious.domain.user.dto.UserDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.mapper.UserDepartmentMapper;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
+import co.dalicious.domain.user.mapper.UserTasteTestDataMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.user.validator.UserValidator;
@@ -26,6 +30,7 @@ import exception.ApiException;
 import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -45,8 +50,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final DepartmentMapper departmentMapper;
-    private final UserDepartmentMapper userDepartmentMapper;
     private final UserHistoryMapper userHistoryMapper;
     private final QGroupRepository qGroupRepository;
     private final PasswordEncoder passwordEncoder;
@@ -60,14 +63,14 @@ public class UserServiceImpl implements UserService {
     private final ProviderEmailRepository providerEmailRepository;
     private final UserSpotRepository userSpotRepository;
     private final UserValidator userValidator;
-    private final UserDepartmentRepository userDepartmentRepository;
     private final FoodRepository foodRepository;
-    private final DepartmentRepository departmentRepository;
     private final UserTasteTestDataRepository userTasteTestDataRepository;
     private final QUserTasteTestDataRepository qUserTasteTestDataRepository;
     private final PointUtil pointUtil;
     private final PushUtil pushUtil;
     private final PushService pushService;
+    private final SseService sseService;
+    private final UserTasteTestDataMapper userTasteTestDataMapper;
 
 
     @Override
@@ -86,6 +89,7 @@ public class UserServiceImpl implements UserService {
 
         List<User> users = qUserRepository.getUserAllById(userIdList);
         List<ProviderEmail> providerEmails = qProviderEmailRepository.findAllByUsers(users);
+//        List<UserHistory> userHistoryList = new ArrayList<>();
         users.forEach(user -> {
             List<Order> orders = qOrderRepository.findOrderNotDelivered(user);
             // 배송 전인 주문내역이 없으면 탈퇴
@@ -155,6 +159,8 @@ public class UserServiceImpl implements UserService {
                     .findAny().ifPresent(v -> deleteUserList.add(providerEmail.getUser()));
         }
 
+        Set<User> pushAlarmForCorporationUser = new HashSet<>();
+
         for (User user : userUpdateMap.keySet()) {
             SaveUserListRequestDto saveUserListRequestDto = userUpdateMap.get(user);
             // 비밀번호에 데이터가 없을 경우
@@ -203,7 +209,13 @@ public class UserServiceImpl implements UserService {
 
             if (groupsName.isEmpty()) {
                 // Case 1: 요청의 groupName 값이 null일 경우 기존의 UserGroup 철회
-                user.getGroups().forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+                user.getGroups().stream()
+                        .filter(userGroup -> userGroup.getClientStatus().equals(ClientStatus.BELONG))
+                        .forEach(userGroup -> {
+                            userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+                            if(userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
+                        });
+
             } else if (user.getGroups().isEmpty()) {
                 // Case 2: 유저에 포함된 그룹이 없을 때
                 List<UserGroup> userGroups = Group.getGroups(groups, groupsName).stream()
@@ -215,6 +227,19 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+
+                // open group의 경우 count 넣기
+                userGroups.stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, true));
+
+                userGroups.forEach(v -> sseService.send(user.getId(), 7, null, v.getGroup().getId(), null));
+
+                if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
+                    pushAlarmForCorporationUser.add(user);
+                }
+
             } else {
                 // Case 3: 유저에 포함된 그룹이 존재할 때
                 Map<String, Group> nameToGroupMap = groups.stream()
@@ -222,10 +247,18 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toMap(Group::getName, Function.identity()));
 
                 user.getGroups().forEach(userGroup -> {
+                    ClientStatus defaultStatus = userGroup.getClientStatus();
                     if (nameToGroupMap.containsKey(userGroup.getGroup().getName())) {
                         // 기존에 존재할 경우 상태값 변경(BELONG)
                         userGroup.updateStatus(ClientStatus.BELONG);
                         nameToGroupMap.remove(userGroup.getGroup().getName());
+
+                        if(defaultStatus.equals(ClientStatus.WITHDRAWAL)) {
+                            if (userGroup.getGroup() instanceof Corporation) pushAlarmForCorporationUser.add(user);
+                            if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
+                            sseService.send(user.getId(), 7, null, userGroup.getGroup().getId(), null);
+                        }
+
                     } else {
                         // 기존에 존재했지만 요청 값에 없는 경우 철회(WITHDRAWAL) 상태로 변경
                         userGroup.updateStatus(ClientStatus.WITHDRAWAL);
@@ -233,6 +266,8 @@ public class UserServiceImpl implements UserService {
                                     .filter(v -> v.getSpot().getGroup().equals(userGroup.getGroup()))
                                     .toList();
                         userSpotRepository.deleteAll(deleteUserSpots);
+
+                        if (defaultStatus.equals(ClientStatus.BELONG) && Hibernate.unproxy(userGroup.getGroup()) instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
                     }
                 });
                 // 유저 내에 존재하지 않는 그룹은 추가
@@ -245,11 +280,23 @@ public class UserServiceImpl implements UserService {
                         .collect(Collectors.toList());
 
                 userGroupRepository.saveAll(userGroups);
+
+                if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
+                    pushAlarmForCorporationUser.add(user);
+                }
+
+                userGroups.forEach(v -> sseService.send(user.getId(), 7, null, v.getGroup().getId(), null));
+
+                // open group의 경우 count 넣기
+                userGroups.stream()
+                        .filter(userGroup -> userGroup.getGroup() instanceof OpenGroup)
+                        .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
+                        .forEach(g -> g.updateOpenGroupUserCount(1, true));
             }
+            user.changePhoneNumber(saveUserListRequestDto.getPhone());
+            user.updateNickname(saveUserListRequestDto.getNickname());
             if (saveUserListRequestDto.getName() != null && !user.getName().equals(saveUserListRequestDto.getName()))
                 user.updateName(saveUserListRequestDto.getName());
-            if (saveUserListRequestDto.getPhone() != null)
-                user.changePhoneNumber(saveUserListRequestDto.getPhone());
             if (saveUserListRequestDto.getRole() != null && !user.getRole().equals(Role.ofRoleName(saveUserListRequestDto.getRole())))
                 user.updateRole(Role.ofRoleName(saveUserListRequestDto.getRole()));
             if (saveUserListRequestDto.getStatus() != null && !user.getUserStatus().equals(UserStatus.ofCode(saveUserListRequestDto.getStatus())))
@@ -257,7 +304,6 @@ public class UserServiceImpl implements UserService {
             if (saveUserListRequestDto.getPoint() != null) {
                 BigDecimal point = BigDecimal.valueOf(saveUserListRequestDto.getPoint());
                 if (!user.getPoint().equals(point)) {
-
                     BigDecimal differencePoint = point.subtract(user.getPoint());
                     // 차액이 플러스면
                     if(differencePoint.compareTo(BigDecimal.valueOf(0)) > 0) {
@@ -289,11 +335,14 @@ public class UserServiceImpl implements UserService {
             if(orders.isEmpty()) {
                 // sns 가입 내역 삭제
                 List<ProviderEmail> userProviderEmails = providerEmails.stream().filter(v -> v.getUser().equals(user)).toList();
-                providerEmailRepository.deleteAll(userProviderEmails);
+                providerEmailRepository.deleteAllInBatch(userProviderEmails);
 
                 // user group withdrawal
                 List<UserGroup> userGroups = user.getGroups();
-                userGroups.forEach(userGroup -> userGroup.updateStatus(ClientStatus.WITHDRAWAL));
+                userGroups.forEach(userGroup -> {
+                    userGroup.updateStatus(ClientStatus.WITHDRAWAL);
+                    if(userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, false);
+                });
 
                 // user spot delete
                 List<UserSpot> userSpots = user.getUserSpots();
@@ -319,6 +368,7 @@ public class UserServiceImpl implements UserService {
                     .password((createUserDto.getPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPassword()))
                     .phone(createUserDto.getPhone())
                     .name(createUserDto.getName())
+                    .nickname(createUserDto.getNickname())
                     .role(createUserDto.getRole() == null ? Role.USER : Role.ofRoleName(createUserDto.getRole()))
                     .paymentPassword((createUserDto.getPaymentPassword() == null) ? null : passwordEncoder.encode(createUserDto.getPaymentPassword())).build();
 
@@ -337,15 +387,35 @@ public class UserServiceImpl implements UserService {
                     .orElse(List.of());
 
             Group.getGroups(groups, groupsName).stream()
-                    .map(group -> UserGroup.builder()
-                            .group(group)
-                            .user(user)
-                            .clientStatus(ClientStatus.BELONG)
-                            .build())
+                    .map(group -> {
+                        UserGroup newUserGroup = UserGroup.builder()
+                                .group(group)
+                                .user(user)
+                                .clientStatus(ClientStatus.BELONG)
+                                .build();
+
+                        if(group instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
+                        return newUserGroup;
+                    })
                     .forEach(userGroupRepository::save);
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
+        if(!pushAlarmForCorporationUser.isEmpty()) {
+            List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmForCorporationUser.stream()
+                    .map(user -> {
+                        PushCondition pushCondition = PushCondition.NEW_SPOT;
+                        String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                        pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                        return pushUtil.getPushRequest(user, pushCondition, message);
+                    }).toList();
+
+            if(pushRequestDtoByUsers.size() > 500) {
+                List<List<PushRequestDtoByUser>> slicePushRequestDtoByUsers = pushUtil.sliceByChunkSize(pushRequestDtoByUsers);
+                slicePushRequestDtoByUsers.forEach(pushService::sendToPush);
+            }
+            else pushService.sendToPush(pushRequestDtoByUsers);
+        }
     }
 
     @Override
@@ -438,5 +508,18 @@ public class UserServiceImpl implements UserService {
         }
 
         return "테스트 데이터 삭제 성공!";
+    }
+
+    @Override
+    public  List<TestDataResponseDto> getTestData() {
+
+        List<UserTasteTestData> userTasteTestDataList = qUserTasteTestDataRepository.findAll();
+        List<TestDataResponseDto> resultList = new ArrayList<>();
+
+        for (UserTasteTestData userTasteTestData : userTasteTestDataList){
+            TestDataResponseDto dto = userTasteTestDataMapper.toDto(userTasteTestData);
+            resultList.add(dto);
+        }
+        return resultList;
     }
 }

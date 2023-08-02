@@ -80,7 +80,7 @@ public class OrderItemService {
             BigInteger orderItemId = (BigInteger) objects[0];
             LocalDate serviceDate = (LocalDate) objects[1];
             LocalTime deliveryTime = (LocalTime) objects[2];
-            if(serviceDate.equals(today) && deliveryTime.isBefore(now)) {
+            if(serviceDate.isBefore(today) || (serviceDate.equals(today) && deliveryTime.isBefore(now))) {
                 orderItemIds.add(orderItemId);
             }
         }

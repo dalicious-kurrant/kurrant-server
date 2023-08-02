@@ -6,6 +6,7 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.entity.RefreshToken;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -54,6 +55,7 @@ public class ReviewJob {
     private final PushUtil pushUtil;
     private final EntityManagerFactory entityManagerFactory;
     private final PushService pushService;
+    private final SseService sseService;
     private final int CHUNK_SIZE = 100;
 
     @Bean(name = "reviewJob1")
@@ -89,10 +91,7 @@ public class ReviewJob {
 
 
         if (userIds.isEmpty()) {
-            // Return an empty reader if orderItemIds is empty
-            return new JpaPagingItemReaderBuilder<User>()
-                    .name("EmptyReviewReader")
-                    .build();
+            return null;
         }
 
         String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
@@ -119,6 +118,7 @@ public class ReviewJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, null);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
+                    sseService.send(user.getId(), 6, null, null, null);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.REVIEW, null);
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());

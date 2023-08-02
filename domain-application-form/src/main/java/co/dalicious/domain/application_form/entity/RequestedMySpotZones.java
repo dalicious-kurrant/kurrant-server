@@ -1,8 +1,7 @@
 package co.dalicious.domain.application_form.entity;
 
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
-import co.dalicious.domain.client.entity.Spot;
-import co.dalicious.integration.client.user.entity.Region;
 import co.dalicious.system.converter.IdListConverter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -73,12 +72,6 @@ public class RequestedMySpotZones {
         this.pushAlarmUserIds = pushAlarmUserIds;
     }
 
-    public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto, Region region) {
-        this.region = region;
-        this.waitingUserCount = updateRequestDto.getRequestUserCount();
-        this.memo = updateRequestDto.getMemo();
-    }
-
     public void updateWaitingUserCount(Integer count, Boolean isWithdrawal) {
         if(!isWithdrawal) this.waitingUserCount = this.waitingUserCount + count;
         else this.waitingUserCount = this.waitingUserCount - count;
@@ -90,4 +83,12 @@ public class RequestedMySpotZones {
 
         userIds.add(userId);
         this.pushAlarmUserIds = userIds; }
+
+    public void updateRegion(Region region) {
+        this.region = region;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
 }

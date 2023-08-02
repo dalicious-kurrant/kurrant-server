@@ -25,6 +25,7 @@ public class DailyFoodResDto {
         private Integer diningType;
         private List<String> serviceDays;
         private List<String> times;
+        private List<SupportPriceByDay> supportPriceByDays;
 
         public ServiceInfo(Integer diningType, List<String> serviceDays, List<String> times) {
             this.diningType = diningType;
@@ -40,5 +41,28 @@ public class DailyFoodResDto {
         private Integer diningType;
         private BigDecimal supportPrice;
         private List<DailyFoodDto> dailyFoodDtos;
+    }
+
+    @Getter
+    @Setter
+    public static class SupportPriceByDay {
+        private String day;
+        private String supportPrice;
+
+        public SupportPriceByDay(String day, BigDecimal supportPrice) {
+            this.day = day;
+            if(supportPrice.compareTo(BigDecimal.valueOf(62471004L)) == 0 ) {
+                this.supportPrice = "금액의 50%";
+                return;
+            }
+            int price = supportPrice.intValue();
+            String formattedPrice;
+            if (price < 1000) {
+                formattedPrice = String.valueOf(price);
+            } else {
+                formattedPrice = String.format("%,d", price);
+            }
+            this.supportPrice = formattedPrice;
+        }
     }
 }

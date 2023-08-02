@@ -179,11 +179,10 @@ public class QGroupRepository {
             whereCause.and(group.in(openGroupList));
         }
 
-        QueryResults<Group> resultList = queryFactory.select(group)
-                .from(group)
+        QueryResults<Group> resultList = queryFactory.selectFrom(group)
                 .leftJoin(mealInfo).on(group.eq(mealInfo.group))
                 .leftJoin(openGroupSpot).on(group.eq(openGroupSpot.group))
-                .where(group.instanceOf(OpenGroup.class), whereCause, group.isActive)
+                .where(group.instanceOf(OpenGroup.class), whereCause, group.isActive.isTrue())
                 .orderBy(Expressions.stringTemplate("ST_Distance_Sphere({0}, {1})", Expressions.stringTemplate("POINT({0}, {1})", lon, let), group.address.location).asc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())

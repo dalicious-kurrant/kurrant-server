@@ -1,6 +1,7 @@
 package co.kurrant.app.admin_api.service;
 
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
+import co.dalicious.domain.user.dto.TestDataResponseDto;
 import co.kurrant.app.admin_api.dto.user.*;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface UserService {
     String updateTestData(UpdateTestDataRequestDto updateTestDataRequestDto);
 
     String deleteTestData(DeleteTestDataRequestDto deleteTestDataRequestDto);
+
+    List<TestDataResponseDto> getTestData();
 }

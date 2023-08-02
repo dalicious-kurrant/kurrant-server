@@ -1,9 +1,14 @@
 package co.kurrant.app.makers_api.service.impl;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
+import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.QFoodCapacity;
+import co.dalicious.domain.food.repository.QFoodCapacityRepository;
+import co.dalicious.domain.food.repository.QFoodRepository;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
@@ -30,6 +35,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final OrderDailyFoodByMakersMapper orderDailyFoodByMakersMapper;
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final QFoodCapacityRepository qFoodCapacityRepository;
     @Override
     @Transactional
     public OrderDailyFoodByMakersDto.ByPeriod getOrder(SecurityUser securityUser, Map<String, Object> parameters) {
@@ -39,9 +45,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Makers makers = userUtil.getMakers(securityUser);
 //        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
 
+        List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
 
-        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList, foodCapacities);
     }
 
     @Override
@@ -53,6 +60,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Makers makers = userUtil.getMakers(securityUser);
 
         List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
-        return deliveryInstanceMapper.toDto(deliveryInstances);
+        List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
+        return deliveryInstanceMapper.toDto(deliveryInstances, foodCapacities);
     }
 }
