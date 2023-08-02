@@ -134,4 +134,14 @@ public class BoardController {
                 .message("고객사 공지사항 수정에 성공하였습니다.")
                 .build();
     }
+
+    @ControllerMarker(ControllerType.BOARD)
+    @Operation(summary = "메이커스/고객사 공지사항 알림톡", description = "메이커스/고객사 공지사항 알림톡을 전송합니다.")
+    @PostMapping("/alarm/talk")
+    public ResponseMessage postAlarmTalk(@RequestBody IdDto noticeId) {
+        boardService.postAlarmTalk(noticeId.getId());
+        return ResponseMessage.builder()
+                .message("메이커스/고객사 공지사항 알림톡 전송에 성공했습니다.")
+                .build();
+    }
 }
