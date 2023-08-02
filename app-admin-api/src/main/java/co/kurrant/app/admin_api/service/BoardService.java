@@ -21,5 +21,6 @@ public interface BoardService {
     void createClientBoard(ClientBoardRequestDto requestDto);
     ListItemResponseDto<ClientBoardResponseDto> getClientBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable);
     void updateClientBoard(BigInteger noticeId, ClientBoardRequestDto requestDto);
+    void postAlarmTalk(BigInteger noticeId);
 
 }
