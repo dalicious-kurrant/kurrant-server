@@ -19,7 +19,7 @@ public class DayAndTime {
     }
 
     public static boolean isBefore(DayAndTime makersLastOrderTime, DayAndTime mealInfoLastOrderTime) {
-        if (makersLastOrderTime.getDay() == null && mealInfoLastOrderTime.getDay() == null){
+        if (makersLastOrderTime.getDay() == null && mealInfoLastOrderTime.getDay() == null) {
             return makersLastOrderTime.getTime().isBefore(mealInfoLastOrderTime.getTime());
         } else {
             return makersLastOrderTime.getDay() != null;
@@ -37,6 +37,8 @@ public class DayAndTime {
     }
 
     public String dayAndTimeToStringByDate(LocalDate date) {
+        if(date == null) return null;
+
         String timeStr = this.getTime().toString();
 
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("MM/dd");
