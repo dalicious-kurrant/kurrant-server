@@ -54,6 +54,7 @@ public class QDailyFoodDeliveryRepository {
                         orderItemDailyFood.dailyFood.serviceDate.eq(serviceDate),
                         orderItemDailyFood.dailyFood.diningType.eq(diningType),
                         orderItemDailyFood.deliveryTime.eq(deliveryTime))
+                .limit(1)
                 .fetchOne());
     }
 
@@ -104,6 +105,31 @@ public class QDailyFoodDeliveryRepository {
                 .leftJoin(orderItemDailyFood.order, order)
                 .leftJoin(order.user, user)
                 .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()), spot.instanceOf(MySpot.class).or(spot.instanceOf(OpenGroupSpot.class)))
+                .fetch();
+    }
+
+    public List<DailyFoodDelivery> findAllFilterGroupAndSpot(LocalDate startDate, LocalDate endDate, List<BigInteger> groupIds, List<BigInteger> spotIds, String driverCode) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(startDate != null) {
+            whereClause.and(dailyFood.serviceDate.goe(startDate));
+        }
+        if(endDate != null) {
+            whereClause.and(dailyFood.serviceDate.loe(endDate));
+        }
+        if(groupIds != null && !groupIds.isEmpty()) {
+            whereClause.and(dailyFood.group.id.in(groupIds));
+        }
+        if(spotIds != null && !spotIds.isEmpty()) {
+            whereClause.and(orderDailyFood.spot.id.in(spotIds));
+        }
+        if(driverCode != null) {
+            whereClause.and(dailyFoodDelivery.deliveryInstance.driver.code.eq(driverCode));
+        }
+        return queryFactory.selectFrom(dailyFoodDelivery)
+                .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
+                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .leftJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .fetch();
     }
 }

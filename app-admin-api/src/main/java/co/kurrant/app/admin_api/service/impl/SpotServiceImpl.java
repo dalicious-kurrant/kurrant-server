@@ -2,9 +2,12 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
-import co.dalicious.domain.client.entity.*;
-import co.dalicious.domain.client.repository.*;
-import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.client.entity.Group;
+import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.client.repository.QSpotRepository;
+import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -76,6 +79,8 @@ public class SpotServiceImpl implements SpotService {
             List<DiningType> spotDiningTypes = DiningTypesUtils.stringToDiningTypes(spotMap.get(spot).getDiningType());
             spotDiningTypes.retainAll(spot.getGroup().getDiningTypes());
             spot.updateDiningTypes(spotDiningTypes);
+            spot.updateName(spotMap.get(spot).getSpotName());
+            spot.updateAddress2(spotMap.get(spot).getAddress2());
         }
 
         // FIXME 스팟 생성

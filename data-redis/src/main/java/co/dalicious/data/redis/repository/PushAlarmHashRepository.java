@@ -11,6 +11,4 @@ public interface PushAlarmHashRepository extends CrudRepository<PushAlarmHash, S
     void deleteAllByUserId(BigInteger userId);
     void update(PushAlarmHash certificationHash);
     void delete(String id);
-    List<PushAlarmHash> findAllPushAlarmHashByUserIdAndIsRead(BigInteger userId, Boolean isRead);
-    PushAlarmHash findAllPushAlarmHashByUserIdAndId(BigInteger userId, String id);
 }

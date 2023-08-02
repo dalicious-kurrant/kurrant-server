@@ -178,16 +178,17 @@ public class DateUtils {
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
 
-        long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
-        hoursLeft = hoursLeft % 24;
-        now = now.plusHours(hoursLeft);
-        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
-        minutesLeft = minutesLeft % 60;
+        if(limitDayAndTime.isBefore(now)){
+            limitDayAndTime = limitDayAndTime.plusDays(5);
+        }
 
-        LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
+        long dateTime = ChronoUnit.MINUTES.between(now, limitDayAndTime);
+        long day = dateTime / (60 * 24);
+        long hour = (dateTime / 60) % 24;
+        long min = dateTime % 60;
+        LocalTime remainingTime = LocalTime.of((int) hour, (int) min);
 
-        return String.format("%01d %tH:%tM", leftDay, remainingTime, remainingTime);
+        return String.format("%01d %tH:%tM", day, remainingTime, remainingTime);
     }
 
     public static YearMonth stringToYearMonth(String startYearMonth) {

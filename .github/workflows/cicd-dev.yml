@@ -101,7 +101,9 @@ jobs:
       - name: client-core application-jwt.properties 생성
         run: |
           cd ./client-core/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-jwt.properties
           echo "${{ secrets.CLIENT_CORE_JWT_PROPERTIES }}" > ./application-jwt.properties
@@ -110,7 +112,9 @@ jobs:
       - name: client-external-mail application-mail.properties 생성
         run: |
           cd ./client-external-mail/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-mail.properties
           echo "${{ secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES }}" > ./application-mail.properties
@@ -119,7 +123,9 @@ jobs:
       - name: client-external-sms application-mail.properties 생성
         run: |
           cd ./client-external-sms/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-sms.properties
           echo "${{ secrets.CLIENT_EXTERNAL_SMS_PROPERTIES }}" > ./application-sms.properties
@@ -128,7 +134,9 @@ jobs:
       - name: data-redis application-redis.yml 생성
         run: |
           cd ./data-redis/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-redis.properties
           echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
@@ -137,7 +145,9 @@ jobs:
       - name: domain-payment application-payment.properties 생성
         run: |
           cd ./domain-payment/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-payment.properties
           echo "${{ secrets.DOMAIN_PAYMENT_DEV_PROPERTIES }}" > ./application-payment.properties
@@ -146,7 +156,9 @@ jobs:
       - name: domain-file application-s3.properties 생성
         run: |
           cd ./domain-file/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-s3.properties
           echo "${{ secrets.DOMAIN_FILE_DEV_S3_PROPERTIES }}" > ./application-s3.properties
@@ -155,7 +167,9 @@ jobs:
       - name: client-alarm application-alimtalk.properties 생성
         run: |
           cd ./client-alarm/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-alimtalk.properties
           echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
@@ -166,10 +180,19 @@ jobs:
       - name: client-alarm application-map.properties 생성
         run: |
           cd ./domain-address/src/main
+          if [ ! -d resources ]; then
           mkdir resources
+          fi
           cd resources
           touch ./application-map.properties
           echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
+        shell: bash
+
+      - name: data-flyway application.yaml(dev) 생성
+        run: |
+          cd ./data-flyway/src/main/resources
+          touch ./application-dev.yaml
+          echo "${{ secrets.DATA_FLYWAY_DEV }}" > ./application-dev.yaml
         shell: bash
 
       - name: gradlew 실행 권한 추가
@@ -177,6 +200,11 @@ jobs:
 
       - name: Gradle 빌드
         run: ./gradlew build
+
+      - name: 빌드 및 FlywayApplication (dev) 실행
+        run: |
+          cd ./data-flyway/build/libs/
+          java -Dspring.profiles.active=dev -jar data-flyway.jar
 
       - name: Docker 빌드
         run: |
@@ -207,6 +235,10 @@ jobs:
           docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_batch:${GITHUB_SHA::7}
 
 
+  deploy:
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
       - name: 배포
         uses: appleboy/ssh-action@master
         with:
@@ -215,6 +247,7 @@ jobs:
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           envs: GITHUB_SHA
           script: |
+            docker rmi $(docker images -q)
             echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
             docker pull ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
             docker tag ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7} kurrant_v1

@@ -30,6 +30,7 @@ import org.springframework.util.MultiValueMap;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,8 @@ public interface OrderMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
     @Mapping(source = "orderItemDailyFoodGroup", target = "orderItemDailyFoodGroup")
-    OrderItemDailyFood toExtraOrderItemEntity(Order order, DailyFood dailyFood, ExtraOrderDto.Request extraOrderDto, DiscountDto discountDto, OrderItemDailyFoodGroup orderItemDailyFoodGroup);
+    @Mapping(source = "deliveryTime", target = "deliveryTime")
+    OrderItemDailyFood toExtraOrderItemEntity(Order order, DailyFood dailyFood, ExtraOrderDto.Request extraOrderDto, DiscountDto discountDto, OrderItemDailyFoodGroup orderItemDailyFoodGroup, LocalTime deliveryTime);
 
     @Mapping(source = "orderCode", target = "code")
     @Mapping(source = "spot.address", target = "address")
@@ -173,14 +175,15 @@ public interface OrderMapper {
             orderItemDailyFoodGroupDto.setDiningType(orderItemDailyFoodGroup.getDiningType().getDiningType());
             orderItemDailyFoodGroupDto.setGroupName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getGroupName());
             orderItemDailyFoodGroupDto.setSpotName(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getSpotName());
-            orderItemDailyFoodGroupDto.setUserName(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getName());
+            orderItemDailyFoodGroupDto.setUserName(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getNameAndNickname());
             orderItemDailyFoodGroupDto.setUserEmail(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getEmail());
-            orderItemDailyFoodGroupDto.setPhone(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
+            orderItemDailyFoodGroupDto.setPhone(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPhone() != null ? ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPhone() : orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getUser().getPhone());
             orderItemDailyFoodGroupDto.setOrderCode(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCode());
             orderItemDailyFoodGroupDto.setOrderDateTime(timeStampToString(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder().getCreatedDateTime()));
             orderItemDailyFoodGroupDto.setTotalPrice(orderItemDailyFoodGroup.getTotalPriceByGroup());
             orderItemDailyFoodGroupDto.setSupportPrice(orderItemDailyFoodGroup.getUsingSupportPrice());
             orderItemDailyFoodGroupDto.setPayPrice(orderItemDailyFoodGroup.getPayPrice());
+            orderItemDailyFoodGroupDto.setPoint(((OrderDailyFood) Hibernate.unproxy(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder())).getPoint());
             orderItemDailyFoodGroupDto.setDeliveryPrice((orderItemDailyFoodGroup.getOrderStatus() != OrderStatus.CANCELED) ? orderItemDailyFoodGroup.getDeliveryFee() : BigDecimal.ZERO);
             orderItemDailyFoodGroupDto.setIsMembership(orderItemDailyFoodGroup.isMembershipApplied() || membership.isPresent());
             orderItemDailyFoodGroupDto.setOrderItemDailyFoods(orderItemDailyFoodsToDtos(orderItemDailyFoodGroup.getOrderDailyFoods()));
@@ -248,7 +251,7 @@ public interface OrderMapper {
 
         orderDailyFoodDetail.setOrderId(orderDailyFood.getId());
         orderDailyFoodDetail.setOrderCode(orderDailyFood.getCode());
-        orderDailyFoodDetail.setUserName(orderDailyFood.getUser().getName());
+        orderDailyFoodDetail.setUserName(orderDailyFood.getUser().getNameAndNickname());
         orderDailyFoodDetail.setServicePeriod(DateUtils.format(startDate) + " ~ " + DateUtils.format(endDate));
         orderDailyFoodDetail.setSpotName(orderDailyFood.getSpotName());
         orderDailyFoodDetail.setTotalPrice(orderDailyFood.getTotalPrice().subtract(cancelPrice));

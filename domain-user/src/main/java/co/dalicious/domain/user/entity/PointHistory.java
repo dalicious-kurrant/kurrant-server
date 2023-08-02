@@ -36,7 +36,7 @@ public class PointHistory {
     @Comment("포인트 상태")
     private PointStatus pointStatus;
 
-    @Column(name = "point")
+    @Column(name = "point", columnDefinition = "DECIMAL(15, 2)")
     @Comment("적립 포인트")
     private BigDecimal point;
 
@@ -62,10 +62,9 @@ public class PointHistory {
     @Comment("사용자 FK")
     private User user;
 
-    @Column(name = "left_point")
+    @Column(name = "left_point", columnDefinition = "DECIMAL(15, 2)")
     @Comment("잔액 포인트")
     private BigDecimal leftPoint;
-
     @Column(name = "point_policy_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("포인트 정책 PK")
     private BigInteger pointPolicyId;

@@ -2,6 +2,7 @@ package co.kurrant.app.makers_api.controller;
 
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.makers_api.service.MakersExcelService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +28,7 @@ public class FileController {
   @PostMapping("/images")
   public ResponseMessage uploadImage(List<MultipartFile> multipartFiles) throws IOException {
     return ResponseMessage.builder()
-            .data(imageService.upload(multipartFiles, "food"))
+            .data(imageService.upload(multipartFiles, DirName.FOOD.getName()))
             .message("S3 이미지 업로드에 성공하였습니다.")
             .build();
   }

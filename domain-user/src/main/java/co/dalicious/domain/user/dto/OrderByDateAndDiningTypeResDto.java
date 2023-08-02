@@ -17,5 +17,6 @@ public class OrderByDateAndDiningTypeResDto {
     private String spotName;
     private Integer count;
     private String imageLocation;
+    private Boolean isDuplicated;
 
 }

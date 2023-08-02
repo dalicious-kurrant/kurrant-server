@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.NumberUtils;
@@ -38,7 +39,7 @@ public class OrderItemDailyFood extends OrderItem {
     @Comment("상품 가격")
     private BigDecimal price;
 
-    @Column(name = "discounted_price")
+    @Column(name = "discounted_price", columnDefinition = "DECIMAL(15, 2)")
     @Comment("할인된 가격")
     private BigDecimal discountedPrice;
 
@@ -129,4 +130,28 @@ public class OrderItemDailyFood extends OrderItem {
         }
         return null;
     }
+
+    public String getLastOrderTime(){
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
+
+        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간과 상품 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
+        if (makersLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, mealInfoLastOrderTime)){
+            if (foodLastOrderTime != null && DayAndTime.isBefore(makersLastOrderTime, foodLastOrderTime)){
+                return makersLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            } else if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, makersLastOrderTime)){
+                return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+            }
+        }
+
+        //위에 조건에 해당되지 않고 상품 마감시간이 밀인포 마감시간보다 빠르면 상품 마감시간 리턴
+        if (foodLastOrderTime != null && DayAndTime.isBefore(foodLastOrderTime, mealInfoLastOrderTime)){
+            return foodLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+        }
+
+        return mealInfoLastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+
+    }
+
 }

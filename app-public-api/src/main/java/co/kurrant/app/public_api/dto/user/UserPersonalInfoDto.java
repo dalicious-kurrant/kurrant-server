@@ -13,6 +13,7 @@ public class UserPersonalInfoDto {
     private String gourmetType;
     private Boolean hasGeneralProvider;
     private String name;
+    private String nickname;
     private String email;
     private String avatar;
     private List<ProviderEmailDto> providerEmails;

@@ -135,4 +135,7 @@ public class Reviews{
 
     public void updateIsReport(Boolean status) { this.isReports = status; }
 
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

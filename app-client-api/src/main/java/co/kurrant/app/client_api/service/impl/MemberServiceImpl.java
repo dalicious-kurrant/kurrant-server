@@ -18,6 +18,7 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
+import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.client_api.dto.MemberIdListDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberListResponseDto;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -97,6 +99,7 @@ public class MemberServiceImpl implements MemberService {
 
         List<UserGroup> userGroups = userGroupRepository.findAllByGroup(corporation);
         Set<User> usersInGroup = userGroups.stream()
+                .filter(v -> v.getGroup().getIsActive() == null || v.getGroup().getIsActive().equals(true))
                 .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
                 .map(UserGroup::getUser)
                 .collect(Collectors.toSet());
@@ -164,7 +167,9 @@ public class MemberServiceImpl implements MemberService {
 
         List<String> emails = dtoList.getSaveUserList().stream()
                 .map(ClientUserWaitingListSaveRequestDto::getEmail)
-                .toList();
+                .filter(Objects::nonNull)
+                .filter(Predicate.not(String::isEmpty))
+                .collect(Collectors.toList());
 
         // 삭제
         List<Employee> employees = employeeRepository.findAllByCorporation(corporation);
@@ -238,22 +243,26 @@ public class MemberServiceImpl implements MemberService {
             if(email == null || email.isBlank()) throw new ApiException(ExceptionEnum.NOT_VALID_EMAIL);
 
             if (employee.isPresent()) {
+                email = email.replaceAll("\\s", "");
                 qEmployeeRepository.patchEmployee(employeeDto.getId(), phone, email, name);
             } else {
+                email = email.replaceAll("\\s", "");
                 Employee newEmployee = employeeMapper.toEntity(email, name, phone, corporation);
                 employeeRepository.save(newEmployee);
             }
         }
 
         // TODO: 프라이빗 스팟 초대 시 푸시알림 추가
-        List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmUserList.stream()
-                .map(user -> {
-                    PushCondition pushCondition = PushCondition.NEW_SPOT;
-                    String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
-                    pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
-                    return pushUtil.getPushRequest(user, pushCondition, message);
-                }).toList();
+        if(!pushAlarmUserList.isEmpty()) {
+            List<PushRequestDtoByUser> pushRequestDtoByUsers = pushAlarmUserList.stream()
+                    .map(user -> {
+                        PushCondition pushCondition = PushCondition.NEW_SPOT;
+                        String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
+                        pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                        return pushUtil.getPushRequest(user, pushCondition, message);
+                    }).toList();
 
-        pushService.sendToPush(pushRequestDtoByUsers);
+            pushService.sendToPush(pushRequestDtoByUsers);
+        }
     }
 }

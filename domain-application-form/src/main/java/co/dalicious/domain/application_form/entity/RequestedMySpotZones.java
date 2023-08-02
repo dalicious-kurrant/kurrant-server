@@ -72,12 +72,6 @@ public class RequestedMySpotZones {
         this.pushAlarmUserIds = pushAlarmUserIds;
     }
 
-    public void updateRequestedMySpotZones(RequestedMySpotDetailDto updateRequestDto, Region region) {
-        this.region = region;
-        this.waitingUserCount = updateRequestDto.getRequestUserCount();
-        this.memo = updateRequestDto.getMemo();
-    }
-
     public void updateWaitingUserCount(Integer count, Boolean isWithdrawal) {
         if(!isWithdrawal) this.waitingUserCount = this.waitingUserCount + count;
         else this.waitingUserCount = this.waitingUserCount - count;
@@ -89,4 +83,12 @@ public class RequestedMySpotZones {
 
         userIds.add(userId);
         this.pushAlarmUserIds = userIds; }
+
+    public void updateRegion(Region region) {
+        this.region = region;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
 }

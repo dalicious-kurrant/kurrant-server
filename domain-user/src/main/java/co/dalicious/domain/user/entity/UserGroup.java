@@ -21,7 +21,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "user__user_group")
+@Table(name = "user__user_group", uniqueConstraints={@UniqueConstraint(columnNames={"group_id", "user_id"})})
 public class UserGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

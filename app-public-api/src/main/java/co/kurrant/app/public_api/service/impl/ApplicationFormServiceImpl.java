@@ -1,5 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
@@ -35,7 +37,7 @@ import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,7 +81,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final QRequestedMySpotRepository qRequestedMySpotRepository;
+    private final SseService sseService;
+    private final NotificationHashRepository notificationHashRepository;
     private final UserRepository userRepository;
+
 
     @Override
     @Transactional
@@ -335,7 +342,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
         // user group 생성 - 없으면 생성 / 오픈이면 활성 / 오픈 대기면 비활성
         if (userGroup != null) {
-            if (zoneStatus) userGroup.updateStatus(ClientStatus.BELONG);
+            if (zoneStatus) {
+                userGroup.updateStatus(ClientStatus.BELONG);
+                notificationHashRepository.save(sseService.createNotification(user.getId(), 7, null, LocalDate.now(ZoneId.of("Asia/Seoul")), mySpotZone.getId(), null));
+            }
             else userGroup.updateStatus(ClientStatus.WAITING);
         } else {
             if (zoneStatus) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.BELONG));

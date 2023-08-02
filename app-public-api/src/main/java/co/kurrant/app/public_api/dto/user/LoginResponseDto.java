@@ -14,4 +14,5 @@ public class LoginResponseDto {
   private Integer spotStatus;
   private Boolean isActive;
   private Integer leftWithdrawDays;
+  private Boolean hasNickname;
 }
