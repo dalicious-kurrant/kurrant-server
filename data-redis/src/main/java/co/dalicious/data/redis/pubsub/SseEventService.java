@@ -28,7 +28,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 @RequiredArgsConstructor
 public class SseEventService {
-    private static final Long DEFAULT_TIMEOUT = 1000L * 45;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
 
