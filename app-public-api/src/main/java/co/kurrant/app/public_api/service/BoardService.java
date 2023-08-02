@@ -9,11 +9,12 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface BoardService {
-    List<NoticeDto> noticeList(Integer status, BigInteger spotId);
+    List<NoticeDto> noticeList(Integer status, BigInteger spotId, SecurityUser securityUser);
 
     List<CustomerServiceDto> customerBoardList();
 
     List<PushResponseDto> alarmBoardList(SecurityUser securityUser);
 
     void deleteAllAlarm(SecurityUser securityUser);
+    void readAllAlarm(SecurityUser securityUser, List<String> ids);
 }

@@ -10,6 +10,7 @@ import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
+import co.dalicious.domain.user.dto.UserGroupDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -48,12 +49,14 @@ public interface UserService {
     void settingOpenGroup(SecurityUser securityUser, BigInteger groupId);
     // 유저가 속한 그룹 정보 리스트
     GroupCountDto getClients(SecurityUser securityUser);
+    UserGroupDto getClientManagement(SecurityUser securityUser);
     Integer isHideEmail(SecurityUser securityUser);
     Object createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException;
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
     void patchDefaultCard(SecurityUser securityUser, CreditCardDefaultSettingDto creditCardDefaultSettingDto);
     void deleteCard(DeleteCreditCardDto deleteCreditCardDto);
     void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
+    void changeNickname(SecurityUser securityUser, String nickname);
     void withdrawal(SecurityUser securityUser);
     void withdrawalCancel(SecurityUser securityUser);
     LoginResponseDto autoLogin(HttpServletRequest httpServletRequest);
@@ -68,29 +71,7 @@ public interface UserService {
 
     void paymentPasswordReset(SecurityUser securityUser, PaymentResetReqDto resetDto);
 
-    String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto);
+    String generateRandomNickName() throws IOException;
 
-    Object getCountry();
-
-    Object getFavoriteCountryFoods(Integer code);
-
-    Object getJobType(Integer category, String code);
-
-    Object getFoodImage(List<BigInteger> foodId);
-
-    Object getTestData();
-
-    Boolean userPreferenceCheck(SecurityUser securityUser);
-
-    List<PushResponseDto> getAlarms(SecurityUser securityUser);
-    void insertMyFood(SecurityUser securityUser, SaveDailyReportDto saveDailyReportDto);
-    Object getReport(SecurityUser securityUser, String date);
-    void saveDailyReportFood(SecurityUser securityUser, SaveDailyReportFoodReqDto dto);
-    String deleteReport(SecurityUser securityUser, BigInteger reportId);
-    Object getOrderByDateAndDiningType(SecurityUser securityUser, String date, Integer diningType);
-    void allChangeAlarmSetting(SecurityUser securityUser, Boolean isActive);
-
-    Object getMealHistory(SecurityUser securityUser, String startDate, String endDate);
-
-    void saveDailyReport(SecurityUser securityUser, SaveDailyReportReqDto saveDailyReportDto);
+    Boolean isMembershipSupport(SecurityUser securityUser);
 }

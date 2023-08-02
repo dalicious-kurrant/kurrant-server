@@ -21,10 +21,6 @@ public class PortInterceptor implements HandlerInterceptor {
         String endpoint = request.getRequestURI();
         String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + serverPort;
 
-        System.out.println("port = " + serverPort);
-        System.out.println("endpoint = " + endpoint);
-        System.out.println("baseUrl = " + baseUrl);
-
         RequestContextHolder.setCurrentPort(serverPort);
         RequestContextHolder.setCurrentEndpoint(endpoint);
         RequestContextHolder.setCurrentBaseUrl(baseUrl);

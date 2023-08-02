@@ -1,5 +1,7 @@
 package co.dalicious.system.util;
 
+import org.springframework.cglib.core.Local;
+
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.*;
@@ -92,6 +94,14 @@ public class DateUtils {
         return sb.toString();
     }
 
+    public static List<String> timesToStringList(List<LocalTime> times) {
+        List<String> stringList = new ArrayList<>();
+        for (LocalTime time : times) {
+            stringList.add(timeToString(time));
+        }
+        return stringList;
+    }
+
     public static String timeToStringWithAMPM(LocalTime time) {
         return time.format(DateTimeFormatter.ofPattern("hh:mm a"));
     }
@@ -168,16 +178,17 @@ public class DateUtils {
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
 
-        long leftDay = ChronoUnit.DAYS.between(now.toLocalDate(), limitDayAndTime.toLocalDate());
-        long hoursLeft = now.until(limitDayAndTime, ChronoUnit.HOURS);
-        hoursLeft = hoursLeft % 24;
-        now = now.plusHours(hoursLeft);
-        long minutesLeft = now.until(limitDayAndTime, ChronoUnit.MINUTES);
-        minutesLeft = minutesLeft % 60;
+        if(limitDayAndTime.isBefore(now)){
+            limitDayAndTime = limitDayAndTime.plusDays(5);
+        }
 
-        LocalTime remainingTime = LocalTime.of((int) hoursLeft, (int) minutesLeft);
+        long dateTime = ChronoUnit.MINUTES.between(now, limitDayAndTime);
+        long day = dateTime / (60 * 24);
+        long hour = (dateTime / 60) % 24;
+        long min = dateTime % 60;
+        LocalTime remainingTime = LocalTime.of((int) hour, (int) min);
 
-        return String.format("%01d %tH:%tM", leftDay, remainingTime, remainingTime);
+        return String.format("%01d %tH:%tM", day, remainingTime, remainingTime);
     }
 
     public static YearMonth stringToYearMonth(String startYearMonth) {

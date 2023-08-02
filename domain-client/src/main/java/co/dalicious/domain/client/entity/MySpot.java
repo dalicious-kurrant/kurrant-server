@@ -26,15 +26,15 @@ import java.util.List;
 @Getter
 public class MySpot extends Spot {
 
-    @Column(name = "is_delete", columnDefinition = "boolean default false")
+    @Column(name = "is_delete", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("마이 스팟 삭제 여부 - 1: 삭제")
     private Boolean isDelete;
 
-    @Column(name = "user_Id")
+    @Column(name = "user_Id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("유저 Id")
     private BigInteger userId;
 
-    @Column(name = "is_alarm", columnDefinition = "boolean default false")
+    @Column(name = "is_alarm", columnDefinition = "BIT(1) DEFAULT 0")
     @Comment("마이 스팟 푸시알림 여부 - 1: 수신")
     private Boolean isAlarm;
 
@@ -61,5 +61,13 @@ public class MySpot extends Spot {
 
     public void updateAlarm(Boolean alarm) {
         this.isAlarm = alarm;
+    }
+
+    public void updatePhone(String phone) {
+        this.phone = phone;
+    }
+
+    public void updateName(String name) {
+        super.setName(name);
     }
 }

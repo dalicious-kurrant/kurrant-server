@@ -1,11 +1,13 @@
 package co.dalicious.domain.user.repository;
 
 import co.dalicious.domain.user.entity.QUserTasteTestData;
+import co.dalicious.domain.user.entity.UserTasteTestData;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static co.dalicious.domain.user.entity.QUserTasteTestData.userTasteTestData;
 
@@ -31,5 +33,10 @@ public class QUserTasteTestDataRepository {
                 .set(userTasteTestData.foodIds, foodIds)
                 .where(userTasteTestData.id.eq(testDataId))
                 .execute();
+    }
+
+    public List<UserTasteTestData> findAll() {
+        return queryFactory.selectFrom(userTasteTestData)
+                .fetch();
     }
 }

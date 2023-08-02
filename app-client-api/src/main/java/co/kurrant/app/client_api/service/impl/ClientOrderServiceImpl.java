@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -211,10 +212,11 @@ public class ClientOrderServiceImpl implements ClientOrderService {
                     assert dailyFood != null;
                     DiscountDto discountDto = DiscountDto.getDiscountWithoutMembership(dailyFood.getFood());
 
-                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    LocalTime tempDeliveryTime = spot.getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().get(0);
+                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup, tempDeliveryTime));
                     orderItemDailyFoods.add(orderItemDailyFood);
                     // TODO: 배송시간 추가
-                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, null, dailyFood, null);
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, null, dailyFood, tempDeliveryTime);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
                 }

@@ -11,7 +11,7 @@ import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -159,6 +159,16 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "닉네임 변경", description = "닉네임을 설정한다.")
+    @PostMapping("/setting/nickname")
+    public ResponseMessage changeNickname(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        userService.changeNickname(securityUser, changeNameDto.getName());
+        return ResponseMessage.builder()
+                .message("유저 닉네임이 변경되었습니다.")
+                .build();
+    }
+
     @Operation(summary = "회원탈퇴 요청", description = "회원 탈퇴를 요청한다.")
     @GetMapping("/withdrawal")
     public ResponseMessage userWithdrawal(Authentication authentication){
@@ -206,6 +216,15 @@ public class UserController {
         return ResponseMessage.builder()
                 .data(userService.createNiceBillingKeyFirst(securityUser, typeId, billingKeyDto))
                 .message("빌링키 발급에 성공하였습니다.")
+                .build();
+    }
+    @PostMapping("/payment/password/check")
+    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
+    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
+        return ResponseMessage.builder()
+                .message(result)
                 .build();
     }
 
@@ -258,132 +277,13 @@ public class UserController {
                 .build();
     }
 
-    @PostMapping("/preference")
-    @Operation(summary = "회원 정보 입력", description = "회원 정보 입력 저장")
-    public ResponseMessage userPreferenceSave(Authentication authentication, @RequestBody UserPreferenceDto userPreferenceDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String message = userService.userPreferenceSave(securityUser, userPreferenceDto);
-        return ResponseMessage.builder()
-                .message(message)
-                .build();
-    }
-
-    @GetMapping("/preference/check")
-    @Operation(summary = "회원정보 입력 여부")
-    public ResponseMessage userPreferenceCheck(Authentication authentication){
+    @Operation(summary = "유저의 기업 멤버십 여부", description = "로그인 한 유저 정보를 불러온다.")
+    @GetMapping("/corporation-membership")
+    public ResponseMessage isMembershipSupport(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(userService.userPreferenceCheck(securityUser))
-                .message("회원정보 입력 여부 조회 성공")
-                .build();
-    }
-
-    @GetMapping("/country")
-    @Operation(summary = "국가 정보 조회", description = "국가정보를 조회한다.")
-    public ResponseMessage getCountry(){
-        return ResponseMessage.builder()
-                .data(userService.getCountry())
-                .message("국가 정보 조회 성공")
-                .build();
-    }
-
-    @GetMapping("/tags")
-    @Operation(summary = "푸드태그 조회", description = "푸드태그 정보를 조회한다.")
-    public ResponseMessage getFavoriteCountryFoods(@RequestParam Integer code){
-        return ResponseMessage.builder()
-                .data(userService.getFavoriteCountryFoods(code))
-                .message("조회 성공!")
-                .build();
-    }
-
-    @GetMapping("/jobs")
-    @Operation(summary = "직종 조회", description = "직종을 조회한다.")
-    public ResponseMessage getJobType(@RequestParam Integer category, @RequestParam (required = false) String code){
-        return ResponseMessage.builder()
-                .data(userService.getJobType(category, code))
-                .message("조회 성공!")
-                .build();
-    }
-
-    @GetMapping("/preference/foods")
-    @Operation(summary = "음식 TestData 조회", description = "음식 테스트 데이터을 조회한다.")
-    public ResponseMessage getTestData(){
-        return ResponseMessage.builder()
-                .data(userService.getTestData())
-                .message("조회 성공!")
-                .build();
-    }
-
-    @GetMapping("/preference/foods/images")
-    @Operation(summary = "회원정보 입력 중 음식 이미지 불러오기", description = "foodId로 음식 이미지를 불러온다.")
-    public ResponseMessage getFoodImage(@RequestParam List<BigInteger> foodId){
-        return ResponseMessage.builder()
-                .data(userService.getFoodImage(foodId))
-                .message("이미지 조회 성공!")
-                .build();
-    }
-
-    @PostMapping("/payment/password/check")
-    @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
-    public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String result = userService.checkPaymentPassword(securityUser, savePaymentPasswordDto);
-        return ResponseMessage.builder()
-                .message(result)
-                .build();
-    }
-
-    @Operation(summary = "알림 설정", description = "알림/마케팅 수신 정보 설정 동의 여부를 변경한다.")
-    @PostMapping("/setting/all")
-    public ResponseMessage allChangeAlarmSetting(Authentication authentication, Boolean isActive) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.allChangeAlarmSetting(securityUser, isActive);
-        return ResponseMessage.builder()
-                .message("마케팅 수신 정보 변경에 성공하였습니다.")
-                .build();
-    }
-
-    @Tag(name = "식단리포트")
-    @DeleteMapping("/daily/report/{reportId}")
-    @Operation(summary = "식단리포트 제거", description = "선택한 식단리포트를 제거 한다.")
-    public ResponseMessage deleteDailyReport(Authentication authentication, @PathVariable BigInteger reportId){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        String message = userService.deleteReport(securityUser, reportId);
-        return ResponseMessage.builder()
-                .message(message)
-                .build();
-    }
-
-    @Tag(name = "식단리포트")
-    @GetMapping("/daily/report/order")
-    @Operation(summary = "주문내역 조회", description = "특정 날짜, 특정 식사타입으로 주문 내역 조회")
-    public ResponseMessage getOrderByDateAndDiningType(Authentication authentication, @RequestParam String date, @RequestParam Integer diningType){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userService.getOrderByDateAndDiningType(securityUser, date, diningType))
-                .message("주문내역 조회에 성공했습니다.")
-                .build();
-    }
-
-    @Tag(name = "식단리포트")
-    @GetMapping("/daily/report/history")
-    @Operation(summary = "식사 히스토리", description = "식사 히스토리에 필요한 정보를 조회한다.")
-    public ResponseMessage getMealHistory(Authentication authentication, @RequestParam String startDate, @RequestParam String endDate){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(userService.getMealHistory(securityUser, startDate, endDate))
-                .message("조회에 성공했습니다.")
-                .build();
-    }
-
-    @Tag(name = "식단리포트")
-    @PostMapping("/daily/report")
-    @Operation(summary = "조회된 식사를 리포트에 추가", description = "식단 리포트 조회로 조회한 음식을 식단에 추가한다.")
-    public ResponseMessage saveDailyReport(Authentication authentication, @RequestBody SaveDailyReportReqDto saveDailyReportDto){
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        userService.saveDailyReport(securityUser, saveDailyReportDto);
-        return ResponseMessage.builder()
-                .message("저장에 성공했습니다.")
+                .message("기업 멤버십 여부 조회에 성공하였습니다.")
+                .data(userService.isMembershipSupport(securityUser))
                 .build();
     }
 }

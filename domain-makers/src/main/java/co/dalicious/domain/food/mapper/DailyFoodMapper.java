@@ -14,13 +14,16 @@ import co.dalicious.system.enums.DiscountType;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import org.hibernate.Hibernate;
 import org.mapstruct.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
@@ -49,7 +52,7 @@ public interface DailyFoodMapper {
     default DailyFoodGroup toDailyFoodGroup(Map<String, String> deliveryScheduleMap) {
         List<DeliverySchedule> deliveryScheduleList = new ArrayList<>();
 
-        deliveryScheduleMap.keySet().stream().forEach(deliveryTime -> {
+        deliveryScheduleMap.keySet().forEach(deliveryTime -> {
             DeliverySchedule deliverySchedule = new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(deliveryScheduleMap.get(deliveryTime)));
             deliveryScheduleList.add(deliverySchedule);
         });
@@ -64,7 +67,15 @@ public interface DailyFoodMapper {
         for (DailyFoodGroup dailyFoodGroup : dailyFoodMap.keySet()) {
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodMap.get(dailyFoodGroup);
             for (FoodDto.DailyFood dailyFoodDto : dailyFoodDtos) {
-                dailyFoods.add(toDailyFood(groups, dailyFoodDto, foods, dailyFoodGroup));
+                DailyFood dailyFood = toDailyFood(groups, dailyFoodDto, foods, dailyFoodGroup);
+                // 메이커스/음식 주문 가능 수량이 존재하지 않을 경우
+                if(dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()) == null) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getMakers().getId() + "번 메이커스의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+                }
+                if(dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()) == null) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFood.getFood().getId() + "번 음식의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+                }
+                dailyFoods.add(dailyFood);
             }
         }
         return dailyFoods;
@@ -74,7 +85,7 @@ public interface DailyFoodMapper {
     default DailyFood toDailyFood(List<Group> groups, FoodDto.DailyFood dailyFoodDto, List<Food> foods, DailyFoodGroup dailyFoodGroup) {
         Food food = Food.getFood(foods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
         if (food == null) {
-            throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD);
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE400020", "'" + dailyFoodDto.getMakersName() + "'의 '" + dailyFoodDto.getFoodName() + "' 상품 정보를 찾을 수 없습니다.");
         }
         Group group = Group.getGroup(groups, dailyFoodDto.getGroupName());
         if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
@@ -99,6 +110,8 @@ public interface DailyFoodMapper {
 
     ;
 
+    @Mapping(source = "sort", target = "sort")
+    @Mapping(source = "lastOrderTime", target = "lastOrderTime")
     @Mapping(source = "totalCount", target = "totalReviewCount")
     @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
@@ -120,7 +133,7 @@ public interface DailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount);
+    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort, String lastOrderTime);
 
     @AfterMapping
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {
@@ -170,5 +183,19 @@ public interface DailyFoodMapper {
     default String getMakersName(DailyFood dailyFood) {
         Makers makers = (Makers) Hibernate.unproxy(dailyFood.getFood().getMakers());
         return makers.getName();
+    }
+
+    default void updateDeliverySchedule(List<String> deliveryTimeList, List<String> pickupTimeList, @MappingTarget DailyFoodGroup dailyFoodGroup) {
+        if(deliveryTimeList.size() != pickupTimeList.size()) {
+            throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
+        }
+        List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
+        for (String deliveryTimeString : deliveryTimeList) {
+            LocalTime deliveryTime = DateUtils.stringToLocalTime(deliveryTimeString);
+            LocalTime pickupTime = DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTimeString)));
+            newDeliveryScheduleList.add(new DeliverySchedule(deliveryTime, pickupTime));
+        }
+
+        dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);
     }
 }

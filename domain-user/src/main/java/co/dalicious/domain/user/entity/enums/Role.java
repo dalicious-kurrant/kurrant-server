@@ -51,4 +51,8 @@ public enum Role {
         };
     }
 
+    public String getRoleName() {
+        return this.authority.replace("ROLE_", "");
+    }
+
 }

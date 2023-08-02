@@ -81,8 +81,7 @@ public class Spot {
     @Comment("스팟 상태 ( 0: 비활성, 1: 활성 )")
     private SpotStatus status = SpotStatus.ACTIVE;
 
-    @Lob
-    @Column(name = "memo")
+    @Column(name = "memo", columnDefinition = "TEXT")
     private String memo;
 
 
@@ -182,4 +181,12 @@ public class Spot {
     }
 
     public void updateSpotStatus(SpotStatus status) { this.status = status; }
+
+    protected void setName(String name) {
+        this.name = name;
+    }
+
+    public void updateName(String name) { this.name = name; }
+
+    public void updateAddress2(String address2) { this.address.updateAddress2(address2); }
 }

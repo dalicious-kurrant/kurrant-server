@@ -1,5 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
@@ -13,6 +16,7 @@ import co.dalicious.domain.application_form.entity.*;
 import co.dalicious.domain.application_form.entity.enums.ShareSpotRequestType;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
+import co.dalicious.domain.application_form.utils.ApplicationSlackUtil;
 import co.dalicious.domain.application_form.validator.ApplicationFormValidator;
 import co.dalicious.domain.client.entity.MySpot;
 import co.dalicious.domain.client.entity.MySpotZone;
@@ -26,14 +30,14 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.repository.UserGroupRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.integration.client.user.entity.Region;
-import co.dalicious.integration.client.user.mapper.UserGroupMapper;
-import co.dalicious.integration.client.user.mapper.UserSpotMapper;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +46,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,6 +55,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserUtil userUtil;
+    private final ApplicationSlackUtil applicationSlackUtil;
     private final ApplicationFormValidator applicationFormValidator;
     private final CorporationApplicationFormRepository corporationApplicationFormRepository;
     private final CorporationApplicationFormSpotRepository corporationApplicationFormSpotRepository;
@@ -74,6 +81,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final QRequestedMySpotRepository qRequestedMySpotRepository;
+    private final SseService sseService;
+    private final NotificationHashRepository notificationHashRepository;
+    private final UserRepository userRepository;
+
 
     @Override
     @Transactional
@@ -107,6 +118,17 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
             corporationApplicationMealInfo.setApplicationFormCorporation(corporationApplicationForm);
             corporationApplicationMealRepository.save(corporationApplicationMealInfo);
         }
+
+        Optional<User> optionalUser = userRepository.findById(userId);
+        String message = null;
+        if (optionalUser.isPresent()) {
+            message = "[기업스팟] 신청 내역이 있어요!\n" + " 스팟 이름 : " + corporationApplicationForm.getCorporationName() +
+                    "\n 인원 수 : " + corporationApplicationForm.getEmployeeCount() +
+                    "\n 신청자 이름 : " + optionalUser.get().getName() +
+                    "\n 연락처 : " + optionalUser.get().getPhone();
+        }
+
+        applicationSlackUtil.sendSlack(message);
 
         return ApplicationFormDto.builder()
                 .clientType(1)
@@ -222,6 +244,14 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         RequestedMySpot requestedMySpot = requestedMySpotMapper.toEntity(user.getId(), requestedMySpotZones, requestDto);
         requestedMySpotRepository.save(requestedMySpot);
 
+        String message = "[마이스팟] 등록 신청 내역이 있어요! \n"
+                        +" 스팟 이름 : " +requestedMySpot.getName()
+                        +"\n 신청자 이름 : " + user.getName()
+                        +"\n 연락처 : " + user.getPhone();
+
+        applicationSlackUtil.sendSlack(message);
+
+
         // my spot zone 존재 여부 response
         return applicationMapper.toApplicationFromDto(requestedMySpot.getId(), requestedMySpot.getName(), requestedMySpot.getAddress(), GroupDataType.MY_SPOT.getCode(), false);
     }
@@ -235,6 +265,13 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         requestedShareSpot.updateShareSpotRequestType(shareSpotRequestType);
         requestedShareSpot.updateUserId(user.getId());
         requestedShareSpotRepository.save(requestedShareSpot);
+
+        String message = "[공유스팟] 등록 신청 내역이 있어요!"
+                +"\n 스팟 주소 : " + requestedShareSpot.getAddress().getAddress1() + requestedShareSpot.getAddress().getAddress2()
+                +"\n 신청자 이름 : " + user.getName()
+                +"\n 연락처  : " + user.getPhone();
+
+        applicationSlackUtil.sendSlack(message);
     }
     
     private ApplicationFormDto updateRequestedMySpot(RequestedMySpot requestedMySpot, MySpotZoneApplicationFormRequestDto requestDto, User user) throws ParseException {
@@ -305,7 +342,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         UserGroup userGroup = user.getGroups().stream().filter(g -> g.getGroup().equals(mySpotZone)).findAny().orElse(null);
         // user group 생성 - 없으면 생성 / 오픈이면 활성 / 오픈 대기면 비활성
         if (userGroup != null) {
-            if (zoneStatus) userGroup.updateStatus(ClientStatus.BELONG);
+            if (zoneStatus) {
+                userGroup.updateStatus(ClientStatus.BELONG);
+                notificationHashRepository.save(sseService.createNotification(user.getId(), 7, null, LocalDate.now(ZoneId.of("Asia/Seoul")), mySpotZone.getId(), null));
+            }
             else userGroup.updateStatus(ClientStatus.WAITING);
         } else {
             if (zoneStatus) userGroupRepository.save(userGroupMapper.toUserGroup(user, mySpotZone, ClientStatus.BELONG));

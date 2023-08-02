@@ -6,6 +6,7 @@ import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
@@ -19,9 +20,11 @@ import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
+import co.dalicious.domain.food.repository.QFoodCapacityRepository;
 import co.dalicious.domain.order.dto.ServiceDiningDto;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
@@ -43,10 +46,7 @@ import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.repository.QMembershipRepository;
-import co.dalicious.domain.user.repository.QUserRepository;
-import co.dalicious.domain.user.repository.UserGroupRepository;
-import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.repository.*;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningTypesUtils;
@@ -76,6 +76,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -116,6 +117,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryUtils deliveryUtils;
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     private final DeliveryInstanceMapper deliveryInstanceMapper;
+    private final QUserGroupRepository qUserGroupRepository;
+    private final SseService sseService;
+    private final QFoodCapacityRepository qFoodCapacityRepository;
 
     @Override
     @Transactional
@@ -152,10 +156,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
 
         // FIXME: 기존 로직
         List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
-        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList);
+        return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList, foodCapacities);
     }
 
     @Override
@@ -168,10 +173,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         assert makersId != null;
         Makers makers = makersRepository.findById(makersId).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
+        List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
 
         // FIXME: 배송 도메인 추가 로직
         List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findByFilter(startDate, endDate, DiningTypesUtils.codesToDiningTypes(diningTypes), makers);
-        return deliveryInstanceMapper.toDto(deliveryInstances);
+        return deliveryInstanceMapper.toDto(deliveryInstances, foodCapacities);
     }
 
     @Override
@@ -205,7 +211,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Group group = groupRepository.findById(groupId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)
         );
-        List<UserGroup> userGroups = userGroupRepository.findAllByGroupAndClientStatus(group, ClientStatus.BELONG);
+        List<UserGroup> userGroups =  qUserGroupRepository.findAllByGroupAndClientStatus(groupId);
         for (UserGroup userGroup : userGroups) {
             users.add(userGroup.getUser());
         }
@@ -233,12 +239,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (!OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
             }
+            OrderStatus defaultOrderStatus = orderItemDailyFood.getOrderStatus();
             orderItemDailyFood.updateOrderStatus(orderStatus);
             Optional<User> optionalUser = userRepository.findById(orderItemDailyFood.getOrder().getUser().getId());
             optionalUser.ifPresent(user -> userPhoneNumber.add(user.getPhone()));
 
             // 배송완료 푸시 알림 전송 및 멤버십 추가
-            if (!orderItemDailyFood.getOrderStatus().equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
+            if (!defaultOrderStatus.equals(OrderStatus.DELIVERED) && OrderStatus.DELIVERED.getCode().equals(statusAndIdList.getStatus())) {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
@@ -264,6 +271,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         .type(AlarmType.ORDER_STATUS.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
+                sseService.send(user.getId(), 6, null, null, null);
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);
@@ -406,10 +414,11 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     }
 
                     // 8. 주문 상품(OrderItemDailyFood) 저장
-                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup));
+                    LocalTime tempDeliveryTime = spot.getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().get(0);
+                    OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.save(orderMapper.toExtraOrderItemEntity(order, dailyFood, request, discountDto, orderItemDailyFoodGroup, tempDeliveryTime));
                     // 배송정보 입력
                     // TODO: 배송시간 추가
-                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, null);
+                    deliveryUtils.saveDeliveryInstance(orderItemDailyFood, spot, user, dailyFood, tempDeliveryTime);
                     orderItemDailyFoods.add(orderItemDailyFood);
                     defaultPrice = defaultPrice.add(dailyFood.getFood().getPrice().multiply(BigDecimal.valueOf(request.getCount())));
                     supportPrice = supportPrice.add(orderItemDailyFood.getOrderItemTotalPrice());

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
@@ -71,8 +72,19 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "테스트 데이터 조회")
+    @GetMapping("/test/data")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseMessage getTestData(){
+        return ResponseMessage.builder()
+                .message("TestData 조회 성공!")
+                .data(userService.getTestData())
+                .build();
+    }
+
+
     @ControllerMarker(ControllerType.USER)
-    @Operation(summary = "테스트 데이터 입력 Dto")
+    @Operation(summary = "테스트 데이터 입력")
     @PostMapping("/test/data")
     @ResponseStatus(HttpStatus.OK)
     public ResponseMessage saveTestData(@RequestBody SaveTestDataRequestDto saveTestDataRequestDto){

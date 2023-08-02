@@ -24,12 +24,12 @@ import java.time.LocalTime;
 public class CartDailyFood extends Cart {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name="dailyFood_id")
+    @JoinColumn(name="dailyFood_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("장바구니에 담긴 음식 ID")
     private DailyFood dailyFood;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name="spot_id")
+    @JoinColumn(name="spot_id", columnDefinition = "BIGINT UNSIGNED")
     @Comment("장바구니에 담긴 음식 상품의 배송지")
     private Spot spot;
 

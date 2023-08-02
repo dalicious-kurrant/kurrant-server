@@ -13,8 +13,8 @@ import java.util.List;
 @Component
 public class UserGroupUtil {
     public static void isUserIncludedInGroup(User user, Group group) {
-        List<UserGroup> userGroups = user.getGroups();
-        userGroups.stream().filter(v -> v.getGroup().equals(group) && v.getClientStatus().equals(ClientStatus.BELONG))
+        List<UserGroup> userGroups = user.getActiveUserGroups();
+        userGroups.stream().filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
     }

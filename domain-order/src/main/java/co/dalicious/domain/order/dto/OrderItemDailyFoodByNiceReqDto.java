@@ -18,4 +18,6 @@ public class OrderItemDailyFoodByNiceReqDto {
     @Schema(description = "spotId/cartDailyFoodDtoList/totalPrice/supportPrice/deliveryFee/userPoint")
     private OrderItems orderItems;
     private String orderName;
+    private String phone;
+    private String memo;
 }

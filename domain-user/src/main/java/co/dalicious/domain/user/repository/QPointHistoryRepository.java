@@ -41,10 +41,25 @@ public class QPointHistoryRepository {
                 .fetch();
     }
 
-    public Page<PointHistory> findAllPointHistory(User user, Pageable pageable) {
+    public Page<PointHistory> findAllPointHistoryByType(User user, Pageable pageable, int type) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(type == 0) {
+            whereCause.and(pointHistory.user.eq(user));
+            whereCause.and(pointHistory.point.ne(BigDecimal.ZERO));
+        }
+        if(type == 1) {
+            whereCause.and(pointHistory.user.eq(user));
+            whereCause.and(pointHistory.point.ne(BigDecimal.ZERO));
+            whereCause.and(pointHistory.pointStatus.in(PointStatus.rewardStatus()));
+        }
+        if(type == 2) {
+            whereCause.and(pointHistory.user.eq(user));
+            whereCause.and(pointHistory.point.ne(BigDecimal.ZERO));
+            whereCause.and(pointHistory.pointStatus.in(PointStatus.userStatus()));
+        }
 
         QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO))
+                .where(whereCause)
                 .orderBy(pointHistory.id.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -53,29 +68,29 @@ public class QPointHistoryRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Pageable pageable) {
-
-        QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.rewardStatus()))
-                .orderBy(pointHistory.id.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset())
-                .fetchResults();
-
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
-    }
-
-    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Pageable pageable) {
-
-        QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
-                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.userStatus()))
-                .orderBy(pointHistory.id.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset())
-                .fetchResults();
-
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
-    }
+//    public Page<PointHistory> findAllPointHistoryByRewardStatus(User user, Pageable pageable) {
+//
+//        QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+//                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.rewardStatus()))
+//                .orderBy(pointHistory.id.desc())
+//                .limit(pageable.getPageSize())
+//                .offset(pageable.getOffset())
+//                .fetchResults();
+//
+//        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+//    }
+//
+//    public Page<PointHistory> findAllPointHistoryByUseStatus(User user, Pageable pageable) {
+//
+//        QueryResults<PointHistory> results =  jpaQueryFactory.selectFrom(pointHistory)
+//                .where(pointHistory.user.eq(user), pointHistory.point.ne(BigDecimal.ZERO), pointHistory.pointStatus.in(PointStatus.userStatus()))
+//                .orderBy(pointHistory.id.desc())
+//                .limit(pageable.getPageSize())
+//                .offset(pageable.getOffset())
+//                .fetchResults();
+//
+//        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
+//    }
 
     public List<PointHistory> findByContentId(User user, BigInteger id, PointStatus pointStatus) {
         BooleanBuilder whereCause = new BooleanBuilder();
