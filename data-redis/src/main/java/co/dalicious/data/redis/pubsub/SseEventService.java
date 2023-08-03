@@ -1,5 +1,6 @@
 package co.dalicious.data.redis.pubsub;
 
+import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.data.redis.repository.EmitterRepository;
 import co.dalicious.system.util.DateUtils;
 import exception.ApiException;
@@ -73,10 +74,10 @@ public class SseEventService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
-    public void send(Collection<BigInteger> receivers) {
+    public void send(ReloadEvent reloadEvent) {
         String notification = "Reload! " + "(" + DateUtils.localDateTimeToString(LocalDateTime.now()) + ")";
 
-        for (BigInteger receiver : receivers) {
+        for (BigInteger receiver : reloadEvent.getMakersIds()) {
             String id = String.valueOf(receiver);
             stringRedisTemplate.convertAndSend(getChannelName(id), notification);
         }

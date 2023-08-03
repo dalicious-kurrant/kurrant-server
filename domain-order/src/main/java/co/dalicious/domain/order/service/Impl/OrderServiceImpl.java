@@ -58,9 +58,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -124,10 +122,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void cancelOrderDailyFoodNice(OrderDailyFood order, User user) throws IOException, ParseException {
+    public Set<BigInteger> cancelOrderDailyFoodNice(OrderDailyFood order, User user) throws IOException, ParseException {
         BigDecimal price = BigDecimal.ZERO;
         BigDecimal deliveryFee = BigDecimal.ZERO;
         BigDecimal point = BigDecimal.ZERO;
+        Set<BigInteger> makersIds = new HashSet<>();
         synchronized (niceItemsLocks.computeIfAbsent(user, u -> new Object())) {
             // 이전에 환불을 진행한 경우
             List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
@@ -181,6 +180,7 @@ public class OrderServiceImpl implements OrderService {
                     pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
                 }
                 orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+                makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
             }
             user.updatePoint(user.getPoint().add(point));
 
@@ -190,6 +190,7 @@ public class OrderServiceImpl implements OrderService {
                 niceUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue(), token);
             }
         }
+        return makersIds;
     }
 
     @Override

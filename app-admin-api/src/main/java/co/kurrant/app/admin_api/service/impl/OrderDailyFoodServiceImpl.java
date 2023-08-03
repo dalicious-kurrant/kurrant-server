@@ -7,7 +7,7 @@ import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.pubsub.SseEventService;
+import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
@@ -66,6 +66,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,7 +120,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QUserGroupRepository qUserGroupRepository;
     private final SseService sseService;
-    private final SseEventService sseEventService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final QFoodCapacityRepository qFoodCapacityRepository;
 
     @Override
@@ -299,9 +300,9 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     public void cancelOrderNice(BigInteger orderId) throws IOException, ParseException {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
         User user = order.getUser();
-
         if (order instanceof OrderDailyFood orderDailyFood) {
-            orderService.cancelOrderDailyFoodNice(orderDailyFood, user);
+            Set<BigInteger> makersIds = orderService.cancelOrderDailyFoodNice(orderDailyFood, user);
+            applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
         }
     }
 
@@ -317,13 +318,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                     makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
+                    applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
                 }
             } catch (Exception e) {
                 failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
-        sseEventService.send(makersIds);
         return failMessage.toString();
     }
 
@@ -437,7 +438,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             order.updateTotalDeliveryFee(BigDecimal.ZERO);
             order.updatePoint(BigDecimal.ZERO);
         }
-        sseEventService.send(makersIds);
+        applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
     }
 
     @Override
@@ -482,6 +483,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (refundPriceDto.getIsLastItemOfGroup()) {
             orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
         }
+        applicationEventPublisher.publishEvent(new ReloadEvent(Collections.singletonList(orderItemDailyFood.getDailyFood().getFood().getMakers().getId())));
     }
 
 

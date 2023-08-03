@@ -3,12 +3,13 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.data.redis.pubsub.SseEventService;
+import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Description;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +23,7 @@ import java.util.List;
 public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
-    private final SseEventService sseEventService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -78,7 +79,7 @@ public class PublicController {
     @Description(value = "메세지 전송")
     @PostMapping(value = "/notification/send")
     public ResponseMessage subscribe(@RequestBody OrderDto.IdList idList) {
-        sseEventService.send(idList.getIdList());
+        applicationEventPublisher.publishEvent(new ReloadEvent(idList.getIdList()));
         return ResponseMessage.builder()
                 .message("메세지 전송 성공")
                 .build();
