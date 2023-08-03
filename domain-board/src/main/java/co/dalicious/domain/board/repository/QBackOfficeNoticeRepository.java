@@ -84,9 +84,9 @@ public class QBackOfficeNoticeRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, BoardType type, Pageable pageable) {
+    public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, List<BoardType> type, Pageable pageable) {
         QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
-                .where(makersNotice.boardType.eq(type), makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
+                .where(makersNotice.boardType.in(type), makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
                 .orderBy(makersNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -95,7 +95,7 @@ public class QBackOfficeNoticeRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<ClientNotice> findClientNoticeAllByClientIdAndType(BigInteger groupId, BoardType type, Pageable pageable) {
+    public Page<ClientNotice> findClientNoticeAllByClientIdAndType(BigInteger groupId, List<BoardType> type, Pageable pageable) {
         List<Tuple> groupIdResults = queryFactory.select(clientNotice.id, clientNotice.groupIds).from(clientNotice).fetch();
         List<BigInteger> noticeIds = groupIdResults.stream()
                 .filter(v -> (v.get(clientNotice.groupIds) != null && v.get(clientNotice.groupIds).contains(groupId)) || v.get(clientNotice.groupIds) == null || v.get(clientNotice.groupIds).isEmpty())
@@ -103,7 +103,7 @@ public class QBackOfficeNoticeRepository {
                 .toList();
 
         QueryResults<ClientNotice> results = queryFactory.selectFrom(clientNotice)
-                .where(clientNotice.boardType.eq(type), clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
+                .where(clientNotice.boardType.in(type), clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
                 .orderBy(clientNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
