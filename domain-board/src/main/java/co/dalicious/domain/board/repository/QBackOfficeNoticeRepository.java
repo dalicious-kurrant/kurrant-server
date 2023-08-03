@@ -17,7 +17,6 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.List;
 
-import static co.dalicious.domain.board.entity.QBackOfficeNotice.backOfficeNotice;
 import static co.dalicious.domain.board.entity.QClientNotice.clientNotice;
 import static co.dalicious.domain.board.entity.QMakersNotice.makersNotice;
 
@@ -57,7 +56,7 @@ public class QBackOfficeNoticeRepository {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(groupIds != null && !groupIds.isEmpty()) {
-            List<Tuple> groupIdResults = queryFactory.select(clientNotice.id, clientNotice.groupIds).from(backOfficeNotice).fetch();
+            List<Tuple> groupIdResults = queryFactory.select(clientNotice.id, clientNotice.groupIds).from(clientNotice).fetch();
             List<BigInteger> noticeIds = groupIdResults.stream()
                     .filter(v -> v.get(clientNotice.groupIds) != null && v.get(clientNotice.groupIds).stream().anyMatch(groupIds::contains))
                     .map(v -> v.get(clientNotice.id))

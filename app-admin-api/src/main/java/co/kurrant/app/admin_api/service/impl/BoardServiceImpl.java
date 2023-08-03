@@ -60,6 +60,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void createAppBoard(AppBoardRequestDto requestDto) {
+        BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
+        if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+
         Notice notice = noticeMapper.toNotice(requestDto);
         noticeRepository.save(notice);
     }
@@ -86,6 +89,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void updateAppBoard(BigInteger noticeId, AppBoardRequestDto requestDto) {
+        BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
+        if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         noticeMapper.updateNotice(requestDto, notice);
     }
@@ -127,6 +133,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void createMakersBoard(MakersBoardRequestDto requestDto) {
+        BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
+        if(!BoardType.showMakers().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+
         MakersNotice notice = backOfficeNoticeMapper.toMakersNotice(requestDto);
         backOfficeNoticeRepository.save(notice);
     }
@@ -153,6 +162,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void updateMakersBoard(BigInteger noticeId, MakersBoardRequestDto requestDto) {
+        BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
+        if(!BoardType.showMakers().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+
         MakersNotice makersNotice = (MakersNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         backOfficeNoticeMapper.updateNotice(requestDto, makersNotice);
     }
@@ -160,6 +172,8 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void createClientBoard(ClientBoardRequestDto requestDto) {
+        BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
+        if(!BoardType.showClient().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
         ClientNotice notice = backOfficeNoticeMapper.toClientNotice(requestDto);
         backOfficeNoticeRepository.save(notice);
     }
@@ -186,6 +200,9 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional
     public void updateClientBoard(BigInteger noticeId, ClientBoardRequestDto requestDto) {
+        BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
+        if(!BoardType.showClient().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+
         ClientNotice clientNotice = (ClientNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         backOfficeNoticeMapper.updateNotice(requestDto, clientNotice);
     }
