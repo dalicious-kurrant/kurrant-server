@@ -31,7 +31,7 @@ public class BoardServiceImpl implements BoardService {
     public ListItemResponseDto<NoticeDto> getMakersBoard(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable) {
         Makers makers = userUtil.getMakers(securityUser);
 
-        Page<MakersNotice> makersNotices = qBackOfficeNoticeRepository.findMakersNoticeAllByMakersIdAndType(makers.getId(), BoardCategory.ofCode(type), pageable);
+        Page<MakersNotice> makersNotices = qBackOfficeNoticeRepository.findMakersNoticeAllByMakersIdAndType(makers.getId(), type == null ? null : BoardCategory.ofCode(type), pageable);
 
         if(makersNotices.isEmpty()) ListItemResponseDto.<NoticeDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) makersNotices.getTotalPages()).build();
 
