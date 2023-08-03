@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,6 +75,7 @@ public class SseEventService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
+    @Async
     public void send(ReloadEvent reloadEvent) {
         String notification = "Reload! " + "(" + DateUtils.localDateTimeToString(LocalDateTime.now()) + ")";
 

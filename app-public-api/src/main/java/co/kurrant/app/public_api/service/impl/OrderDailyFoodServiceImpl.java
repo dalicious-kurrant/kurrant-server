@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.*;
@@ -46,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -98,12 +100,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QUserRepository qUserRepository;
     private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
     public BigInteger orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
+        Set<BigInteger> makersIds = new HashSet<>();
         synchronized (userLocks.computeIfAbsent(user, u -> new Object())) {
             // 그룹/스팟 정보 가져오기
             Spot spot = spotRepository.findById(orderItemDailyFoodReqDto.getOrderItems().getSpotId()).orElseThrow(
@@ -177,6 +181,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     // 주문 가능 수량이 일치하는지 확인
                     FoodCountDto foodCountDto = orderDailyFoodUtil.getRemainFoodCount(selectedCartDailyFood.getDailyFood());
                     checkFoodCount(foodCountDto, cartDailyFood, selectedCartDailyFood);
+                    makersIds.add(selectedCartDailyFood.getDailyFood().getFood().getMakers().getId());
                 }
 
                 // 5. 지원금 사용 저장
@@ -236,6 +241,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             cartDailyFoodRepository.deleteAll(cartDailyFoods);
 
+            applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
+
             return orderDailyFood.getId();
         }
     }
@@ -248,7 +255,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        orderService.cancelOrderDailyFoodNice((OrderDailyFood) order, user);
+        Set<BigInteger> makersIds = orderService.cancelOrderDailyFoodNice((OrderDailyFood) order, user);
+        applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
     }
 
     @Override
@@ -261,6 +269,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         );
 
         orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+        applicationEventPublisher.publishEvent(new ReloadEvent(Collections.singleton(orderItemDailyFood.getDailyFood().getFood().getMakers().getId())));
     }
 
 
