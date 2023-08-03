@@ -53,4 +53,14 @@ public enum BoardType {
         list.add(BoardType.PAYCHECK_COMPLETE);
         return list;
     }
+
+    public static List<BoardType> showClient() {
+        List<BoardType> list = new ArrayList<>();
+        list.add(BoardType.ALL);
+        list.add(BoardType.CLIENT);
+        list.add(BoardType.APPROVE_CHANGE_INFO);
+        list.add(BoardType.APPROVE_CHANGE_PRICE);
+        list.add(BoardType.PAYCHECK_COMPLETE);
+        return list;
+    }
 }

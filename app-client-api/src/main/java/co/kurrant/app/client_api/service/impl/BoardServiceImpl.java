@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
+import co.dalicious.domain.board.entity.enums.BoardCategory;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
 import co.dalicious.domain.board.repository.QBackOfficeNoticeRepository;
@@ -35,9 +36,9 @@ public class BoardServiceImpl implements BoardService {
     @Transactional(readOnly = true)
     public ListItemResponseDto<NoticeDto> getClientBoard(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable) {
         Corporation corporation = userUtil.getCorporation(securityUser);
-        BoardType boardType = BoardType.ofCode(type);
+        List<BoardType> categories = BoardCategory.getBoardTypeByCategory(BoardCategory.ofCode(type));
 
-        Page<ClientNotice> clientNotices = qBackOfficeNoticeRepository.findClientNoticeAllByClientIdAndType(corporation.getId(), boardType, pageable);
+        Page<ClientNotice> clientNotices = qBackOfficeNoticeRepository.findClientNoticeAllByClientIdAndType(corporation.getId(), categories, pageable);
 
         if(clientNotices.isEmpty()) ListItemResponseDto.<NoticeDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) clientNotices.getTotalPages()).build();
 
