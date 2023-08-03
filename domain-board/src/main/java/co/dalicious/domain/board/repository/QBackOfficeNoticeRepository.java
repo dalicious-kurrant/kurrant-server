@@ -86,7 +86,6 @@ public class QBackOfficeNoticeRepository {
     }
 
     public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, BoardCategory category, Pageable pageable) {
-
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(category != null) {
@@ -94,7 +93,7 @@ public class QBackOfficeNoticeRepository {
         }
 
         QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
-                .where(makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
+                .where(whereCause, makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
                 .orderBy(makersNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -117,7 +116,7 @@ public class QBackOfficeNoticeRepository {
         }
 
         QueryResults<ClientNotice> results = queryFactory.selectFrom(clientNotice)
-                .where(clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
+                .where(whereCause, clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
                 .orderBy(clientNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
