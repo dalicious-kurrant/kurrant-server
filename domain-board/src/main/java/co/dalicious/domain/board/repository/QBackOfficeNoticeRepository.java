@@ -3,6 +3,7 @@ package co.dalicious.domain.board.repository;
 import co.dalicious.domain.board.entity.BackOfficeNotice;
 import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
+import co.dalicious.domain.board.entity.enums.BoardCategory;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
@@ -84,9 +85,9 @@ public class QBackOfficeNoticeRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, List<BoardType> type, Pageable pageable) {
+    public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, BoardCategory category, Pageable pageable) {
         QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
-                .where(makersNotice.boardType.in(type), makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
+                .where(makersNotice.boardCategory.eq(category), makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
                 .orderBy(makersNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -95,7 +96,7 @@ public class QBackOfficeNoticeRepository {
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
 
-    public Page<ClientNotice> findClientNoticeAllByClientIdAndType(BigInteger groupId, List<BoardType> type, Pageable pageable) {
+    public Page<ClientNotice> findClientNoticeAllByClientIdAndType(BigInteger groupId, BoardCategory category, Pageable pageable) {
         List<Tuple> groupIdResults = queryFactory.select(clientNotice.id, clientNotice.groupIds).from(clientNotice).fetch();
         List<BigInteger> noticeIds = groupIdResults.stream()
                 .filter(v -> (v.get(clientNotice.groupIds) != null && v.get(clientNotice.groupIds).contains(groupId)) || v.get(clientNotice.groupIds) == null || v.get(clientNotice.groupIds).isEmpty())
@@ -103,7 +104,7 @@ public class QBackOfficeNoticeRepository {
                 .toList();
 
         QueryResults<ClientNotice> results = queryFactory.selectFrom(clientNotice)
-                .where(clientNotice.boardType.in(type), clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
+                .where(clientNotice.boardCategory.eq(category), clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
                 .orderBy(clientNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
