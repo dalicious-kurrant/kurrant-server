@@ -36,9 +36,8 @@ public class BoardServiceImpl implements BoardService {
     @Transactional(readOnly = true)
     public ListItemResponseDto<NoticeDto> getClientBoard(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable) {
         Corporation corporation = userUtil.getCorporation(securityUser);
-        List<BoardType> categories = BoardCategory.getBoardTypeByCategory(BoardCategory.ofCode(type));
 
-        Page<ClientNotice> clientNotices = qBackOfficeNoticeRepository.findClientNoticeAllByClientIdAndType(corporation.getId(), categories, pageable);
+        Page<ClientNotice> clientNotices = qBackOfficeNoticeRepository.findClientNoticeAllByClientIdAndType(corporation.getId(), BoardCategory.ofCode(type), pageable);
 
         if(clientNotices.isEmpty()) ListItemResponseDto.<NoticeDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) clientNotices.getTotalPages()).build();
 

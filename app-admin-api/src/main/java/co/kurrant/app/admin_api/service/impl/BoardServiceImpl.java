@@ -12,6 +12,7 @@ import co.dalicious.domain.board.dto.*;
 import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
+import co.dalicious.domain.board.entity.enums.BoardCategory;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
 import co.dalicious.domain.board.mapper.NoticeMapper;
@@ -38,6 +39,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -137,6 +139,7 @@ public class BoardServiceImpl implements BoardService {
         if(!BoardType.showMakers().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         MakersNotice notice = backOfficeNoticeMapper.toMakersNotice(requestDto);
+        notice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
         backOfficeNoticeRepository.save(notice);
     }
 
@@ -166,6 +169,7 @@ public class BoardServiceImpl implements BoardService {
         if(!BoardType.showMakers().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         MakersNotice makersNotice = (MakersNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+        makersNotice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
         backOfficeNoticeMapper.updateNotice(requestDto, makersNotice);
     }
 
@@ -174,7 +178,9 @@ public class BoardServiceImpl implements BoardService {
     public void createClientBoard(ClientBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showClient().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+
         ClientNotice notice = backOfficeNoticeMapper.toClientNotice(requestDto);
+        notice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
         backOfficeNoticeRepository.save(notice);
     }
 
@@ -204,6 +210,7 @@ public class BoardServiceImpl implements BoardService {
         if(!BoardType.showClient().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         ClientNotice clientNotice = (ClientNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+        clientNotice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
         backOfficeNoticeMapper.updateNotice(requestDto, clientNotice);
     }
 

@@ -1,6 +1,8 @@
 package co.dalicious.domain.board.entity;
 
+import co.dalicious.domain.board.converter.BoardCategoryConverter;
 import co.dalicious.domain.board.converter.BoardTypeConverter;
+import co.dalicious.domain.board.entity.enums.BoardCategory;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AccessLevel;
@@ -60,6 +62,10 @@ public class BackOfficeNotice {
     @Column(name="is_alarm_talk")
     @Comment("상태 0:비활성 / 1:활성")
     private Boolean isAlarmTalk;
+
+    @Column(name="e_category")
+    @Convert(converter = BoardCategoryConverter.class)
+    private BoardCategory boardCategory;
 
     public BackOfficeNotice(String title, String content, Boolean isStatus, BoardType boardType, Boolean isAlarmTalk) {
         this.title = title;
