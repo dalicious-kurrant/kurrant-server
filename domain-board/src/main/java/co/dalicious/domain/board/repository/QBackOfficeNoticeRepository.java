@@ -86,8 +86,15 @@ public class QBackOfficeNoticeRepository {
     }
 
     public Page<MakersNotice> findMakersNoticeAllByMakersIdAndType(BigInteger makersId, BoardCategory category, Pageable pageable) {
+
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(category != null) {
+            whereCause.and(makersNotice.boardCategory.eq(category));
+        }
+
         QueryResults<MakersNotice> results = queryFactory.selectFrom(makersNotice)
-                .where(makersNotice.boardCategory.eq(category), makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
+                .where(makersNotice.isStatus.isTrue(), makersNotice.makersId.eq(makersId).or(makersNotice.makersId.isNull()))
                 .orderBy(makersNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())
@@ -103,8 +110,14 @@ public class QBackOfficeNoticeRepository {
                 .map(v -> v.get(clientNotice.id))
                 .toList();
 
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(category != null) {
+            whereCause.and(clientNotice.boardCategory.eq(category));
+        }
+
         QueryResults<ClientNotice> results = queryFactory.selectFrom(clientNotice)
-                .where(clientNotice.boardCategory.eq(category), clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
+                .where(clientNotice.isStatus.isTrue(), clientNotice.id.in(noticeIds))
                 .orderBy(clientNotice.createdDateTime.desc())
                 .limit(pageable.getPageSize())
                 .offset(pageable.getOffset())

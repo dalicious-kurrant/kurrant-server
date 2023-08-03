@@ -25,7 +25,7 @@ public class BoardController {
 
     @Operation(summary = "고객사 공지사항 조회", description = "고객사 공지사항을 조회한다")
     @GetMapping("")
-    public ResponseMessage getClientBoard(Authentication authentication, @RequestParam Integer type,
+    public ResponseMessage getClientBoard(Authentication authentication, @RequestParam(required = false) Integer type,
                                           @RequestParam(required = false, defaultValue = "15") Integer limit,
                                           @RequestParam Integer page) {
         OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
