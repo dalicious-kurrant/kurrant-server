@@ -119,6 +119,7 @@ public class PushServiceImpl implements PushService {
                             .setBody(requestDtoByUser.getMessage())
                             .build())
                     .setToken(requestDtoByUser.getToken())
+                    .setApnsConfig(ApnsConfig.builder().setAps(Aps.builder().setContentAvailable(true).build()).build())
                     .build();
             messages.add(message);
         }
