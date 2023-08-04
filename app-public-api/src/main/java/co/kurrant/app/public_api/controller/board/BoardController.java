@@ -85,4 +85,14 @@ public class BoardController {
                 .build();
     }
 
+    @Operation(summary = "공지사항 상세 조회", description = "공지사항의 상세 정보를 불러온다.")
+    @GetMapping("notices/{noticeId}")
+    public ResponseMessage getNoticeDetail(Authentication authentication, @PathVariable BigInteger noticeId) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(boardService.getNoticeDetail(securityUser, noticeId))
+                .message("공지사항을 불러오는데 성공했습니다.")
+                .build();
+    }
+
 }

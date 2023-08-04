@@ -10,6 +10,7 @@ import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.mapper.NoticeMapper;
+import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
 import co.dalicious.domain.user.entity.User;
@@ -20,6 +21,8 @@ import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.BoardService;
 import co.kurrant.app.public_api.util.UserUtil;
+import exception.ApiException;
+import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -40,6 +43,7 @@ public class BoardServiceImpl implements BoardService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final CustomerServiceMapper customerServiceMapper;
     private final UserUtil userUtil;
+    private final NoticeRepository noticeRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -119,5 +123,14 @@ public class BoardServiceImpl implements BoardService {
 
         return ListItemResponseDto.<NoticeDto>builder().items(noticeDtos).count(noticeList.getNumberOfElements()).limit(pageable.getPageSize())
                 .offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(noticeList.isLast()).build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NoticeDto getNoticeDetail(SecurityUser securityUser, BigInteger noticeId) {
+        Notice notice = noticeRepository.findByIdAndIsStatus(noticeId, true);
+        if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
+
+        return noticeMapper.toDto(notice);
     }
 }
