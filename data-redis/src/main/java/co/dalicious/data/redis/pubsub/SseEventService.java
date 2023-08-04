@@ -31,6 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @RequiredArgsConstructor
 public class SseEventService {
     private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
+    private final EmitterRepository emitterRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
 
@@ -38,6 +39,12 @@ public class SseEventService {
         String id = String.valueOf(makersId);
 
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+
+        //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
+        emitter.onCompletion(() -> emitterRepository.deleteById(id));
+        emitter.onTimeout(() -> emitterRepository.deleteById(id));
+
+        emitterRepository.save(id, emitter);
 
         // Sending the initial message to the client immediately.
         sendToClient(emitter, id, "EventStream Created. [makersId=" + makersId + "]");
@@ -67,7 +74,7 @@ public class SseEventService {
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
-            // Log the exception for better visibility
+            emitterRepository.deleteAllEmitterStartWithId(id);
             System.err.println("Error sending message to client: " + exception.getMessage());
             throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
