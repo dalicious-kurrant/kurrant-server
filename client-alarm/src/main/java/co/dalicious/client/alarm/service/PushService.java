@@ -17,6 +17,7 @@ public interface PushService {
     void sendByTopic(PushByTopicRequestDto pushByTopicRequestDto);
 
     void sendToTalk(AlimtalkRequestDto alimtalkRequestDto) throws IOException, ParseException;
+    void sendToTalk(List<AlimtalkRequestDto> alimtalkRequestDto) throws IOException, ParseException;
 
     void saveToken(PushTokenSaveReqDto pushTokenSaveReqDto);
 }

@@ -8,4 +8,5 @@ import java.math.BigInteger;
 
 public interface BackOfficeNoticeRepository extends JpaRepository<BackOfficeNotice, BigInteger> {
 
+    BackOfficeNotice findByIdAndIsStatus(BigInteger id, Boolean isStatus);
 }

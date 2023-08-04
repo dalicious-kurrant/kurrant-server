@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.board.dto.*;
+import org.json.simple.parser.ParseException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -21,6 +22,6 @@ public interface BoardService {
     void createClientBoard(ClientBoardRequestDto requestDto);
     ListItemResponseDto<ClientBoardResponseDto> getClientBoard(Map<String, Object> parameters, OffsetBasedPageRequest pageable);
     void updateClientBoard(BigInteger noticeId, ClientBoardRequestDto requestDto);
-    void postAlarmTalk(BigInteger noticeId);
+    void postAlarmTalk(BigInteger noticeId) throws IOException, ParseException;
 
 }

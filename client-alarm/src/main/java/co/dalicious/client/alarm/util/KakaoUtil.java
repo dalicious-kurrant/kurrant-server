@@ -1,5 +1,13 @@
 package co.dalicious.client.alarm.util;
 
+import co.dalicious.client.alarm.dto.AlimtalkRequestDto;
+import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlimTalkTemplate;
+import co.dalicious.domain.board.entity.BackOfficeNotice;
+import co.dalicious.domain.board.entity.enums.BoardCategory;
+import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.user.entity.enums.PushCondition;
+import org.apache.commons.text.StringSubstitutor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -7,6 +15,7 @@ import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -65,4 +74,25 @@ public class KakaoUtil {
         return jsonObject;
     }
 
+    public String getContextByMakers(String name, String type, AlimTalkTemplate alimTalkTemplate) {
+        String template = alimTalkTemplate.getTemplate();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("makersName", name);
+        valuesMap.put("BoardType", type);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
+
+    public String getContextByClient(String name, String type, AlimTalkTemplate alimTalkTemplate) {
+        String template = alimTalkTemplate.getTemplate();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("clientName", name);
+        valuesMap.put("BoardType", type);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
 }

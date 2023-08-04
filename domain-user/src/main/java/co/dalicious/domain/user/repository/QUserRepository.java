@@ -244,4 +244,15 @@ public class QUserRepository {
                 .fetchOne());
 
     }
+
+    public Map<BigInteger, String> findUserIdAndPhoneByUserId(List<BigInteger> userIds) {
+        List<Tuple> userResult = queryFactory.select(user.id, user.phone)
+                .from(user)
+                .where(user.id.in(userIds))
+                .fetch();
+
+        Map<BigInteger, String> userIdMap = new HashMap<>();
+        userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.phone)));
+        return userIdMap;
+    }
 }
