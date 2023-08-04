@@ -112,11 +112,11 @@ public class BoardServiceImpl implements BoardService {
         }
 
         Page<Notice> noticeList = qNoticeRepository.findAllNoticeBySpotFilter(uesrGroupList, pageable);
+        List<NoticeDto> noticeDtos = new ArrayList<>();
         if(noticeList.isEmpty()) {
-            return ListItemResponseDto.<NoticeDto>builder().items(null).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(true).build();
+            return ListItemResponseDto.<NoticeDto>builder().items(noticeDtos).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(true).build();
         }
 
-        List<NoticeDto> noticeDtos = new ArrayList<>();
         for (Notice notice : noticeList){
             noticeDtos.add(noticeMapper.toDto(notice));
         }

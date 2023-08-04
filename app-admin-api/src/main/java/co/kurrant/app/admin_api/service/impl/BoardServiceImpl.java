@@ -247,7 +247,7 @@ public class BoardServiceImpl implements BoardService {
             for (String name : clientNameList.keySet()) {
                 phone = managerMap.entrySet().stream()
                         .filter(entry -> clientNameList.get(name).equals(entry.getKey()))
-                        .findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400027", name + "의 메니저 정보가 없습니다. 확인해주세요."))
+                        .findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400027", name + "의 매니저 정보가 없습니다. 확인해주세요."))
                         .getValue();
 
                 content = kakaoUtil.getContextByClient(name, notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
