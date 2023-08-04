@@ -30,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 @RequiredArgsConstructor
 public class SseEventService {
-    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 45;
     private final EmitterRepository emitterRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
@@ -74,7 +74,6 @@ public class SseEventService {
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
-            emitterRepository.deleteAllEmitterStartWithId(id);
             System.err.println("Error sending message to client: " + exception.getMessage());
             throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
