@@ -56,7 +56,7 @@ public interface NoticeMapper {
     @Mapping(source = "notice.createdDateTime", target = "created", qualifiedByName = "timeFormat")
     @Mapping(source = "notice.updatedDateTime", target = "updated", qualifiedByName = "timeFormat")
     @Mapping(source = "notice.isStatus", target = "status")
-    @Mapping(target = "boardType", ignore = true)
+    @Mapping(target = "boardType", expression = "java(notice.getBoardType().getCode())")
     NoticeDto toDto(Notice notice);
 
     @Named("timeFormat")
