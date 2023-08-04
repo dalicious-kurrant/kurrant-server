@@ -17,4 +17,5 @@ public interface BoardService {
     void deleteAllAlarm(SecurityUser securityUser);
     void readAllAlarm(SecurityUser securityUser, List<String> ids);
     ListItemResponseDto<NoticeDto> noticeList(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable);
+    NoticeDto getNoticeDetail(SecurityUser securityUser, BigInteger noticeId);
 }

@@ -3,17 +3,21 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.alarm.dto.AlimtalkRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
+import co.dalicious.client.alarm.entity.enums.AlimTalkTemplate;
 import co.dalicious.client.alarm.service.PushService;
+import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.board.dto.*;
+import co.dalicious.domain.board.entity.BackOfficeNotice;
 import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardCategory;
 import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.board.entity.enums.NoticeType;
 import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
 import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.BackOfficeNoticeRepository;
@@ -28,18 +32,20 @@ import co.dalicious.domain.user.repository.QUserGroupRepository;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.BoardService;
+import com.querydsl.core.Tuple;
 import exception.ApiException;
+import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,6 +64,7 @@ public class BoardServiceImpl implements BoardService {
     private final BackOfficeNoticeMapper backOfficeNoticeMapper;
     private final QBackOfficeNoticeRepository qBackOfficeNoticeRepository;
     private final QMakersRepository qMakersRepository;
+    private final KakaoUtil kakaoUtil;
 
     @Override
     @Transactional
@@ -216,15 +223,61 @@ public class BoardServiceImpl implements BoardService {
 
     @Override
     @Transactional
-    public void postAlarmTalk(BigInteger noticeId) {
-//        Notice notice = noticeRepository.findByIdAndIsStatus(noticeId, true);
-//        if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
-//        if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
-//
-//        AlimtalkRequestDto alimtalkRequestDto =
-//        pushService.sendToTalk();
+    public void postAlarmTalk(BigInteger noticeId) throws IOException, ParseException {
+        BackOfficeNotice notice = backOfficeNoticeRepository.findByIdAndIsStatus(noticeId, true);
+        if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
+        if(notice.getIsAlarmTalk()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
+        String phone;
+        String content;
+        List<AlimtalkRequestDto> alimtalkRequestDtoList = new ArrayList<>();
+
+        if(notice instanceof MakersNotice makersNotice) {
+            Tuple makersInfo = qMakersRepository.findNameById(makersNotice.getMakersId());
+            String name = makersInfo.get(0, String.class);
+            phone = makersInfo.get(1, String.class);
+            content = kakaoUtil.getContextByMakers(name, notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.MAKERS));
+
+            alimtalkRequestDtoList.add(new AlimtalkRequestDto(phone, null, content));
+        }
+
+        else if (notice instanceof ClientNotice clientNotice) {
+            Map<String, BigInteger> clientNameList = qGroupRepository.findGroupNameListByIds(clientNotice.getGroupIds());
+            Map<BigInteger, String> managerMap = qUserRepository.findUserIdAndPhoneByUserId((List<BigInteger>) clientNameList.values());
+            for (String name : clientNameList.keySet()) {
+                phone = managerMap.entrySet().stream()
+                        .filter(entry -> clientNameList.get(name).equals(entry.getKey()))
+                        .findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400027", name + "의 메니저 정보가 없습니다. 확인해주세요."))
+                        .getValue();
+
+                content = kakaoUtil.getContextByClient(name, notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
+                alimtalkRequestDtoList.add(new AlimtalkRequestDto(phone, null, content));
+            }
+        }
+
+        pushService.sendToTalk(alimtalkRequestDtoList);
     }
 
+    private AlimTalkTemplate selectTemplate(BoardCategory boardCategory, NoticeType noticeType) {
+        Map<BoardCategory, Map<NoticeType, AlimTalkTemplate>> templateMap = new HashMap<>();
+        Map<NoticeType, AlimTalkTemplate> allTemplates = new HashMap<>();
+        allTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.ALL_MAKERS);
+        allTemplates.put(NoticeType.CLIENT, AlimTalkTemplate.ALL_CLIENT);
+
+        Map<NoticeType, AlimTalkTemplate> paycheckOrEventTemplates = new HashMap<>();
+        paycheckOrEventTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.INDIVIDUAL_MAKERS);
+        paycheckOrEventTemplates.put(NoticeType.CLIENT, AlimTalkTemplate.INDIVIDUAL_CLIENT);
+
+        Map<NoticeType, AlimTalkTemplate> approveChangeTemplates = new HashMap<>();
+        approveChangeTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.APPROVE_MAKERS);
+        approveChangeTemplates.put(NoticeType.CLIENT, AlimTalkTemplate.APPROVE_CLIENT);
+
+        templateMap.put(BoardCategory.ALL, allTemplates);
+        templateMap.put(BoardCategory.PAYCHECK, paycheckOrEventTemplates);
+        templateMap.put(BoardCategory.EVENT, paycheckOrEventTemplates);
+        templateMap.put(BoardCategory.APPROVE_CHANGE, approveChangeTemplates);
+
+        return templateMap.get(boardCategory).get(noticeType);
+    }
 
 }

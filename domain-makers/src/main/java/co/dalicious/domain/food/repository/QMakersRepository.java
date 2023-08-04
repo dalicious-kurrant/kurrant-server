@@ -248,4 +248,11 @@ public class QMakersRepository {
         }
         return map;
     }
+
+    public Tuple findNameById(BigInteger makersId) {
+        return queryFactory.select(makers.name, makers.managerPhone)
+                .from(makers)
+                .where(makers.id.eq(makersId))
+                .fetchOne();
+    }
 }

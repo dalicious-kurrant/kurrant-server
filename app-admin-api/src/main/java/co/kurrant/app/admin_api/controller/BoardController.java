@@ -11,6 +11,7 @@ import co.kurrant.app.admin_api.dto.IdDto;
 import co.kurrant.app.admin_api.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.parser.ParseException;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -138,7 +139,7 @@ public class BoardController {
     @ControllerMarker(ControllerType.BOARD)
     @Operation(summary = "메이커스/고객사 공지사항 알림톡", description = "메이커스/고객사 공지사항 알림톡을 전송합니다.")
     @PostMapping("/alarm/talk")
-    public ResponseMessage postAlarmTalk(@RequestBody IdDto noticeId) {
+    public ResponseMessage postAlarmTalk(@RequestBody IdDto noticeId) throws IOException, ParseException {
         boardService.postAlarmTalk(noticeId.getId());
         return ResponseMessage.builder()
                 .message("메이커스/고객사 공지사항 알림톡 전송에 성공했습니다.")
