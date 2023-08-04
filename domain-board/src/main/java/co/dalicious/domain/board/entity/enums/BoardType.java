@@ -39,6 +39,7 @@ public enum BoardType {
     public static List<BoardType> showApp() {
         List<BoardType> list = new ArrayList<>();
         list.add(BoardType.ALL);
+        list.add(BoardType.SPOT);
         list.add(BoardType.POPUP);
         list.add(BoardType.EVENT);
         return list;
