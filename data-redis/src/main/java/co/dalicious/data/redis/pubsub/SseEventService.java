@@ -75,7 +75,6 @@ public class SseEventService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
-    @Async
     public void send(ReloadEvent reloadEvent) {
         String notification = "Reload! " + "(" + DateUtils.localDateTimeToString(LocalDateTime.now()) + ")";
 
