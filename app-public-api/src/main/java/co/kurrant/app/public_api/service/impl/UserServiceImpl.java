@@ -302,7 +302,7 @@ public class UserServiceImpl implements UserService {
     private void userGroupSave(List<Employee> employeeList, User user) {
         for (Employee employee : employeeList){
             Group group = groupRepository.findById(employee.getCorporation().getId()).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
-            UserGroup userGroup = userGroupMapper.toEntity(user, group);
+            UserGroup userGroup = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
             userGroupRepository.save(userGroup);
         }
 

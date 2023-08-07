@@ -267,8 +267,4 @@ public interface UserGroupMapper {
                 .toList();
     }
 
-    @Mapping(source = "group", target = "group")
-    @Mapping(source = "user", target = "user")
-    UserGroup toEntity(User user, Group group);
-
 }
