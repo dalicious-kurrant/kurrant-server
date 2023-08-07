@@ -1,7 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.event.ReloadEvent;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.SpotRepository;
@@ -35,7 +36,6 @@ import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
-import co.kurrant.app.public_api.dto.order.OrderByServiceDateNotyDto;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
@@ -47,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,9 +58,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.TextStyle;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -69,7 +68,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
-    private final TossUtil tossUtil;
     private final NiceUtil niceUtil;
     private final SpotRepository spotRepository;
     private final QCartDailyFoodRepository qCartDailyFoodRepository;
@@ -102,12 +100,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QUserRepository qUserRepository;
     private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
     public BigInteger orderDailyFoodsNice(SecurityUser securityUser, OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
+        Set<BigInteger> makersIds = new HashSet<>();
         synchronized (userLocks.computeIfAbsent(user, u -> new Object())) {
             // 그룹/스팟 정보 가져오기
             Spot spot = spotRepository.findById(orderItemDailyFoodReqDto.getOrderItems().getSpotId()).orElseThrow(
@@ -181,6 +181,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     // 주문 가능 수량이 일치하는지 확인
                     FoodCountDto foodCountDto = orderDailyFoodUtil.getRemainFoodCount(selectedCartDailyFood.getDailyFood());
                     checkFoodCount(foodCountDto, cartDailyFood, selectedCartDailyFood);
+                    makersIds.add(selectedCartDailyFood.getDailyFood().getFood().getMakers().getId());
                 }
 
                 // 5. 지원금 사용 저장
@@ -240,6 +241,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             cartDailyFoodRepository.deleteAll(cartDailyFoods);
 
+            applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
+
             return orderDailyFood.getId();
         }
     }
@@ -252,7 +255,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
 
-        orderService.cancelOrderDailyFoodNice((OrderDailyFood) order, user);
+        Set<BigInteger> makersIds = orderService.cancelOrderDailyFoodNice((OrderDailyFood) order, user);
+        applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
     }
 
     @Override
@@ -265,6 +269,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         );
 
         orderService.cancelOrderItemDailyFoodNice(orderItemDailyFood, user);
+        applicationEventPublisher.publishEvent(new ReloadEvent(Collections.singleton(orderItemDailyFood.getDailyFood().getFood().getMakers().getId())));
     }
 
 

@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.NotificationHash;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
@@ -10,12 +10,14 @@ import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
+import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderItemRepository;
 import co.dalicious.domain.review.repository.QKeywordRepository;
 import co.dalicious.domain.user.entity.enums.PointStatus;
+import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.util.PointUtil;
 import co.dalicious.domain.review.dto.*;
 import co.dalicious.domain.review.entity.Reviews;
@@ -59,6 +61,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final ReviewRepository reviewRepository;
     private final QReviewRepository qReviewRepository;
     private final QOrderItemRepository qOrderItemRepository;
+    private final QDailyFoodRepository qDailyFoodRepository;
+    private final UserGroupRepository userGroupRepository;
     private final ImageService imageService;
     private final QUserRepository qUserRepository;
     private final PointUtil pointUtil;
@@ -220,7 +224,8 @@ public class ReviewServiceImpl implements ReviewService {
             return ReviewsForUserResDto.create(reviewListDtos);
         }
         for(Reviews review : reviews) {
-            ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review);
+            BigInteger dailyFoodId = qDailyFoodRepository.findOneByFoodId(review.getFood().getId());
+            ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review,dailyFoodId);
             reviewListDtos.add(reviewListDto);
         }
 

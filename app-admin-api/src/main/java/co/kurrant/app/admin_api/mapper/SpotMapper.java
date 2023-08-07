@@ -268,15 +268,7 @@ public interface SpotMapper {
         return prepaidCategories;
     }
 
-    default PrepaidCategory toPrepaidCategory(UpdateSpotDetailRequestDto.PrepaidCategory prepaidCategoryDto) {
-        return new PrepaidCategory(PaycheckCategoryItem.ofCode(prepaidCategoryDto.getCode()), prepaidCategoryDto.getCount(), prepaidCategoryDto.getPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getPrice()), prepaidCategoryDto.getTotalPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getTotalPrice()));
-    }
 
-    default List<PrepaidCategory> toPrepaidCategories(List<UpdateSpotDetailRequestDto.PrepaidCategory> prepaidCategoryDtos) {
-        return prepaidCategoryDtos.stream()
-                .map(this::toPrepaidCategory)
-                .toList();
-    }
 
     default String deliveryTimeToString(List<LocalTime> deliveryTimeList) {
         StringBuilder stringBuilder = new StringBuilder();

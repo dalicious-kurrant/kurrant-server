@@ -12,4 +12,5 @@ public interface GroupService {
     GroupListDto.GroupInfoList getGroupInfo(SecurityUser securityUser);
 
     List<GroupDto.Spot> getSpots(BigInteger groupId, SecurityUser securityUser);
+    void postManagerInformation(SecurityUser securityUser, String information, String value);
 }

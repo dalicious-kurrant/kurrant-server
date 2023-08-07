@@ -3,9 +3,11 @@ package co.kurrant.app.admin_api.mapper;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.utils.AddressUtil;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -121,16 +123,21 @@ public interface GroupMapper {
         if(group instanceof Corporation corporation) {
             groupInfoList = toCorporationDto(corporation);
             groupInfoList.setGroupType(GroupDataType.CORPORATION.getCode());
+            if((corporation.getIsPrepaid() != null && corporation.getIsPrepaid()) && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
+                groupInfoList.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
+            }
+
+            if(managerUser != null) groupInfoList.setManagerId(managerUser.getId());
+            groupInfoList.setManagerName(corporation.getManagerName());
+            groupInfoList.setManagerPhone(corporation.getManagerPhone());
         }
         if(group instanceof OpenGroup openGroup) {
             groupInfoList = toOpenSpotDto(openGroup);
             groupInfoList.setGroupType(GroupDataType.OPEN_GROUP.getCode());
         }
-        if(managerUser != null) {
-            groupInfoList.setManagerId(managerUser.getId());
-            groupInfoList.setManagerName(managerUser.getName());
-            groupInfoList.setManagerPhone(managerUser.getPhone());
-        }
+
+
+
 
         Set<Days> serviceDays = new HashSet<>();
 
@@ -271,6 +278,12 @@ public interface GroupMapper {
     @Mapping(target = "mealInfos", ignore = true)
     void updateCorporation(GroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
 
+    @Mapping(target = "membershipEndDate", expression = "java(DateUtils.stringToDate(groupDto.getMembershipEndDate()))")
+    @Mapping(target = "diningTypes", expression = "java(DiningTypesUtils.codesToDiningTypes(groupDto.getDiningTypes()))")
+    @Mapping(target = "deliveryFeeOption", expression = "java(DeliveryFeeOption.ofString(groupDto.getDeliveryFeeOption()))")
+    @Mapping(target = "mealInfos", ignore = true)
+    void updateCorporation(UpdateGroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
+
     default void updateMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget MealInfo mealInfo) {
         if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
             updateCorporationMealInfo(mealInfoDto, group, corporationMealInfo);
@@ -294,5 +307,33 @@ public interface GroupMapper {
         List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(mealInfoDto.getServiceDays()).stream().sorted().toList();
         mealInfo.updateCorporationMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group, serviceDaysAndSupportPriceList);
     };
+
+    default List<GroupListDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
+        return prepaidCategoryList.stream()
+                .map(this::toPrepaidCategoryDto)
+                .toList();
+    }
+
+    default GroupListDto.PrepaidCategory toPrepaidCategoryDto(PrepaidCategory prepaidCategory) {
+        return GroupListDto.PrepaidCategory.builder()
+                .code(prepaidCategory.getPaycheckCategoryItem().getCode())
+                .paycheckCategoryItem(prepaidCategory.getPaycheckCategoryItem().getPaycheckCategoryItem())
+                .count(prepaidCategory.getCount())
+                .price(prepaidCategory.getPrice() == null ? null : prepaidCategory.getPrice().intValue())
+                .totalPrice(prepaidCategory.getTotalPrice() == null ? null : prepaidCategory.getTotalPrice().intValue())
+                .build();
+    }
+
+    default PrepaidCategory toPrepaidCategory(GroupListDto.PrepaidCategory prepaidCategoryDto) {
+        return new PrepaidCategory(PaycheckCategoryItem.ofCode(prepaidCategoryDto.getCode()), prepaidCategoryDto.getCount(), prepaidCategoryDto.getPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getPrice()), prepaidCategoryDto.getTotalPrice() == null ? null : BigDecimal.valueOf(prepaidCategoryDto.getTotalPrice()));
+    }
+
+    default List<PrepaidCategory> toPrepaidCategories(List<GroupListDto.PrepaidCategory> prepaidCategoryDtos) {
+        if(prepaidCategoryDtos == null || prepaidCategoryDtos.isEmpty()) return null;
+        return prepaidCategoryDtos.stream()
+                .map(this::toPrepaidCategory)
+                .toList();
+    }
+
 }
 

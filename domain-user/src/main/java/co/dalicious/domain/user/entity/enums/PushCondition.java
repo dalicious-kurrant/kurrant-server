@@ -51,7 +51,8 @@ public enum PushCondition {
                 DELIVERED_ORDER_ITEM,
                 LAST_ORDER_BY_DAILYFOOD,
                 NEW_SPOT,
-                NEW_SPOT_2
+                NEW_SPOT_2,
+                NEW_NOTICE
         );
     }
 

@@ -107,9 +107,9 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "회원가입을 수행한다.")
     @PostMapping("/join")
     public ResponseMessage signUp(@RequestBody SignUpRequestDto signUpRequestDto) {
+        authService.signUp(signUpRequestDto);
         return ResponseMessage.builder()
                 .message("회원가입에 성공하셨습니다.")
-                .data(authService.signUp(signUpRequestDto))
                 .build();
     }
 

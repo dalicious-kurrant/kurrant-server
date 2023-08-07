@@ -13,4 +13,9 @@ public class AlimtalkRequestDto {
     private String templateId;
     private String content;
 
+    public AlimtalkRequestDto(String phoneNumber, String templateId, String content) {
+        this.phoneNumber = phoneNumber;
+        this.templateId = templateId;
+        this.content = content;
+    }
 }

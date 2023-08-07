@@ -5,22 +5,18 @@ import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.repository.NotificationHashRepository;
-import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.repository.EmployeeRepository;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
-import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.food.repository.DailyFoodRepository;
-import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
@@ -31,26 +27,17 @@ import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
-import co.dalicious.domain.user.dto.*;
-import co.dalicious.domain.user.dto.SaveDailyReportDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.mapper.DailyReportMapper;
-import co.dalicious.domain.user.mapper.UserPreferenceMapper;
-import co.dalicious.domain.user.mapper.UserSelectTestDataMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.domain.user.validator.UserValidator;
 import co.dalicious.domain.user.mapper.UserGroupMapper;
-import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.enums.RequiredAuth;
-import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.dalicious.domain.user.dto.UserGroupDto;
-import co.kurrant.app.public_api.dto.order.OrderItemDailyFoodToDailyReportDto;
 import co.kurrant.app.public_api.dto.user.*;
-import co.kurrant.app.public_api.mapper.DailyReport.OrderItemDailyFoodDailyReportMapper;
 import co.kurrant.app.public_api.mapper.user.UserHomeInfoMapper;
 import co.kurrant.app.public_api.mapper.user.UserPersonalInfoMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -64,7 +51,6 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +63,6 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -104,7 +89,8 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
-
+    private final EmployeeRepository employeeRepository;
+    private final GroupRepository groupRepository;
     private final UserGroupMapper userGroupMapper;
     private final QGroupRepository qGroupRepository;
     private final ApplicationUtil applicationUtil;
@@ -298,6 +284,12 @@ public class UserServiceImpl implements UserService {
         String hashedPassword = passwordEncoder.encode(password);
         user.setEmailAndPassword(email, hashedPassword);
 
+        //그룹에서 초대된 유저인지 확인 후 초대된 유저라면 userGroup 등록
+        List<Employee> employeeList = employeeRepository.findAllByEmail(email);
+        if (!employeeList.isEmpty()){
+            userGroupSave(employeeList, user);
+        }
+
         // 일반 로그인 저장
         ProviderEmail providerEmail = ProviderEmail.builder()
                 .provider(Provider.GENERAL)
@@ -305,6 +297,16 @@ public class UserServiceImpl implements UserService {
                 .user(user)
                 .build();
         providerEmailRepository.save(providerEmail);
+    }
+
+    private void userGroupSave(List<Employee> employeeList, User user) {
+        for (Employee employee : employeeList){
+            Group group = groupRepository.findById(employee.getCorporation().getId()).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+            UserGroup userGroup = userGroupMapper.toEntity(user, group);
+            userGroupRepository.save(userGroup);
+        }
+
+
     }
 
     /*

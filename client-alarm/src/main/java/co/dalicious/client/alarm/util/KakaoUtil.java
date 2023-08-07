@@ -1,5 +1,7 @@
 package co.dalicious.client.alarm.util;
 
+import co.dalicious.client.alarm.entity.enums.AlimTalkTemplate;
+import org.apache.commons.text.StringSubstitutor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -65,4 +67,25 @@ public class KakaoUtil {
         return jsonObject;
     }
 
+    public String getContextByMakers(String name, String type, AlimTalkTemplate alimTalkTemplate) {
+        String template = alimTalkTemplate.getTemplate();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("makersName", name);
+        valuesMap.put("BoardType", type);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
+
+    public String getContextByClient(String name, String type, AlimTalkTemplate alimTalkTemplate) {
+        String template = alimTalkTemplate.getTemplate();
+        Map<String, String> valuesMap = new HashMap<>();
+        valuesMap.put("clientName", name);
+        valuesMap.put("BoardType", type);
+
+        StringSubstitutor sub = new StringSubstitutor(valuesMap);
+        template = sub.replace(template);
+        return template;
+    }
 }

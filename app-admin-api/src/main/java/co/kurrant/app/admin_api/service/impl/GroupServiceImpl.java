@@ -8,9 +8,7 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.NotificationHash;
-import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.repository.QRegionRepository;
@@ -22,6 +20,7 @@ import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -55,9 +54,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -237,7 +234,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     // TODO: 스팟으로 설정되어 있지만 그룹으로 변경
-    public void updateGroupDetail(GroupListDto.GroupInfoList groupInfoList) throws ParseException {
+    public void updateGroupDetail(UpdateGroupListDto.GroupInfoList groupInfoList) throws ParseException {
         // 그룹 찾기.
         Group group = groupRepository.findById(groupInfoList.getId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
         List<DiningType> diningTypeList = DiningTypesUtils.codesToDiningTypes(groupInfoList.getDiningTypes());
@@ -251,6 +248,7 @@ public class GroupServiceImpl implements GroupService {
         if (group instanceof Corporation corporation) {
             groupMapper.updateCorporation(groupInfoList, corporation);
             corporation.updateAddress(address);
+            corporation.updatePrepaidCategories(groupMapper.toPrepaidCategories(groupInfoList.getPrepaidCategoryList()));
         } else if (group instanceof OpenGroup openGroup) {
             openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
         }
