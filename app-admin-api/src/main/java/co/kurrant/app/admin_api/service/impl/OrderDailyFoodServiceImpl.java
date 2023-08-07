@@ -307,7 +307,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRED)
     public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
         StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
@@ -318,13 +318,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
                     makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
-                    applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
                 }
             } catch (Exception e) {
                 failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
+        applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
         return failMessage.toString();
     }
 

@@ -30,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 @RequiredArgsConstructor
 public class SseEventService {
-    private static final Long DEFAULT_TIMEOUT = 1000L * 45;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final EmitterRepository emitterRepository;
     private final StringRedisTemplate stringRedisTemplate;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
@@ -81,6 +81,7 @@ public class SseEventService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
+    @Async
     public void send(ReloadEvent reloadEvent) {
         String notification = "Reload! " + "(" + DateUtils.localDateTimeToString(LocalDateTime.now()) + ")";
 
