@@ -126,16 +126,18 @@ public interface GroupMapper {
             if((corporation.getIsPrepaid() != null && corporation.getIsPrepaid()) && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
                 groupInfoList.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
             }
+
+            if(managerUser != null) groupInfoList.setManagerId(managerUser.getId());
+            groupInfoList.setManagerName(corporation.getManagerName());
+            groupInfoList.setManagerPhone(corporation.getManagerPhone());
         }
         if(group instanceof OpenGroup openGroup) {
             groupInfoList = toOpenSpotDto(openGroup);
             groupInfoList.setGroupType(GroupDataType.OPEN_GROUP.getCode());
         }
-        if(managerUser != null) {
-            groupInfoList.setManagerId(managerUser.getId());
-            groupInfoList.setManagerName(managerUser.getName());
-            groupInfoList.setManagerPhone(managerUser.getPhone());
-        }
+
+
+
 
         Set<Days> serviceDays = new HashSet<>();
 
@@ -327,6 +329,7 @@ public interface GroupMapper {
     }
 
     default List<PrepaidCategory> toPrepaidCategories(List<GroupListDto.PrepaidCategory> prepaidCategoryDtos) {
+        if(prepaidCategoryDtos == null || prepaidCategoryDtos.isEmpty()) return null;
         return prepaidCategoryDtos.stream()
                 .map(this::toPrepaidCategory)
                 .toList();
