@@ -113,8 +113,16 @@ public class Corporation extends Group {
     @Comment("담당자 유저 id")
     private BigInteger managerId;
 
+    @Column(name = "manager_name")
+    @Comment("담당자 유저 이름")
+    private BigInteger managerName;
+
+    @Column(name = "manager_phone")
+    @Comment("담당자 유저 번호")
+    private BigInteger managerPhone;
+
     @Builder
-    public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend, DeliveryFeeOption deliveryFeeOption) {
+    public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend, DeliveryFeeOption deliveryFeeOption, BigInteger managerName, BigInteger managerPhone) {
         super(address, diningTypes, name, memo);
         this.code = code;
         this.isPrepaid = isPrepaid;
@@ -136,6 +144,8 @@ public class Corporation extends Group {
         this.maximumSpend = maximumSpend;
         this.managerId = managerId;
         this.deliveryFeeOption = deliveryFeeOption;
+        this.managerName = managerName;
+        this.managerPhone = managerPhone;
     }
 
     public void updateCorporation(GroupExcelRequestDto groupInfoList, Address address, List<DiningType> diningTypeList) {

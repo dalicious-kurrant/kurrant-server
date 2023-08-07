@@ -10,6 +10,8 @@ import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.dto.GroupDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.repository.UserRepository;
+import co.kurrant.app.client_api.dto.UpdateNameDto;
+import co.kurrant.app.client_api.dto.UpdatePhoneDto;
 import co.kurrant.app.client_api.mapper.GroupInfoMapper;
 import co.kurrant.app.client_api.mapper.GroupMapper;
 import co.kurrant.app.client_api.model.SecurityUser;
@@ -63,6 +65,20 @@ public class GroupServiceImpl implements GroupService {
 
         List<Spot> spots = group.getSpots();
         return groupMapper.spotsToDtos(spots);
+    }
+
+    @Override
+    @Transactional
+    public void updateGroupManagerName(SecurityUser securityUser, UpdateNameDto nameDto) {
+        Corporation corporation = userUtil.getCorporation(securityUser);
+        groupMapper.updateManagerName(nameDto.getName(), corporation);
+    }
+
+    @Override
+    @Transactional
+    public void updateGroupManagerPhone(SecurityUser securityUser, UpdatePhoneDto phoneDto) {
+        Corporation corporation = userUtil.getCorporation(securityUser);
+        groupMapper.updateManagerPhone(phoneDto.getPhone(), corporation);
     }
 
 }
