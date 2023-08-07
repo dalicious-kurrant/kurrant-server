@@ -10,9 +10,12 @@ import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Employee;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
+import co.dalicious.domain.client.repository.EmployeeRepository;
+import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -86,7 +89,8 @@ public class UserServiceImpl implements UserService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
     private final QUserRepository qUserRepository;
-
+    private final EmployeeRepository employeeRepository;
+    private final GroupRepository groupRepository;
     private final UserGroupMapper userGroupMapper;
     private final QGroupRepository qGroupRepository;
     private final ApplicationUtil applicationUtil;
@@ -280,6 +284,12 @@ public class UserServiceImpl implements UserService {
         String hashedPassword = passwordEncoder.encode(password);
         user.setEmailAndPassword(email, hashedPassword);
 
+        //그룹에서 초대된 유저인지 확인 후 초대된 유저라면 userGroup 등록
+        List<Employee> employeeList = employeeRepository.findAllByEmail(email);
+        if (!employeeList.isEmpty()){
+            userGroupSave(employeeList, user);
+        }
+
         // 일반 로그인 저장
         ProviderEmail providerEmail = ProviderEmail.builder()
                 .provider(Provider.GENERAL)
@@ -287,6 +297,16 @@ public class UserServiceImpl implements UserService {
                 .user(user)
                 .build();
         providerEmailRepository.save(providerEmail);
+    }
+
+    private void userGroupSave(List<Employee> employeeList, User user) {
+        for (Employee employee : employeeList){
+            Group group = groupRepository.findById(employee.getCorporation().getId()).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+            UserGroup userGroup = userGroupMapper.toEntity(user, group);
+            userGroupRepository.save(userGroup);
+        }
+
+
     }
 
     /*

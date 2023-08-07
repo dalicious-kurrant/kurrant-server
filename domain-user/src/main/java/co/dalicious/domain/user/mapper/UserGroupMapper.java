@@ -21,6 +21,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -265,4 +266,9 @@ public interface UserGroupMapper {
                 .map(this::toSpotDto)
                 .toList();
     }
+
+    @Mapping(source = "group", target = "group")
+    @Mapping(source = "user", target = "user")
+    UserGroup toEntity(User user, Group group);
+
 }
