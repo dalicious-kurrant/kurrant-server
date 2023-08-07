@@ -546,6 +546,7 @@ public class OrderServiceImpl implements OrderService {
             orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
+        user.updateIsMembership(true);
     }
 
 
