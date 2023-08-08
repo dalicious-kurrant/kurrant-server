@@ -63,15 +63,12 @@ public class ReviewService {
         TypedQuery<Object[]> batchQuery = entityManager.createQuery(batchQueryString, Object[].class);
         List<Object[]> batchResults = batchQuery.getResultList();
 
-        List<BigInteger> hasLogUserId = new ArrayList<>();
         for(Object[] result : batchResults) {
             BigInteger userId = (BigInteger) result[0];
             LocalDateTime pushDateTime = (LocalDateTime) result[1];
 
-            if(pushDateTime.isBefore(before24ByNow)) hasLogUserId.add(userId);
+            if(pushDateTime.isAfter(before24ByNow)) userIds.remove(userId);
         }
-
-        userIds.removeAll(hasLogUserId);
 
         return userIds;
     }
