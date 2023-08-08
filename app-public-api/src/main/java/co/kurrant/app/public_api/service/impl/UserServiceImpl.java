@@ -759,6 +759,7 @@ public class UserServiceImpl implements UserService {
         return LoginResponseDto.builder()
                 .accessToken(token)
                 .refreshToken(refreshTokenHashes.get(0).getRefreshToken())
+                .hasNickname(user.hasNickname())
                 .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
                 .expiresIn(jwtTokenProvider.getExpiredIn(token))
                 .leftWithdrawDays(leftWithdrawDays)
