@@ -264,12 +264,7 @@ public class FoodServiceImpl implements FoodService {
         Page<Reviews> pageReviews = null;
         //Total 리뷰 조회 (사장님에게만보이기는 제외)
         List<Reviews> totalReviewsList = qReviewRepository.findAllByfoodIdsAndForMakers(dailyFood.getFood().getId());
-        if (totalReviewsList.size() == 0) {
-            GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
-                    BigInteger.valueOf(0), keywords, stars);
-            return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(0)
-                    .total(0).limit(pageable.getPageSize()).isLast(true).build();
-        }
+
 
         pageReviews = qReviewRepository.findAllByFoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable, sort);
 
@@ -310,6 +305,14 @@ public class FoodServiceImpl implements FoodService {
         }
 
         keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
+
+        //리뷰 수가 0이면 0값 반환
+        if (totalReviewsList.size() == 0) {
+            GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
+                    reviewWrite, keywords, stars);
+            return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(0)
+                    .total(0).limit(pageable.getPageSize()).isLast(true).build();
+        }
 
         GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite, keywords, getStarRate(totalReviewsList));
 
