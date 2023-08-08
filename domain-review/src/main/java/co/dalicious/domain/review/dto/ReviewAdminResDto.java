@@ -45,6 +45,7 @@ public class ReviewAdminResDto {
         private String makersName;
         private Integer satisfaction;
         private String writer;
+        private String group;
         private String createdDate;
         private String content;
         private Boolean forMakers;
@@ -54,9 +55,7 @@ public class ReviewAdminResDto {
         private Boolean isDelete;
 
         @Builder
-        public ReviewList(BigInteger reviewId, String serviceDate, String orderCode, String itemName, String makersName,
-                          Integer satisfaction, String writer, String createdDate, String content, Boolean isMakersComment,
-                          Boolean isAdminComment, Boolean isReport, Boolean isDelete, Boolean forMakers) {
+        public ReviewList(BigInteger reviewId, String serviceDate, String orderCode, String itemName, String makersName, Integer satisfaction, String writer, String group, String createdDate, String content, Boolean forMakers, Boolean isMakersComment, Boolean isAdminComment, Boolean isReport, Boolean isDelete) {
             this.reviewId = reviewId;
             this.serviceDate = serviceDate;
             this.orderCode = orderCode;
@@ -64,13 +63,14 @@ public class ReviewAdminResDto {
             this.makersName = makersName;
             this.satisfaction = satisfaction;
             this.writer = writer;
+            this.group = group;
             this.createdDate = createdDate;
             this.content = content;
+            this.forMakers = forMakers;
             this.isMakersComment = isMakersComment;
             this.isAdminComment = isAdminComment;
             this.isReport = isReport;
             this.isDelete = isDelete;
-            this.forMakers = forMakers;
         }
     }
 
