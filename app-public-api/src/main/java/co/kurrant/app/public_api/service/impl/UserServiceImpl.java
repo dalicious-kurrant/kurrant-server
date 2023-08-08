@@ -312,8 +312,7 @@ public class UserServiceImpl implements UserService {
                 UserSpot userSpot = userSpotMapper.toUserSpot(group.getSpots().get(0), user, true, GroupDataType.CORPORATION);
                 userSpotRepository.save(userSpot);
             }
-
-
+        }
     }
 
     /*
@@ -763,7 +762,6 @@ public class UserServiceImpl implements UserService {
                 .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
                 .expiresIn(jwtTokenProvider.getExpiredIn(token))
                 .leftWithdrawDays(leftWithdrawDays)
-                .hasNickname(user.hasNickname())
                 .spotStatus(clientUtil.getSpotStatus(user).getCode())
                 .build();
     }
