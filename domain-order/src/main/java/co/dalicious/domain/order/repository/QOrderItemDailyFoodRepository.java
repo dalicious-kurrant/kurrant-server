@@ -33,12 +33,15 @@ public class QOrderItemDailyFoodRepository {
         * order중에 serviceDay가 5일 이내이면서
         * foodId가 일치하는것 조회
         * */
+        System.out.println(dailyFoodId + "dailyFoodId");
         OrderItemDailyFood orderItemDailyFood = queryFactory.selectFrom(QOrderItemDailyFood.orderItemDailyFood)
                 .where(QOrderItemDailyFood.orderItemDailyFood.order.user.id.eq(userId),
                         QOrderItemDailyFood.orderItemDailyFood.dailyFood.id.eq(dailyFoodId),
                         QOrderItemDailyFood.orderItemDailyFood.dailyFood.serviceDate.between(LocalDate.now().minusDays(5), LocalDate.now()))
                 .limit(1)
                 .fetchOne();
+
+        if (orderItemDailyFood != null) System.out.println(orderItemDailyFood.getName());
 
         return orderItemDailyFood;
 
