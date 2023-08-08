@@ -127,7 +127,6 @@ public class Corporation extends Group {
         this.membershipEndDate = membershipEndDate;
         this.prepaidCategories = prepaidCategories;
         this.isMembershipSupport = isMembershipSupport;
-        this.deliveryFeeOption = deliveryFeeOption;
         this.employeeCount = employeeCount;
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
@@ -144,6 +143,7 @@ public class Corporation extends Group {
         this.managerId = managerId;
         this.managerName = managerName;
         this.managerPhone = managerPhone;
+        this.deliveryFeeOption = deliveryFeeOption;
     }
 
     @Builder
