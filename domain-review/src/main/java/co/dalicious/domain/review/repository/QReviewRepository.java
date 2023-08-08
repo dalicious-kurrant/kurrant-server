@@ -10,8 +10,10 @@ import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.QComments;
 import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
+import com.mysema.commons.lang.Pair;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -36,9 +38,11 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QOrder.order;
+import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
@@ -255,6 +259,20 @@ public class QReviewRepository {
                 .where(reviews.food.id.in(ids),
                         reviews.forMakers.eq(Boolean.FALSE)) //사장님만 보이기는 제외
                 .fetch();
+    }
+
+    public Map<BigInteger, Pair<Double, Long>> getStarAverage(Collection<BigInteger> foodIds) {
+        List<Tuple> results = queryFactory.select(food.id, reviews.satisfaction.avg(), reviews.id.count())
+                .from(reviews)
+                .innerJoin(reviews.food, food)
+                .where(food.id.in(foodIds))
+                .groupBy(food.id)
+                .fetch();
+        return results.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(food.id),
+                        tuple -> Pair.of(tuple.get(reviews.satisfaction.avg()), tuple.get(reviews.id.count()))
+                ));
     }
 
     public long pendingReviewCount() {
