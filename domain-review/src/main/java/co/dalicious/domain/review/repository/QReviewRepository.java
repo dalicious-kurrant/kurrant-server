@@ -38,6 +38,7 @@ import java.time.ZoneId;
 import java.util.*;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
 import static co.dalicious.domain.order.entity.QOrderItemDailyFood.orderItemDailyFood;
 import static co.dalicious.domain.review.entity.QComments.comments;
@@ -120,7 +121,8 @@ public class QReviewRepository {
         int offset = limit * (page - 1);
 
         QueryResults<Reviews> results = queryFactory.selectFrom(reviews)
-                .leftJoin(reviews.orderItem, orderItem)
+                .leftJoin(reviews.orderItem, orderItem).fetchJoin()
+                .leftJoin(orderItem.order, order).fetchJoin()
                 .leftJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
                 .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .leftJoin(reviews.comments, comments)
