@@ -16,6 +16,7 @@ import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.batch.service.PushAlarmService;
 import exception.ApiException;
+import exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -32,6 +33,7 @@ import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilde
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -213,19 +215,17 @@ public class PushAlarmJob {
 
         if (groupIds.isEmpty()) {
             // Return an empty reader if orderItemIds is empty
-            return new JpaPagingItemReaderBuilder<User>()
-                    .name("EmptyReviewReader")
-                    .build();
+            return null;
         }
 
-        String queryString = "SELECT u FROM UserGroup ug LEFT JOIN User u ON u = ug.user WHERE ug.id in :groupIds";
+        String queryString = "SELECT u FROM UserGroup ug LEFT JOIN User u ON u = ug.user WHERE ug.group.id in :groupIds";
 
         return new JpaPagingItemReaderBuilder<User>()
                 .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
-                .parameterValues(Collections.singletonMap("groupIds", groupIds))
+                .parameterValues(parameterValues)
                 .build();
     }
 
