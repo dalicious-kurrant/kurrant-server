@@ -303,8 +303,8 @@ public class FoodServiceImpl implements FoodService {
         //주문에 대한 리뷰를 작성했는지
         if (isReview == 1) reviewWrite = BigInteger.valueOf(0);
         //주문 한 적 있고 5일지 지나지 않았다면 orderItemDailyFoodId 반환
-        OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getFood().getId());
-        if (orderItemDailyFood != null && isReview != 1 && orderItemDailyFood.getDailyFood().getServiceDate().plusDays(5).isBefore(LocalDate.now())) {
+        OrderItemDailyFood orderItemDailyFood = qOrderItemDailyFoodRepository.findAllByUserAndDailyFood(user.getId(), dailyFood.getId());
+        if (orderItemDailyFood != null && isReview != 1) {
             reviewWrite = orderItemDailyFood.getId();
         } else {
             reviewWrite = BigInteger.valueOf(0);
