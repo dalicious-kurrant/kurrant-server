@@ -6,6 +6,7 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -87,6 +88,7 @@ public class FoodServiceImpl implements FoodService {
     private final QKeywordRepository qKeywordRepository;
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final PublicDailyFoodMapper publicDailyFoodMapper;
+    private final QSpotRepository qSpotRepository;
 
 
     @Override
@@ -167,7 +169,7 @@ public class FoodServiceImpl implements FoodService {
         // 유저가 그룹에 속해있는지 확인
         User user = userUtil.getUser(securityUser);
 
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
+        Spot spot = qSpotRepository.findByIdFetchGroup(spotId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
         );
         Group group = spot.getGroup();
@@ -179,7 +181,7 @@ public class FoodServiceImpl implements FoodService {
 
         // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
         List<DailyFood> dailyFoodList = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
-        List<DailyFoodSupportPrice> dailyFoodSupportPriceList = Hibernate.unproxy(group) instanceof Corporation
+        List<DailyFoodSupportPrice> dailyFoodSupportPriceList = group instanceof Corporation
                 ? qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBySpotBetweenServiceDate(user, group, startDate, endDate)
                 : new ArrayList<>();
         Map<DailyFood, Integer> dailyFoodCountMap = orderDailyFoodUtil.getRemainFoodsCount(dailyFoodList);
