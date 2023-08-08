@@ -46,6 +46,7 @@ import co.kurrant.app.public_api.mapper.food.PublicDailyFoodMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
 import co.kurrant.app.public_api.util.UserUtil;
+import com.mysema.commons.lang.Pair;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -190,9 +191,9 @@ public class FoodServiceImpl implements FoodService {
         List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
                 new UserRecommendByPeriodWhereData(user.getId(), group.getId(), foodIds, new PeriodDto(startDate, endDate)));
 
-        List<Reviews> reviewList = qReviewRepository.findAllByfoodIds(foodIds);
+        Map<BigInteger, Pair<Double, Long>> reviewMap = qReviewRepository.getStarAverage(foodIds);
 
-        return publicDailyFoodMapper.toDailyFoodResDto(dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewList, user);
+        return publicDailyFoodMapper.toDailyFoodResDto(startDate, endDate, dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewMap, user);
     }
 
     @Override

@@ -296,48 +296,41 @@ public class QOrderDailyFoodRepository {
         // 기간 구하기
         PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
 
-        List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
+        List<Tuple> aggregatedResults = queryFactory.select(
+                        dailyFood.serviceDate,
+                        dailyFood.diningType,
+                        dailyFood.food,
+                        food.makers,
+                        orderItemDailyFood.count.sum())
+                .from(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .innerJoin(dailyFood.food, food)
                 .innerJoin(food.makers, makers)
-                .where(makers.in(makersSet),
+                .where(
+                        makers.in(makersSet),
                         dailyFood.serviceDate.goe(periodDto.getStartDate()),
                         dailyFood.serviceDate.loe(periodDto.getEndDate()),
-                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment())
+                )
+                .groupBy(dailyFood.serviceDate, dailyFood.diningType, dailyFood.food, food.makers)
                 .fetch();
 
-        MultiValueMap<ServiceDateBy.Makers, OrderItemDailyFood> makersOrderMap = new LinkedMultiValueMap<>();
-        MultiValueMap<ServiceDateBy.Food, OrderItemDailyFood> foodOrderMap = new LinkedMultiValueMap<>();
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            ServiceDateBy.Makers makersDto = new ServiceDateBy.Makers();
-            makersDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
-            makersDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
-            makersDto.setMakers(orderItemDailyFood.getDailyFood().getFood().getMakers());
-            makersOrderMap.add(makersDto, orderItemDailyFood);
-
+// Process the aggregated results
+        for (Tuple result : aggregatedResults) {
             ServiceDateBy.Food foodDto = new ServiceDateBy.Food();
-            foodDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
-            foodDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
-            foodDto.setFood(orderItemDailyFood.getDailyFood().getFood());
-            foodOrderMap.add(foodDto, orderItemDailyFood);
-        }
+            foodDto.setDiningType(result.get(dailyFood.diningType));
+            foodDto.setServiceDate(result.get(dailyFood.serviceDate));
+            foodDto.setFood(result.get(dailyFood.food));
 
-        for (ServiceDateBy.Makers makers1 : makersOrderMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = makersOrderMap.get(makers1);
-            Integer count = 0;
-            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
-                count += orderItemDailyFood.getCount();
-            }
-            makersIntegerMap.put(makers1, count);
-        }
+            ServiceDateBy.Makers makersDto = new ServiceDateBy.Makers();
+            makersDto.setDiningType(result.get(dailyFood.diningType));
+            makersDto.setServiceDate(result.get(dailyFood.serviceDate));
+            makersDto.setMakers(result.get(food.makers));
 
-        for (ServiceDateBy.Food food1 : foodOrderMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = foodOrderMap.get(food1);
-            Integer count = 0;
-            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
-                count += orderItemDailyFood.getCount();
-            }
-            foodIntegerMap.put(food1, count);
+            int count = result.get(orderItemDailyFood.count.sum());
+
+            foodIntegerMap.put(foodDto, count);
+            makersIntegerMap.merge(makersDto, count, Integer::sum);
         }
         ServiceDateBy.MakersAndFood makersAndFood = new ServiceDateBy.MakersAndFood();
         makersAndFood.setMakersCountMap(makersIntegerMap);
