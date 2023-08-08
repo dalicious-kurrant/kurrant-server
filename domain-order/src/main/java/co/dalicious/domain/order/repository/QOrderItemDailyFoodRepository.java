@@ -1,15 +1,19 @@
 package co.dalicious.domain.order.repository;
 
+import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.QOrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.user.entity.User;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import net.bytebuddy.asm.Advice;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -22,42 +26,25 @@ public class QOrderItemDailyFoodRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    public OrderItemDailyFood findAllByUserAndDailyFood(BigInteger userId, BigInteger foodId) {
+    public OrderItemDailyFood findAllByUserAndDailyFood(BigInteger userId, BigInteger dailyFoodId) {
 
         /*
         * userId로 주문내역을 조회(order)
         * order중에 serviceDay가 5일 이내이면서
         * foodId가 일치하는것 조회
         * */
-        List<BigInteger> orderIds = queryFactory.select(order.id)
-                                                .from(order)
-                                                .where(order.user.id.eq(userId))
-                                                .fetch();
-        Set<BigInteger> orderItemDailyFoodIdSet = new HashSet<>();
-        for (BigInteger orderId : orderIds){
-            OrderItemDailyFood orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
-                    .where(orderItemDailyFood.order.id.eq(orderId),
-                            orderItemDailyFood.dailyFood.serviceDate.between(LocalDate.now().minusDays(5), LocalDate.now()))
-                    .limit(1)
-                    .fetchOne();
-            if (orderItemDailyFoods != null){
-                orderItemDailyFoodIdSet.add(orderItemDailyFoods.getId());
-            }
-        }
-        Iterator<BigInteger> orderItemDailyFoodIterator = orderItemDailyFoodIdSet.iterator();
-        List<BigInteger> resultIds = new ArrayList<>();
-        while(orderItemDailyFoodIterator.hasNext()){
-            resultIds.add(orderItemDailyFoodIterator.next());
-        }
+        System.out.println(dailyFoodId + "dailyFoodId");
+        OrderItemDailyFood orderItemDailyFood = queryFactory.selectFrom(QOrderItemDailyFood.orderItemDailyFood)
+                .where(QOrderItemDailyFood.orderItemDailyFood.order.user.id.eq(userId),
+                        QOrderItemDailyFood.orderItemDailyFood.dailyFood.id.eq(dailyFoodId),
+                        QOrderItemDailyFood.orderItemDailyFood.dailyFood.serviceDate.between(LocalDate.now().minusDays(5), LocalDate.now()))
+                .limit(1)
+                .fetchOne();
 
-        for (BigInteger orderItemDailyFoodId : resultIds) {
-            OrderItemDailyFood orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
-                    .where(orderItemDailyFood.id.eq(orderItemDailyFoodId))
-                    .fetchOne();
-            if (orderItemDailyFoods.getDailyFood().getFood().getId().equals(foodId)) return orderItemDailyFoods;
-        }
+        if (orderItemDailyFood != null) System.out.println(orderItemDailyFood.getName());
 
-        return null;
+        return orderItemDailyFood;
+
     }
 
     public List<OrderItemDailyFood> findAllByUserAndPeriod(User user, LocalDate startDate, LocalDate endDate) {
