@@ -24,6 +24,8 @@ import co.dalicious.domain.board.repository.BackOfficeNoticeRepository;
 import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QBackOfficeNoticeRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
+import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.food.repository.QMakersRepository;
 import co.dalicious.domain.user.entity.User;
@@ -242,16 +244,16 @@ public class BoardServiceImpl implements BoardService {
         }
 
         else if (notice instanceof ClientNotice clientNotice) {
-            Map<String, BigInteger> clientNameList = qGroupRepository.findGroupNameListByIds(clientNotice.getGroupIds());
-            Map<BigInteger, String> managerMap = qUserRepository.findUserIdAndPhoneByUserId((List<BigInteger>) clientNameList.values());
-            for (String name : clientNameList.keySet()) {
-                phone = managerMap.entrySet().stream()
-                        .filter(entry -> clientNameList.get(name).equals(entry.getKey()))
-                        .findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400027", name + "의 매니저 정보가 없습니다. 확인해주세요."))
-                        .getValue();
-
-                content = kakaoUtil.getContextByClient(name, notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
-                alimtalkRequestDtoList.add(new AlimtalkRequestDto(phone, null, content));
+            List<Group> groupList = qGroupRepository.findAllByIds(clientNotice.getGroupIds());
+            for (Group group : groupList) {
+                Corporation corporation = (Corporation) group;
+                if (corporation.getManagerPhone() != null && corporation.getManagerName() != null) {
+                    content = kakaoUtil.getContextByClient(corporation.getManagerName(), notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
+                    alimtalkRequestDtoList.add(new AlimtalkRequestDto(corporation.getManagerPhone(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT).getTemplateId(), content));
+                }
+                else {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400027", corporation.getManagerName() + "의 매니저 정보가 없습니다. 확인해주세요.");
+                }
             }
         }
 
@@ -261,11 +263,11 @@ public class BoardServiceImpl implements BoardService {
     private AlimTalkTemplate selectTemplate(BoardCategory boardCategory, NoticeType noticeType) {
         Map<BoardCategory, Map<NoticeType, AlimTalkTemplate>> templateMap = new HashMap<>();
         Map<NoticeType, AlimTalkTemplate> allTemplates = new HashMap<>();
-        allTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.ALL_MAKERS);
-        allTemplates.put(NoticeType.CLIENT, AlimTalkTemplate.ALL_CLIENT);
+        allTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.NOTICE_MAKERS);
+        allTemplates.put(NoticeType.CLIENT, AlimTalkTemplate.NOTICE_CLIENT);
 
         Map<NoticeType, AlimTalkTemplate> paycheckOrEventTemplates = new HashMap<>();
-        paycheckOrEventTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.INDIVIDUAL_MAKERS);
+        paycheckOrEventTemplates.put(NoticeType.MAKERS, AlimTalkTemplate.PAYCHECK_MAKERS);
         paycheckOrEventTemplates.put(NoticeType.CLIENT, AlimTalkTemplate.INDIVIDUAL_CLIENT);
 
         Map<NoticeType, AlimTalkTemplate> approveChangeTemplates = new HashMap<>();
