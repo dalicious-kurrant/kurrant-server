@@ -29,6 +29,7 @@ import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.dalicious.domain.user.repository.*;
 import co.dalicious.domain.user.util.ClientUtil;
 import co.dalicious.domain.user.util.FoundersUtil;
@@ -77,6 +78,7 @@ public class UserServiceImpl implements UserService {
     private final MembershipUtil membershipUtil;
     private final ProviderEmailRepository providerEmailRepository;
     private final UserGroupRepository userGroupRepository;
+    private final UserSpotRepository userSpotRepository;
     private final UserHomeInfoMapper userHomeInfoMapper;
     private final UserPersonalInfoMapper userPersonalInfoMapper;
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
@@ -92,6 +94,7 @@ public class UserServiceImpl implements UserService {
     private final EmployeeRepository employeeRepository;
     private final GroupRepository groupRepository;
     private final UserGroupMapper userGroupMapper;
+    private final UserSpotMapper userSpotMapper;
     private final QGroupRepository qGroupRepository;
     private final ApplicationUtil applicationUtil;
     private final SseService sseService;
@@ -284,7 +287,7 @@ public class UserServiceImpl implements UserService {
         String hashedPassword = passwordEncoder.encode(password);
         user.setEmailAndPassword(email, hashedPassword);
 
-        //그룹에서 초대된 유저인지 확인 후 초대된 유저라면 userGroup 등록
+        //그룹에서 초대된 유저인지 확인 후 초대된 유저라면 group과 spot 등록
         List<Employee> employeeList = employeeRepository.findAllByEmail(email);
         if (!employeeList.isEmpty()){
             userGroupSave(employeeList, user);
@@ -304,7 +307,11 @@ public class UserServiceImpl implements UserService {
             Group group = groupRepository.findById(employee.getCorporation().getId()).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
             UserGroup userGroup = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
             userGroupRepository.save(userGroup);
-        }
+            //스팟도 추가
+            if (!group.getSpots().isEmpty()){
+                UserSpot userSpot = userSpotMapper.toUserSpot(group.getSpots().get(0), user, true, GroupDataType.CORPORATION);
+                userSpotRepository.save(userSpot);
+            }
 
 
     }
