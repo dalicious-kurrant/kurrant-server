@@ -149,6 +149,8 @@ public class QUserRepository {
 
         QueryResults<User> results = queryFactory.selectFrom(user)
                 .where(whereClause)
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
                 .fetchResults();
 
         return new PageImpl<>(results.getResults(), pageable, results.getTotal());
