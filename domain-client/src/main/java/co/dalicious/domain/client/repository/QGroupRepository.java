@@ -218,19 +218,4 @@ public class QGroupRepository {
 
         return nameMap;
     }
-
-    public Map<String, BigInteger> findGroupNameListByIds(List<BigInteger> groupIds) {
-        List<Tuple> result = queryFactory.select(group.name, corporation.managerId)
-                .from(group)
-                .leftJoin(corporation).on(group.id.eq(corporation.id))
-                .where(group.id.in(groupIds))
-                .fetch();
-
-        Map<String, BigInteger> nameMap = new HashMap<>();
-        for (Tuple tuple : result) {
-            nameMap.put(tuple.get(group.name), tuple.get(corporation.managerId));
-        }
-
-        return nameMap;
-    }
 }

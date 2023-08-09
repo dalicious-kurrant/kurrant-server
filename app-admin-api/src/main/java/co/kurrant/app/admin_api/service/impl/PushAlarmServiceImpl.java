@@ -191,7 +191,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
 
         //50065
         String makersName = "알렉산더";
-        String content65 = "(입금 완료 안내) \n안녕하세요. 커런트입니다. \n"+makersName+"메이커스의 "+2023+"년 "+5+"월 정산금이 이체되었습니다. \n▶정산금액 : "+5000+"";
+        String content65 = "(입금 완료 안내) \n안녕하세요. 커런트입니다. \n"+makersName+"메이커스의 "+localDate.getYear()+"년 "+localDate.getMonth()+"월 정산금이 이체되었습니다. \n▶정산금액 : "+5000+"";
 
         //50074
         String content2 = "안녕하세요!\n" +
@@ -204,7 +204,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
                 "\n" +
                 "감사합니다.";
 
-        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content65, alimtalkTestDto.getTemplateId());
+        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content65, alimtalkTestDto.getTemplateId(), null);
 
 
     }

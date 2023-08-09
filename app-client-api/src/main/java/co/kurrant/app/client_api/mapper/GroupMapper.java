@@ -1,20 +1,17 @@
 package co.kurrant.app.client_api.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
-import co.dalicious.domain.client.dto.GroupDetailDto;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.order.dto.GroupDto;
 import co.dalicious.domain.user.entity.User;
-import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.domain.order.dto.GroupDto;
-import co.dalicious.system.util.DiningTypesUtils;
-import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.math.BigDecimal;
@@ -312,5 +309,11 @@ public interface GroupMapper {
         }
         return null;
     }
+
+    @Mapping(source = "name", target = "managerName")
+    void updateManagerName(String name, @MappingTarget Corporation corporation);
+
+    @Mapping(source = "phone", target = "managerPhone")
+    void updateManagerPhone(String phone, @MappingTarget Corporation corporation);
 }
 
