@@ -93,6 +93,14 @@ public class OrderUtil {
         return user.getIsMembership();
     }
 
+    public static Boolean isCorporationMembership(User user, Group group) {
+        if (group instanceof Corporation corporation) {
+            return (corporation.getIsMembershipSupport() &&
+                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now())));
+        }
+        return user.getIsMembership();
+    }
+
     // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
     public static DiscountDto checkMembershipAndGetDiscountDto(User user, Group group, Spot spot, DailyFood dailyFood) {
         group = (Group) Hibernate.unproxy(group);

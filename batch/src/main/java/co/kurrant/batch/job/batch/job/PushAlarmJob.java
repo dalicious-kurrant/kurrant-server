@@ -85,7 +85,7 @@ public class PushAlarmJob {
     @Bean
     @JobScope
     public Step pushAlarmJob_step() {
-        return stepBuilderFactory.get("pushAlarmJob_step1")
+        return stepBuilderFactory.get("pushAlarmJob_step")
                 .<User, User>chunk(CHUNK_SIZE)
                 .reader(lastOrderTimePushAlarmReader())
                 .processor(lastOrderTimePushAlarmProcessor())
