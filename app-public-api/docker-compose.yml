@@ -1,0 +1,43 @@
+version: "3"
+services:
+  kurrant_v1_green:
+    build: ./
+    container_name: kurrant_v1_green
+    image: dalicious77/kurrant_v1:TAG_PLACEHOLDER
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev,dev-green,mail,sms,redis,jwt,s3,payment
+    ports:
+      - "9882:9882"
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "kurrant/dev"
+        awslogs-stream: "app"
+
+    networks:
+      - redis_redis_cluster
+
+  kurrant_v1_blue:
+    build: ./
+    container_name: kurrant_v1_blue
+    image: dalicious77/kurrant_v1:TAG_PLACEHOLDER
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
+    ports:
+      - "9881:9882"
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "kurrant/dev"
+        awslogs-stream: "app"
+
+networks:
+  redis_redis_cluster:
+    external: true
+
+
+
+
+
