@@ -206,7 +206,7 @@ public class QGroupRepository {
     }
 
     public Map<BigInteger,String> findGroupNameByIds(Set<BigInteger> groupIds) {
-        List<Tuple> result = queryFactory.select(group.id, corporation.managerName, corporation.managerPhone)
+        List<Tuple> result = queryFactory.select(group.id, group.name)
                 .from(group)
                 .where(group.id.in(groupIds))
                 .fetch();

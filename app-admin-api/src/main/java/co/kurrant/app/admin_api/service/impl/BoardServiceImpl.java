@@ -251,16 +251,17 @@ public class BoardServiceImpl implements BoardService {
             for (Group group : groupList) {
                 Corporation corporation = (Corporation) group;
                 if (corporation.getManagerPhone() != null && corporation.getManagerName() != null) {
-                    content = kakaoUtil.getContextByClient(corporation.getManagerName(), notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
+                    content = kakaoUtil.getContextByClient(corporation.getName(), notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
                     alimtalkRequestDtoList.add(new AlimtalkRequestDto(corporation.getManagerPhone(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT).getTemplateId(), content));
                 }
                 else {
-                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400027", corporation.getManagerName() + "의 매니저 정보가 없습니다. 확인해주세요.");
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE400027", corporation.getName() + "의 매니저 정보가 없습니다. 확인해주세요.");
                 }
             }
         }
 
         pushService.sendToTalk(alimtalkRequestDtoList);
+        notice.updateAlarmTalk(true);
     }
 
     private AlimTalkTemplate selectTemplate(BoardCategory boardCategory, NoticeType noticeType) {
