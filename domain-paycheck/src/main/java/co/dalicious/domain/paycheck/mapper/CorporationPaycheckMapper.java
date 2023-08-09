@@ -182,7 +182,7 @@ public interface CorporationPaycheckMapper {
         List<OrderItemDailyFood> orderItemDailyFoods = dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods();
 
         // 주문 그룹이 메드트로닉일 경우
-        if (dailyFoodSupportPrice.getGroup().getId().equals(BigInteger.valueOf(97))) {
+        if (dailyFoodSupportPrice.getGroup().getId().equals(BigInteger.valueOf(97)) || dailyFoodSupportPrice.getGroup().getId().equals(BigInteger.valueOf(154))) {
             BigDecimal totalSupportPrice = BigDecimal.ZERO;
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 // 취소된 상품은 제외
