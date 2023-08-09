@@ -233,17 +233,18 @@ public class BoardServiceImpl implements BoardService {
         if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
         if(notice.getIsAlarmTalk()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
-        String phone;
         String content;
         List<AlimtalkRequestDto> alimtalkRequestDtoList = new ArrayList<>();
 
         if(notice instanceof MakersNotice makersNotice) {
             Tuple makersInfo = qMakersRepository.findNameById(makersNotice.getMakersId());
             String name = makersInfo.get(0, String.class);
-            phone = makersInfo.get(1, String.class);
-            content = kakaoUtil.getContextByMakers(name, notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.MAKERS));
+            String phone = makersInfo.get(1, String.class);
 
-            alimtalkRequestDtoList.add(new AlimtalkRequestDto(phone, null, content));
+            AlimTalkTemplate alimTalkTemplate = selectTemplate(notice.getBoardCategory(), NoticeType.MAKERS);
+            content = kakaoUtil.getContextByMakers(name, notice.getBoardType().getStatus(), alimTalkTemplate);
+
+            alimtalkRequestDtoList.add(new AlimtalkRequestDto(phone, alimTalkTemplate.getTemplateId(), content, alimTalkTemplate.getRedirectUrl()));
         }
 
         else if (notice instanceof ClientNotice clientNotice) {
@@ -251,8 +252,9 @@ public class BoardServiceImpl implements BoardService {
             for (Group group : groupList) {
                 Corporation corporation = (Corporation) group;
                 if (corporation.getManagerPhone() != null && corporation.getManagerName() != null) {
-                    content = kakaoUtil.getContextByClient(corporation.getName(), notice.getBoardType().getStatus(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT));
-                    alimtalkRequestDtoList.add(new AlimtalkRequestDto(corporation.getManagerPhone(), selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT).getTemplateId(), content));
+                    AlimTalkTemplate alimTalkTemplate = selectTemplate(notice.getBoardCategory(), NoticeType.CLIENT);
+                    content = kakaoUtil.getContextByClient(corporation.getName(), notice.getBoardType().getStatus(), alimTalkTemplate);
+                    alimtalkRequestDtoList.add(new AlimtalkRequestDto(corporation.getManagerPhone(), alimTalkTemplate.getTemplateId(), content, alimTalkTemplate.getRedirectUrl()));
                 }
                 else {
                     throw new CustomException(HttpStatus.BAD_REQUEST, "CE400027", corporation.getName() + "의 매니저 정보가 없습니다. 확인해주세요.");

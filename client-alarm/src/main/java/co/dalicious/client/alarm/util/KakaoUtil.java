@@ -27,7 +27,7 @@ public class KakaoUtil {
         this.apiKey = apiKey;
     }
 
-    public JSONObject sendAlimTalk(String phoneNumber, String content, String templateId) throws IOException, ParseException {
+    public JSONObject sendAlimTalk(String phoneNumber, String content, String templateId, String redirectUrl) throws IOException, ParseException {
         URL url = new URL("https://jupiter.lunasoft.co.kr/api/AlimTalk/message/send");
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -36,12 +36,20 @@ public class KakaoUtil {
         connection.setDoOutput(true);
 
         JSONArray jsonArray = new JSONArray();
+        JSONArray link = new JSONArray();
+
+        Map<String,Object> linkMap = new HashMap<>();
+        linkMap.put("url_pc", redirectUrl);
+        linkMap.put("url_mobile", redirectUrl);
+        link.add(linkMap);
+
         Map<String,Object> messages = new HashMap<>();
         messages.put("no", "0");
         messages.put("tel_num", phoneNumber);
         messages.put("msg_content", content);
         messages.put("sms_content", content);
         messages.put("use_sms", "1");
+        messages.put("btn_url", link);
         jsonArray.add(messages);
         System.out.println(jsonArray + " jsonArray");
 
