@@ -180,7 +180,7 @@ jobs:
           target: "/home/ubuntu/kurrant_v1/docker"
 
       - name: Set env for sliced SHA
-        run: echo "SLICED_SHA=${{ github.sha::7 }}" >> $GITHUB_ENV
+        run: echo "SLICED_SHA=$(echo ${{ github.sha }} | cut -c -7)" >> $GITHUB_ENV
 
       - name: 배포
         uses: appleboy/ssh-action@master
@@ -188,7 +188,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           envs:
-            IMAGE_TAG: $SLICED_SHA
+            IMAGE_TAG: ${{ env.SLICED_SHA }}
             DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           run: /home/ubuntu/kurrant_v1/docker/deploy.sh $IMAGE_TAG $DOCKER_USERNAME
 
