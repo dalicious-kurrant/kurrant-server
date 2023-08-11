@@ -176,7 +176,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           port: 22
-          source: "${{ github.workspace }}/app-public-api/deploy.sh"
+          source: ./app-public-api/deploy.sh
           target: "/home/ubuntu/kurrant_v1/docker"
 
       - name: 배포
