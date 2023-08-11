@@ -204,11 +204,21 @@ public interface PublicDailyFoodMapper {
                 .collect(Collectors.groupingBy(df -> new AbstractMap.SimpleEntry<>(df.getServiceDate(), df.getDiningType())));
 
         // 4. 최종 Response 생성
-        Map<String, List<DailyFoodByDateDto.DailyFoodByDate>> dateGroupMap = new HashMap<>();
-        for (Map.Entry<DiningType, List<LocalDate>> entry : allDates.entrySet()) {
-            DiningType diningType = entry.getKey();
+        List<DailyFoodByDateDto.DailyFoodGroupByDate> resultList = new ArrayList<>();
+        Set<LocalDate> allUniqueDates = new HashSet<>();
+        allDates.values().forEach(allUniqueDates::addAll);
 
-            for (LocalDate date : entry.getValue()) {
+        for (LocalDate date : allUniqueDates) {
+            DailyFoodByDateDto.DailyFoodGroupByDate groupByDate = new DailyFoodByDateDto.DailyFoodGroupByDate();
+            groupByDate.setServiceDate(DateUtils.localDateToString(date));
+
+            List<DailyFoodByDateDto.DailyFoodByDate> dailyFoodByDates = new ArrayList<>();
+
+            for (DiningType diningType : allDates.keySet()) {
+                DailyFoodByDateDto.DailyFoodByDate dailyFoodByDate = new DailyFoodByDateDto.DailyFoodByDate();
+                dailyFoodByDate.setDiningType(diningType.getCode());
+                dailyFoodByDate.setSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, date, diningType));
+
                 List<DailyFood> foodsForDate = dailyFoodMap.getOrDefault(new AbstractMap.SimpleEntry<>(date, diningType), new ArrayList<>());
 
                 List<DailyFoodDto> dailyFoodDtos = foodsForDate.stream().map(dailyFood -> {
@@ -222,26 +232,17 @@ public interface PublicDailyFoodMapper {
 
                 }).sorted(Comparator.comparing(DailyFoodDto::getSort).reversed()).collect(Collectors.toList());
 
-                DailyFoodByDateDto.DailyFoodByDate dailyFoodByDate = new DailyFoodByDateDto.DailyFoodByDate();
-                dailyFoodByDate.setDiningType(diningType.getCode());
-                dailyFoodByDate.setSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, date, diningType));
                 dailyFoodByDate.setDailyFoodDtos(dailyFoodDtos);
-
-                dateGroupMap
-                        .computeIfAbsent(DateUtils.localDateToString(date), k -> new ArrayList<>())
-                        .add(dailyFoodByDate);
+                dailyFoodByDates.add(dailyFoodByDate);
             }
+
+            dailyFoodByDates = dailyFoodByDates.stream().sorted(Comparator.comparing(DailyFoodByDateDto.DailyFoodByDate::getDiningType)).toList();
+
+            groupByDate.setDailyFoodDtos(dailyFoodByDates);
+            resultList.add(groupByDate);
         }
 
-        List<DailyFoodByDateDto.DailyFoodGroupByDate> resultList = dateGroupMap.entrySet().stream().map(entry -> {
-            DailyFoodByDateDto.DailyFoodGroupByDate group = new DailyFoodByDateDto.DailyFoodGroupByDate();
-            group.setServiceDate(entry.getKey());
-            group.setDailyFoodDtos(entry.getValue());
-            return group;
-        }).collect(Collectors.toList());
-
         return resultList;
-
     }
 
 
