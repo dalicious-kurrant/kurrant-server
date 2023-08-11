@@ -190,5 +190,4 @@ jobs:
           script: |
             export IMAGE_TAG=${{ env.SLICED_SHA }}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            /home/ubuntu/kurrant_v1/docker/deploy.sh
-
+            /home/ubuntu/kurrant_v1/docker/deploy.sh $IMAGE_TAG $DOCKER_USERNAME
