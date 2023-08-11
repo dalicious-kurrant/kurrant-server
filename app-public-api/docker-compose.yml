@@ -4,7 +4,7 @@ services:
     container_name: kurrant_v1_prod_test_green
     image: dalicious77/kurrant_v1_prod_test:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=dev,dev-green,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=test,test-green,mail,sms,redis,jwt,s3,payment
     ports:
       - "9882:9882"
     logging:
@@ -21,7 +21,7 @@ services:
     container_name: kurrant_v1_prod_test_blue
     image: dalicious77/kurrant_v1_prod_test:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=test,test-blue,mail,sms,redis,jwt,s3,payment
     ports:
       - "9881:9882"
     logging:
