@@ -195,5 +195,5 @@ jobs:
           script: |
             export IMAGE_TAG=${GITHUB_SHA::7}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            chmod 777 /home/ubuntu/kurrant_v1/docker/deploy.sh
-            /home/ubuntu/kurrant_v1/docker/deploy.sh $IMAGE_TAG $DOCKER_USERNAME
+            chmod 777 /home/ubuntu/kurrant_v1/docker/app-public-api/deploy.sh
+            /home/ubuntu/kurrant_v1/docker/app-public-api/deploy.sh $IMAGE_TAG $DOCKER_USERNAME
