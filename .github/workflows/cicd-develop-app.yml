@@ -9,7 +9,7 @@ name: 개발서버 배포
 
 on:
   push:
-    branches: [ "develop/app" ]
+    branches: [ "dev/app" ]
 
 permissions:
   contents: read
