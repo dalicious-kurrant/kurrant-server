@@ -15,7 +15,7 @@ if [ -z "$IS_GREEN"  ];then # blue라면
   echo "### BLUE => GREEN ###"
 
   echo "1. get green image"
-  docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml pull "$DOCKER_USERNAME"/kurrant_v1_prod_test_green:"$IMAGE_TAG" # green으로 이미지를 내려받습니다.
+  docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml pull kurrant_v1_prod_test_green # green으로 이미지를 내려받습니다.
 
   echo "2. green container up"
   docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml up -d kurrant_v1_prod_test_green # green 컨테이너 실행
@@ -41,7 +41,7 @@ else
   echo "### GREEN => BLUE ###"
 
   echo "1. get blue image"
-  docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml pull "$DOCKER_USERNAME"/kurrant_v1_prod_test_blue:"$IMAGE_TAG"
+  docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml pull kurrant_v1_prod_test_blue
 
   echo "2. blue container up"
   docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml up -d kurrant_v1_prod_test_blue
