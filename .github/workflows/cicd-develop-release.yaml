@@ -169,6 +169,12 @@ jobs:
     needs: build-image
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: List directory contents
+        run: ls -la app-public-api
+
       - name: deploy.sh 파일 EC2로 보내기
         uses: appleboy/scp-action@master
         with:
