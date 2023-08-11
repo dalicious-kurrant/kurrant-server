@@ -56,6 +56,10 @@ public class UserGroup {
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
     private Timestamp updatedDateTime;
 
+    @Column(name = "memo", columnDefinition = "VARCHAR(255)")
+    @Comment("메모")
+    private String memo;
+
     public void updateStatus(ClientStatus clientStatus) {
         this.clientStatus = clientStatus;
     }

@@ -149,4 +149,24 @@ public class QUserGroupRepository {
                 .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG), user.firebaseToken.isNotNull())
                 .fetch();
     }
+
+    public String findUserMemo(BigInteger userId, BigInteger groupId) {
+        return queryFactory.select(userGroup.memo)
+                .from(userGroup)
+                .where(userGroup.user.id.eq(userId),
+                        userGroup.group.id.eq(groupId))
+                .limit(1)
+                .fetchOne();
+
+
+    }
+
+
+    public void updateUserGroupMemo(BigInteger groupId, String memo, BigInteger userId) {
+        queryFactory.update(userGroup)
+                .set(userGroup.memo, memo)
+                .where(userGroup.user.id.eq(userId),
+                        userGroup.group.id.eq(groupId))
+                .execute();
+    }
 }
