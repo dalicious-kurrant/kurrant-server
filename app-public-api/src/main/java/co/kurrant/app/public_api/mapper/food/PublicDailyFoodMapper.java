@@ -20,6 +20,7 @@ import co.dalicious.system.enums.DiscountType;
 import co.dalicious.system.enums.FoodTag;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
+import co.kurrant.app.public_api.dto.food.DailyFoodByDateDto;
 import co.kurrant.app.public_api.dto.food.DailyFoodResDto;
 import com.mysema.commons.lang.Pair;
 import org.hibernate.Hibernate;
@@ -136,6 +137,114 @@ public interface PublicDailyFoodMapper {
         return resultList;
 
     }
+
+    default DailyFoodByDateDto toDailyFoodByDateDto(LocalDate startDate, LocalDate endDate, List<DailyFood> dailyFoods, Group group, Spot spot, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Map<DailyFood, Integer> dailyFoodCountMap, List<UserRecommends> userRecommendList, Map<BigInteger, Pair<Double, Long>> reviewMap, User user) {
+        // 1. 해당 스팟의 정보 가져오기
+        List<DailyFoodByDateDto.ServiceInfo> diningTypes = toDailyFoodByDateDtoServiceInfos(spot, group);
+
+        // 2. 날짜별 지원금 및 식사 가져오기
+        List<DailyFoodByDateDto.DailyFoodGroupByDate> dailyFoodByDates = toDailyFoodGroupByDate(startDate, endDate, dailyFoods, dailyFoodSupportPrices, dailyFoodCountMap, spot, userRecommendList, reviewMap, user);
+        dailyFoodByDates = dailyFoodByDates.stream()
+                .sorted(Comparator.comparing(DailyFoodByDateDto.DailyFoodGroupByDate::getServiceDate))
+                .toList();
+
+        return new DailyFoodByDateDto(diningTypes, dailyFoodByDates);
+    }
+
+    default List<DailyFoodByDateDto.ServiceInfo> toDailyFoodByDateDtoServiceInfos(Spot spot, Group group) {
+        List<DiningType> diningTypes = spot.getDiningTypes();
+        List<DailyFoodByDateDto.ServiceInfo> diningTypeDtos = new ArrayList<>();
+        for (DiningType diningType : diningTypes) {
+            List<LocalTime> deliveryTimes = group.getMealInfo(diningType).getDeliveryTimes();
+            List<String> deliveryTimesStr = deliveryTimes.stream()
+                    .map(DateUtils::timeToString)
+                    .toList();
+            List<String> serviceDays = DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays());
+            DailyFoodByDateDto.ServiceInfo diningTypeDto = new DailyFoodByDateDto.ServiceInfo(diningType.getCode(), serviceDays, deliveryTimesStr);
+
+            // 요일별 식사 지원금
+            if (Hibernate.getClass(group).equals(Corporation.class) && group.getMealInfo(diningType) != null) {
+                List<DailyFoodByDateDto.SupportPriceByDay> supportPriceByDays = new ArrayList<>();
+                CorporationMealInfo corporationMealInfo = (CorporationMealInfo) Hibernate.unproxy(group.getMealInfo(diningType));
+                List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices = corporationMealInfo.getServiceDaysAndSupportPrices();
+                for (ServiceDaysAndSupportPrice serviceDaysAndSupportPrice : serviceDaysAndSupportPrices) {
+                    for (Days supportDay : serviceDaysAndSupportPrice.getSupportDays()) {
+                        supportPriceByDays.add(new DailyFoodByDateDto.SupportPriceByDay(supportDay.getDays(), serviceDaysAndSupportPrice.getSupportPrice()));
+                    }
+                }
+                diningTypeDto.setSupportPriceByDays(supportPriceByDays);
+            }
+            diningTypeDtos.add(diningTypeDto);
+        }
+        return diningTypeDtos;
+    }
+
+    default List<DailyFoodByDateDto.DailyFoodGroupByDate> toDailyFoodGroupByDate(LocalDate startDate, LocalDate endDate, List<DailyFood> dailyFoods, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Map<DailyFood, Integer> dailyFoodCountMap, Spot spot, List<UserRecommends> userRecommendList, Map<BigInteger, Pair<Double, Long>> reviewMap, User user) {
+        // 1. 그룹별 식사일정(DiningType)과 이용가능 요일 매핑을 가져온다.
+        Map<DiningType, List<Days>> diningTypes = spot.getGroup().getDiningTypes().stream()
+                .collect(Collectors.toMap(
+                        v -> v,
+                        v -> spot.getGroup().getMealInfo(v).getServiceDays()
+                ));
+
+        // 2. 각 식사일정별 이용 가능 날짜를 매핑한다.
+        Map<DiningType, List<LocalDate>> allDates = new HashMap<>();
+        for (Map.Entry<DiningType, List<Days>> entry : diningTypes.entrySet()) {
+            DiningType diningType = entry.getKey();
+            List<Days> daysList = entry.getValue();
+
+            List<LocalDate> dateList = Stream.iterate(startDate, date -> !date.isAfter(endDate), date -> date.plusDays(1))
+                    .filter(date -> daysList.contains(Days.toDaysEnum(date.getDayOfWeek())))
+                    .collect(Collectors.toList());
+
+            allDates.put(diningType, dateList);
+        }
+        // 3. 식단을 서비스 날짜와 식사일정별로 그룹핑한다.
+        Map<AbstractMap.SimpleEntry<LocalDate, DiningType>, List<DailyFood>> dailyFoodMap = dailyFoods.stream()
+                .collect(Collectors.groupingBy(df -> new AbstractMap.SimpleEntry<>(df.getServiceDate(), df.getDiningType())));
+
+        // 4. 최종 Response 생성
+        Map<String, List<DailyFoodByDateDto.DailyFoodByDate>> dateGroupMap = new HashMap<>();
+        for (Map.Entry<DiningType, List<LocalDate>> entry : allDates.entrySet()) {
+            DiningType diningType = entry.getKey();
+
+            for (LocalDate date : entry.getValue()) {
+                List<DailyFood> foodsForDate = dailyFoodMap.getOrDefault(new AbstractMap.SimpleEntry<>(date, diningType), new ArrayList<>());
+
+                List<DailyFoodDto> dailyFoodDtos = foodsForDate.stream().map(dailyFood -> {
+                    Pair<Double, Long> reviewData = reviewMap.getOrDefault(dailyFood.getFood().getId(), new Pair<>(0.0, 0L));
+                    Double reviewAverage = Math.round(reviewData.getFirst() * 100) / 100.0;
+                    Integer totalCount = reviewData.getSecond().intValue();
+
+                    Integer sort = sortByFoodTag(dailyFood);
+                    DiscountDto discountDto = OrderUtil.checkMembershipAndGetDiscountDto(user, spot.getGroup(), spot, dailyFood);
+                    return toDto(spot.getId(), dailyFood, discountDto, dailyFoodCountMap.get(dailyFood), userRecommendList, reviewAverage, totalCount, sort);
+
+                }).sorted(Comparator.comparing(DailyFoodDto::getSort).reversed()).collect(Collectors.toList());
+
+                DailyFoodByDateDto.DailyFoodByDate dailyFoodByDate = new DailyFoodByDateDto.DailyFoodByDate();
+                dailyFoodByDate.setDiningType(diningType.getCode());
+                dailyFoodByDate.setSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, date, diningType));
+                dailyFoodByDate.setDailyFoodDtos(dailyFoodDtos);
+
+                dateGroupMap
+                        .computeIfAbsent(DateUtils.localDateToString(date), k -> new ArrayList<>())
+                        .add(dailyFoodByDate);
+            }
+        }
+
+        List<DailyFoodByDateDto.DailyFoodGroupByDate> resultList = dateGroupMap.entrySet().stream().map(entry -> {
+            DailyFoodByDateDto.DailyFoodGroupByDate group = new DailyFoodByDateDto.DailyFoodGroupByDate();
+            group.setServiceDate(entry.getKey());
+            group.setDailyFoodDtos(entry.getValue());
+            return group;
+        }).collect(Collectors.toList());
+
+        return resultList;
+
+    }
+
+
 
     @Mapping(source = "sort", target = "sort")
     @Mapping(source = "dailyFood", target = "lastOrderTime", qualifiedByName = "getLastOrderTime")

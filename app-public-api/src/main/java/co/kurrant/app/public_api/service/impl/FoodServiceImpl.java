@@ -39,6 +39,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.PeriodDto;
+import co.kurrant.app.public_api.dto.food.DailyFoodByDateDto;
 import co.kurrant.app.public_api.dto.food.DailyFoodResDto;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.mapper.food.PublicDailyFoodMapper;
@@ -193,6 +194,37 @@ public class FoodServiceImpl implements FoodService {
         Map<BigInteger, Pair<Double, Long>> reviewMap = qReviewRepository.getStarAverage(foodIds);
 
         return publicDailyFoodMapper.toDailyFoodResDto(startDate, endDate, dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewMap, user);
+    }
+
+    @Override
+    @Transactional
+    public DailyFoodByDateDto getDailyFoodByPeriodAndServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate) {
+        // 유저가 그룹에 속해있는지 확인
+        User user = userUtil.getUser(securityUser);
+
+        Spot spot = qSpotRepository.findByIdFetchGroup(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        Group group = spot.getGroup();
+
+        List<UserGroup> userGroups = user.getActiveUserGroups();
+        userGroups.stream().filter(v -> v.getGroup().equals(group))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+
+        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
+        List<DailyFood> dailyFoodList = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
+        List<DailyFoodSupportPrice> dailyFoodSupportPriceList = group instanceof Corporation
+                ? qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBySpotBetweenServiceDate(user, group, startDate, endDate)
+                : new ArrayList<>();
+        Map<DailyFood, Integer> dailyFoodCountMap = orderDailyFoodUtil.getRemainFoodsCount(dailyFoodList);
+
+        Set<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toSet());
+        List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
+                new UserRecommendByPeriodWhereData(user.getId(), group.getId(), foodIds, new PeriodDto(startDate, endDate)));
+
+        Map<BigInteger, Pair<Double, Long>> reviewMap = qReviewRepository.getStarAverage(foodIds);
+        return publicDailyFoodMapper.toDailyFoodByDateDto(startDate, endDate, dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewMap, user);
     }
 
     @Override

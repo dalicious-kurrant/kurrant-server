@@ -10,13 +10,13 @@ import java.util.List;
 @Getter
 @Setter
 
-public class DailyFoodResDto {
-    List<DailyFoodResDto.ServiceInfo> diningTypes;
-    List<DailyFoodResDto.DailyFoodByDate> dailyFoodsByDate;
+public class DailyFoodByDateDto {
+    List<DailyFoodByDateDto.ServiceInfo> diningTypes;
+    List<DailyFoodByDateDto.DailyFoodGroupByDate> dailyFoodGroupByDate;
 
-    public DailyFoodResDto(List<ServiceInfo> diningTypes, List<DailyFoodByDate> dailyFoodsByDate) {
+    public DailyFoodByDateDto(List<ServiceInfo> diningTypes, List<DailyFoodGroupByDate> dailyFoodGroupByDate) {
         this.diningTypes = diningTypes;
-        this.dailyFoodsByDate = dailyFoodsByDate;
+        this.dailyFoodGroupByDate = dailyFoodGroupByDate;
     }
 
     @Getter
@@ -36,8 +36,14 @@ public class DailyFoodResDto {
 
     @Getter
     @Setter
-    public static class DailyFoodByDate {
+    public static class DailyFoodGroupByDate {
         private String serviceDate;
+        private List<DailyFoodByDate> dailyFoodDtos;
+    }
+
+    @Getter
+    @Setter
+    public static class DailyFoodByDate {
         private Integer diningType;
         private BigDecimal supportPrice;
         private List<DailyFoodDto> dailyFoodDtos;
