@@ -58,6 +58,9 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public List<MemberListResponseDto> getUserList(SecurityUser securityUser) {
+
+        List<MemberListResponseDto> result = new ArrayList<>();
+
         //code로 CorporationId 찾기 (=GroupId)
         Corporation corporation = userUtil.getCorporation(securityUser);
 
@@ -65,18 +68,16 @@ public class MemberServiceImpl implements MemberService {
         String userGroupName = qUserGroupRepository.findNameById(corporation.getId());
         //groupID로 user목록 조회
         List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporation.getId());
-        String memoTemp = null;
-        for (User user : groupUserList){
-            memoTemp = qUserGroupRepository.findUserMemo(user.getId(),corporation.getId());
-        }
-
 
         Optional<User> any = groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
                 .findAny();
 
-        String memo = memoTemp;
-        return groupUserList.stream()
-                .map((user) -> memberMapper.toMemberListDto(user, userGroupName, memo)).collect(Collectors.toList());
+        for (User groupUser : groupUserList){
+            String memo = qUserGroupRepository.findUserMemo(groupUser.getId(),corporation.getId());
+            result.add(memberMapper.toMemberListDto(groupUser, userGroupName, memo));
+        }
+
+        return result;
     }
 
     @Override
