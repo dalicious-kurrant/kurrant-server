@@ -41,6 +41,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
@@ -170,16 +171,6 @@ public class QOrderDailyFoodRepository {
             }
         }
 
-        NumberExpression<BigDecimal> totalDiscountPrice = Expressions.cases()
-                .when(orderItemDailyFood.orderStatus.eq(OrderStatus.CANCELED)).then(BigDecimal.ZERO)
-                .otherwise(orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).add(orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee));
-        NumberExpression<BigDecimal> totalSupportPrice = dailyFoodSupportPrice.usingSupportPrice.sum();
-        NumberExpression<BigDecimal> difference = totalDiscountPrice.subtract(totalSupportPrice);
-
-        SimpleExpression<BigDecimal> resultPrice = Expressions.cases()
-                .when(difference.gt(orderDailyFood.totalPrice)).then(orderDailyFood.totalPrice)
-                .otherwise(difference);
-
         List<SelectOrderDailyFoodDto> result = queryFactory.select(
                         Projections.fields(SelectOrderDailyFoodDto.class,
                                 orderItemDailyFood.orderItemDailyFoodGroup.id.as("orderItemGroupId"),
@@ -193,10 +184,8 @@ public class QOrderDailyFoodRepository {
                                 orderDailyFood.phone.coalesce(orderDailyFood.user.phone).as("phone"),
                                 orderDailyFood.code.as("orderCode"),
                                 orderDailyFood.createdDateTime.as("orderDateTime"),
-                                totalDiscountPrice.as("totalPrice"),
-                                totalSupportPrice.as("supportPrice"),
+                                orderDailyFood.totalPrice.as("orderTotalPrice"),
                                 orderDailyFood.point,
-                                resultPrice.as("payPrice"),
                                 orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee.as("deliveryPrice"),
                                 orderItemDailyFood.membershipDiscountRate.coalesce(0).as("isMembership"),
                                 orderDailyFood.user.id.as("userId")
@@ -212,17 +201,50 @@ public class QOrderDailyFoodRepository {
                 .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
                 .fetch();
 
+        Set<BigInteger> orderItemDailyFoodGroupIdSet = result.stream().map(SelectOrderDailyFoodDto::getOrderItemGroupId).collect(Collectors.toSet());
+        List<Tuple> totalDiscountPriceList = getTotalDiscountPrice(orderItemDailyFoodGroupIdSet);
+        List<Tuple> supportPriceList = getSupportPrice(orderItemDailyFoodGroupIdSet);
+        List<Tuple> orderItemDailyFoodsDetails = fetchOrderItemDailyFoodsDetails(orderItemDailyFoodGroupIdSet);
+
         for (SelectOrderDailyFoodDto dto : result) {
-            dto.setSelectOrderItemDailyFoodsDtos(fetchOrderItemDailyFoodsDetails(dto));
+            Tuple totalDiscountPrice = totalDiscountPriceList.stream().filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId())).findFirst().orElse(null);
+            Tuple supportPrice = supportPriceList.stream().filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId())).findFirst().orElse(null);
+            List<SelectOrderItemDailyFoodsDto> selectOrderItemDailyFoodsDtos = orderItemDailyFoodsDetails.stream()
+                    .filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId()))
+                    .map(v -> v.get(1, SelectOrderItemDailyFoodsDto.class))
+                    .toList();
+
+            dto.setTotalPrice(totalDiscountPrice == null ? BigDecimal.ZERO : totalDiscountPrice.get(1, BigDecimal.class));
+            dto.setSupportPrice(supportPrice == null ? BigDecimal.ZERO : supportPrice.get(1, BigDecimal.class));
+            dto.setSelectOrderItemDailyFoodsDtos(selectOrderItemDailyFoodsDtos);
         }
 
         return result;
     }
 
-    private List<SelectOrderItemDailyFoodsDto> fetchOrderItemDailyFoodsDetails(SelectOrderDailyFoodDto mainDto) {
+    private List<Tuple> getTotalDiscountPrice(Set<BigInteger> orderItemDailyFoodGroupId) {
+        return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
+                        Expressions.cases().when(orderItemDailyFood.orderStatus.eq(OrderStatus.CANCELED)).then(BigDecimal.ZERO)
+                        .otherwise(orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).sum().add(orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee).coalesce(BigDecimal.ZERO)))
+                .from(orderItemDailyFood)
+                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId))
+                .groupBy(orderItemDailyFood.orderItemDailyFoodGroup)
+                .fetch();
+    }
+
+    private List<Tuple> getSupportPrice(Set<BigInteger> orderItemDailyFoodGroupId) {
+        return queryFactory.select(dailyFoodSupportPrice.orderItemDailyFoodGroup.id, dailyFoodSupportPrice.usingSupportPrice.sum().coalesce(BigDecimal.ZERO))
+                .from(dailyFoodSupportPrice)
+                .where(dailyFoodSupportPrice.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId), dailyFoodSupportPrice.monetaryStatus.eq(MonetaryStatus.DEDUCTION))
+                .groupBy(dailyFoodSupportPrice.orderItemDailyFoodGroup)
+                .fetch();
+    }
+
+    private List<Tuple> fetchOrderItemDailyFoodsDetails(Set<BigInteger> orderItemDailyFoodGroupId) {
         // 주요 DTO 정보를 기반으로 서브 쿼리를 구성하고 실행
         // 이 예제에서는 주요 DTO의 정보를 사용하지 않았지만 필요에 따라 조건을 추가하여 사용 가능
-        return queryFactory.select(Projections.bean(SelectOrderItemDailyFoodsDto.class,
+        return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
+                        Projections.bean(SelectOrderItemDailyFoodsDto.class,
                         orderItemDailyFood.id.as("orderItemDailyFoodId"),
                         orderItemDailyFood.deliveryTime,
                         makers.name.as("makers"),
@@ -235,7 +257,7 @@ public class QOrderDailyFoodRepository {
                 .from(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood.food, food)
                 .innerJoin(food.makers, makers)
-                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.eq(mainDto.getOrderItemGroupId())) // 필요한 조건을 추가
+                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId)) // 필요한 조건을 추가
                 .fetch();
     }
 
