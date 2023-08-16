@@ -14,6 +14,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface MemberMapper {
 
+    @Mapping(source = "memo", target = "memo")
     @Mapping(source = "user.id", target="id")
     @Mapping(source = "user.email", target="userId")
     @Mapping(source = "user.password", target="password")
@@ -26,7 +27,7 @@ public interface MemberMapper {
     @Mapping(source = "user.gourmetType", target = "gourmetType")
     @Mapping(source = "user.isMembership", target = "isMembership")
     @Mapping(source = "user.nickname", target = "nickname")
-    MemberListResponseDto toMemberListDto(User user, String groupName);
+    MemberListResponseDto toMemberListDto(User user, String groupName, String memo);
 
 
     @Mapping(source = "employee.phone", target = "phone")
