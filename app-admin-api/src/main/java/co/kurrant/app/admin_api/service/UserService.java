@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.TestDataResponseDto;
+import co.dalicious.domain.user.dto.UserInfoDto;
 import co.kurrant.app.admin_api.dto.user.*;
 
 import java.util.List;
@@ -25,4 +26,6 @@ public interface UserService {
     String deleteTestData(DeleteTestDataRequestDto deleteTestDataRequestDto);
 
     List<TestDataResponseDto> getTestData();
+
+    List<UserInfoDto> getUserInfos();
 }
