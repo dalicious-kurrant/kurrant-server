@@ -33,7 +33,7 @@ if [ -z "$IS_GREEN"  ];then # blue라면
 
   echo "4. reload nginx"
   sudo cp /etc/nginx/conf.d/service-url-green.inc /etc/nginx/conf.d/service-url.inc
-  sudo nginx -s rel
+  sudo nginx -s reload
 
   echo "5. blue container down"
   docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose-test.yml stop kurrant_v1_prod_test_blue
