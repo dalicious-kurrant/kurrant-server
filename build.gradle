@@ -198,6 +198,7 @@ project(':app-admin-api') {
         implementation project(':domain-application-form')
         implementation project(':data-redis')
         implementation project(':client-sse')
+        implementation project(':domain-board')
     }
 }
 
@@ -217,6 +218,7 @@ project(':app-client-api') {
         implementation project(':domain-paycheck')
         implementation project(':client-alarm')
         implementation project(':client-sse')
+        implementation project(':domain-board')
     }
 }
 
@@ -255,7 +257,7 @@ project(':batch') {
         implementation project(':domain-payment')
         implementation project(':domain-paycheck')
         implementation project(':domain-delivery')
-        implementation project(':client-sse')
+        implementation project(':data-redis')
     }
 }
 
@@ -289,6 +291,7 @@ project(':domain-board') {
     dependencies {
         implementation project(':system-core')
         implementation project(':domain-user')
+        implementation project(':domain-file')
     }
 }
 

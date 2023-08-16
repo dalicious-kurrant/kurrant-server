@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.AdminListResponseDto;
@@ -23,7 +24,7 @@ public interface GroupService {
     void saveCorporationList(List<GroupListDto.GroupInfoList> corporationListDto) throws ParseException;
     GroupListDto.GroupInfoList  getGroupDetail(BigInteger groupId);
 
-    void updateGroupDetail(GroupListDto.GroupInfoList updateSpotDetailRequestDto) throws ParseException;
+    void updateGroupDetail(UpdateGroupListDto.GroupInfoList updateSpotDetailRequestDto) throws ParseException;
     List<GroupListDto.GroupInfoList> getAllGroupForExcel();
     FilterDto getAllListForFilter(Map<String, Object> parameters);
     ListItemResponseDto<AdminListResponseDto> getAllMySpotZoneList(Map<String, Object> parameters, Integer limit, Integer size, OffsetBasedPageRequest pageable);

@@ -5,6 +5,7 @@ import co.dalicious.domain.banner.entity.dto.BannerDto;
 import co.dalicious.domain.banner.mapper.BannerMapper;
 import co.dalicious.domain.banner.repository.BannerRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
+import co.dalicious.domain.file.entity.embeddable.enums.DirName;
 import co.dalicious.domain.file.service.ImageService;
 import co.kurrant.app.admin_api.service.BannerService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class BannerServiceImpl implements BannerService {
 
     @Override
     public void postBanner(BannerDto.Request request, MultipartFile multipartFile) throws IOException {
-        ImageResponseDto imageResponseDto = imageService.upload(multipartFile, "banner");
+        ImageResponseDto imageResponseDto = imageService.upload(multipartFile, DirName.BANNER.getName());
         Banner banner = bannerMapper.toEntity(request, imageResponseDto);
         bannerRepository.save(banner);
     }

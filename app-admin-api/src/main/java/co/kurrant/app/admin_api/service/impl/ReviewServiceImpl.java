@@ -6,7 +6,7 @@ import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
-import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.FoodRepository;

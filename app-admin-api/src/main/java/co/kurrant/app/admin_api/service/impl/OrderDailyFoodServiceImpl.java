@@ -1,19 +1,22 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
-import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.event.ReloadEvent;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
@@ -25,9 +28,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QFoodCapacityRepository;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
-import co.dalicious.domain.order.dto.ExtraOrderDto;
-import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
+import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -35,6 +36,7 @@ import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.mapper.ExtraOrderMapper;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
+import co.dalicious.domain.order.mapper.OrderMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
@@ -42,11 +44,15 @@ import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
-import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.repository.*;
+import co.dalicious.domain.user.entity.enums.PushCondition;
+import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.repository.QMembershipRepository;
+import co.dalicious.domain.user.repository.QUserGroupRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningTypesUtils;
@@ -54,10 +60,8 @@ import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
-import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
-import co.dalicious.domain.order.mapper.OrderMapper;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -65,12 +69,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -89,7 +93,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
     private final MakersMapper makersMapper;
-    private final UserGroupRepository userGroupRepository;
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final MakersRepository makersRepository;
     private final OrderRepository orderRepository;
@@ -119,6 +122,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QUserGroupRepository qUserGroupRepository;
     private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final QFoodCapacityRepository qFoodCapacityRepository;
 
     @Override
@@ -140,10 +144,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
-        List<Membership> memberships = qMembershipRepository.findAllByFilter(startDate, endDate, group, userId);
+        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<BigInteger> memberships = qMembershipRepository.findAllUserIdByFilter(startDate, endDate, group, userId);
 
-        return orderMapper.toOrderItemDailyFoodGroupList(orderItemDailyFoods, memberships);
+        return orderMapper.toOrderItemDailyFoodGroupLists(selectOrderDailyFoodDtos, memberships);
     }
 
     @Override
@@ -249,7 +253,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
-                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isCorporationMembership(user, group) && !user.getIsMembership()) {
                     orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
 
@@ -298,29 +302,31 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     public void cancelOrderNice(BigInteger orderId) throws IOException, ParseException {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
         User user = order.getUser();
-
         if (order instanceof OrderDailyFood orderDailyFood) {
-            orderService.cancelOrderDailyFoodNice(orderDailyFood, user);
+            Set<BigInteger> makersIds = orderService.cancelOrderDailyFoodNice(orderDailyFood, user);
+            applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
         }
     }
 
     @Override
-    @Transactional(propagation = Propagation.SUPPORTS)
+    @Transactional(propagation = Propagation.REQUIRED)
     public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
         StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
+        Set<BigInteger> makersIds = new HashSet<>();
         for (OrderItem orderItem : orderItems) {
             User user = (User) Hibernate.unproxy(orderItem.getOrder().getUser());
             try {
                 if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
                     orderService.adminCancelOrderItemDailyFood(orderItemDailyFood, user);
+                    makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
                 }
             } catch (Exception e) {
-                // Log the exception or handle it as needed
                 failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
         }
+        applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
         return failMessage.toString();
     }
 
@@ -344,6 +350,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Set<BigInteger> foodIds = orderDtos.stream()
                 .map(ExtraOrderDto.Request::getFoodId)
                 .collect(Collectors.toSet());
+        Set<BigInteger> makersIds = new HashSet<>();
 
         Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
         MultiValueMap<BigInteger, ExtraOrderDto.Request> requestMap = new LinkedMultiValueMap<>();
@@ -402,8 +409,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                                     v.getGroup().getId().equals(request.getGroupId()))
                             .findAny()
                             .orElse(null);
-
                     assert dailyFood != null;
+                    makersIds.add(dailyFood.getFood().getMakers().getId());
 
                     // 멤버십이 가입된 기업은 할인된 가격으로 적용하기
                     DiscountDto discountDto;
@@ -433,6 +440,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             order.updateTotalDeliveryFee(BigDecimal.ZERO);
             order.updatePoint(BigDecimal.ZERO);
         }
+        applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
     }
 
     @Override
@@ -477,6 +485,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         if (refundPriceDto.getIsLastItemOfGroup()) {
             orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
         }
+        applicationEventPublisher.publishEvent(new ReloadEvent(Collections.singletonList(orderItemDailyFood.getDailyFood().getFood().getMakers().getId())));
     }
 
 

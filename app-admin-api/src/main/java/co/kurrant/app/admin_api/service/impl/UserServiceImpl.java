@@ -4,7 +4,9 @@ import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
-import co.dalicious.client.sse.SseService;
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
@@ -31,6 +33,7 @@ import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -74,10 +77,11 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public List<UserInfoResponseDto> getUserList(Map<String, Object> parameters) {
-        List<User> users = qUserRepository.findAllByParameter(parameters);
+    public ListItemResponseDto<UserInfoResponseDto> getUserList(Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
+        Page<User> users = qUserRepository.findAllByParameter(parameters, pageable);
 
-        return users.stream().map(userMapper::toDto).toList();
+        return ListItemResponseDto.<UserInfoResponseDto>builder().items(users.stream().map(userMapper::toDto).toList()).limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .count(users.getNumberOfElements()).total((long) users.getTotalPages()).isLast(users.isLast()).build();
     }
 
     @Override

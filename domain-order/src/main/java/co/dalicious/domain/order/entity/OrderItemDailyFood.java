@@ -16,6 +16,10 @@ import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @DynamicInsert
 @DynamicUpdate
@@ -132,15 +136,17 @@ public class OrderItemDailyFood extends OrderItem {
     }
 
     public String getLastOrderTime(){
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
 
-        DayAndTime makersLastOrderTime = this.dailyFood.getFood().getMakers().getMakersCapacity(this.dailyFood.getDiningType()).getLastOrderTime();
-        DayAndTime mealInfoLastOrderTIme = this.dailyFood.getGroup().getMealInfo(this.dailyFood.getDiningType()).getLastOrderTime();
+        List<DayAndTime> lastOrderTimes = Stream.of(makersLastOrderTime, mealInfoLastOrderTime, foodLastOrderTime)
+                .filter(Objects::nonNull) // Exclude null values
+                .toList();
+        DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
+                .orElse(null);
 
-        //메이커스의 주문 마감시간이 null이 아니고, 밀인포 마감시간 보다 빠를때는 메이커스 마감시간을 리턴한다.
-        if (makersLastOrderTime != null && DayAndTime.toLocalDate(makersLastOrderTime).isBefore(DayAndTime.toLocalDate(mealInfoLastOrderTIme))){
-            return makersLastOrderTime.dayAndTimeToStringByDate(this.dailyFood.getServiceDate());
-        }
-        return mealInfoLastOrderTIme.dayAndTimeToStringByDate(this.dailyFood.getServiceDate());
+        return DayAndTime.dayAndTimeToString(lastOrderTime);
 
     }
 

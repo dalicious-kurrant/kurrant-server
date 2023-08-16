@@ -4,6 +4,7 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodReviewListDto;
 import co.dalicious.domain.food.dto.GetFoodReviewResponseDto;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.dto.*;
@@ -58,6 +59,7 @@ public interface ReviewMapper {
         return reviewableItemListDto;
     }
 
+    @Mapping(source = "dailyFoodId", target = "dailyFoodId")
     @Mapping(source = "reviews.id", target = "reviewId")
     @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
     @Mapping(source = "reviews.content", target = "content")
@@ -68,7 +70,7 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
     @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
     @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList")
-    ReviewListDto toReviewListDto(Reviews reviews);
+    ReviewListDto toReviewListDto(Reviews reviews, BigInteger dailyFoodId);
 
 
     @Mapping(source = "isGood", target = "isGood")
@@ -157,11 +159,17 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
     @Mapping(source = "reviews.user", target = "writer", qualifiedByName = "getNameAndNickname")
+    @Mapping(source = "reviews.orderItem", target = "group", qualifiedByName = "getGroupName")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
 
     @Named("getNameAndNickname")
     default String getNameAndNickname(User user) {
         return user.getNameAndNickname();
+    }
+
+    @Named("getGroupName")
+    default String getGroupName(OrderItem orderItem) {
+        return ((OrderDailyFood) orderItem.getOrder()).getGroupName();
     }
 
     default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {

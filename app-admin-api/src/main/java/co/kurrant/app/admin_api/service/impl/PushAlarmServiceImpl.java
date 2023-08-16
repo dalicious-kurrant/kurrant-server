@@ -12,8 +12,8 @@ import co.dalicious.client.alarm.repository.PushAlarmRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.util.PushUtil;
-import co.dalicious.client.sse.SseService;
 import co.dalicious.data.redis.entity.PushAlarmHash;
+import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
@@ -191,7 +191,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
 
         //50065
         String makersName = "알렉산더";
-        String content65 = "(입금 완료 안내) \n안녕하세요. 커런트입니다. \n"+makersName+"메이커스의 "+2023+"년 "+5+"월 정산금이 이체되었습니다. \n▶정산금액 : "+5000+"";
+        String content65 = "(입금 완료 안내) \n안녕하세요. 커런트입니다. \n"+makersName+"메이커스의 "+localDate.getYear()+"년 "+localDate.getMonth()+"월 정산금이 이체되었습니다. \n▶정산금액 : "+5000+"";
 
         //50074
         String content2 = "안녕하세요!\n" +
@@ -204,7 +204,10 @@ public class PushAlarmServiceImpl implements PushAlarmService {
                 "\n" +
                 "감사합니다.";
 
-        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content65, alimtalkTestDto.getTemplateId());
+        String content95 = "(고객사 정보 변경 승인 알림) 달리셔스 담당자님 안녕하세요. 정보 변경 승인(이)가 완료 및 승인되었습니다.자세한 사항은 고객사 공지 페이지에서 확인해주세요! ▶https//group.dalicious.co/notice";
+
+
+        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content95, alimtalkTestDto.getTemplateId(), null);
 
 
     }

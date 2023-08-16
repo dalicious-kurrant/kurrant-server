@@ -5,9 +5,7 @@ import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.MembershipStatus;
-import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -16,9 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static co.dalicious.domain.user.entity.QMembership.membership;
 import static co.dalicious.domain.user.entity.QUserGroup.userGroup;
@@ -56,7 +52,7 @@ public class QMembershipRepository {
                 .fetch();
     }
 
-    public List<Membership> findAllByFilter(LocalDate startDate, LocalDate endDate, Group group, BigInteger userId) {
+    public List<BigInteger> findAllUserIdByFilter(LocalDate startDate, LocalDate endDate, Group group, BigInteger userId) {
         BooleanBuilder whereClause = new BooleanBuilder();
         if(startDate != null) {
             whereClause.and(membership.startDate.loe(startDate));
@@ -77,9 +73,11 @@ public class QMembershipRepository {
             whereClause.and(membership.user.in(groupUsers));
         }
         return queryFactory
-                .selectFrom(membership)
+                .select(membership.user.id)
+                .from(membership)
                 .where(membership.membershipStatus.eq(MembershipStatus.PROCESSING),
                         whereClause)
+                .groupBy(membership.user)
                 .fetch();
     }
 }

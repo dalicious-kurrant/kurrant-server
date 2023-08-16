@@ -7,10 +7,7 @@ import co.dalicious.domain.client.dto.corporation.CorporationResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.OpenGroupMapper;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.MySpotZoneRepository;
-import co.dalicious.domain.client.repository.QGroupRepository;
-import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
@@ -62,8 +59,8 @@ public class UserClientServiceImpl implements UserClientService {
     public ClientSpotDetailResDto getSpotDetail(SecurityUser securityUser, BigInteger spotId) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
-        Spot spot = spotRepository.findById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
-        Group group = (Group) Hibernate.unproxy(spot.getGroup());
+        Spot spot = spotRepository.findOneById(spotId).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
+        Group group = spot.getGroup();
         isGroupMember(user, group);
 
         UserSpot userSpot = getUserSpot(spotId, user);

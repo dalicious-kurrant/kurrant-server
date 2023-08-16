@@ -42,7 +42,6 @@ public class DailyFoodResDto {
         private BigDecimal supportPrice;
         private List<DailyFoodDto> dailyFoodDtos;
     }
-
     @Getter
     @Setter
     public static class SupportPriceByDay {

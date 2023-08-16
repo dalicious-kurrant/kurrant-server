@@ -113,6 +113,39 @@ public class Corporation extends Group {
     @Comment("담당자 유저 id")
     private BigInteger managerId;
 
+    @Comment("담당자 이름")
+    private String managerName;
+
+    @Comment("담당자 전화번호")
+    private String managerPhone;
+
+    @Builder
+    public Corporation(Address address, List<DiningType> diningTypes, String name, String memo, String code, Boolean isPrepaid, LocalDate membershipEndDate, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, DeliveryFeeOption deliveryFeeOption, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend, BigInteger managerId, String managerName, String managerPhone) {
+        super(address, diningTypes, name, memo);
+        this.code = code;
+        this.isPrepaid = isPrepaid;
+        this.membershipEndDate = membershipEndDate;
+        this.prepaidCategories = prepaidCategories;
+        this.isMembershipSupport = isMembershipSupport;
+        this.employeeCount = employeeCount;
+        this.isGarbage = isGarbage;
+        this.isHotStorage = isHotStorage;
+        this.isSetting = isSetting;
+        this.isSaladRequired = isSaladRequired;
+        this.requiredFoodTags = requiredFoodTags;
+        this.excludedFoodTags = excludedFoodTags;
+        this.requiredMakers = requiredMakers;
+        this.excludedMakers = excludedMakers;
+        this.requiredFood = requiredFood;
+        this.excludedFood = excludedFood;
+        this.minimumSpend = minimumSpend;
+        this.maximumSpend = maximumSpend;
+        this.managerId = managerId;
+        this.managerName = managerName;
+        this.managerPhone = managerPhone;
+        this.deliveryFeeOption = deliveryFeeOption;
+    }
+
     @Builder
     public Corporation(Address address, LocalDate membershipEndDate, List<DiningType> diningTypes, String name, BigInteger managerId, String memo, String code, Boolean isPrepaid, List<PrepaidCategory> prepaidCategories, Boolean isMembershipSupport, Integer employeeCount, Boolean isGarbage, Boolean isHotStorage, Boolean isSetting, Boolean isSaladRequired, List<FoodTag> requiredFoodTags, List<FoodTag> excludedFoodTags, List<BigInteger> requiredMakers, List<BigInteger> excludedMakers, List<BigInteger> requiredFood, List<BigInteger> excludedFood, BigDecimal minimumSpend, BigDecimal maximumSpend, DeliveryFeeOption deliveryFeeOption) {
         super(address, diningTypes, name, memo);
@@ -218,6 +251,10 @@ public class Corporation extends Group {
     }
 
     public void updatePrepaidCategories(List<PrepaidCategory> prepaidCategories) {
+        if(prepaidCategories == null || prepaidCategories.isEmpty()) {
+            this.prepaidCategories = null;
+            return;
+        }
         List<PrepaidCategory> mutablePrepaidCategories = new ArrayList<>(prepaidCategories);
         mutablePrepaidCategories.removeIf(prepaidCategory -> prepaidCategory.getCount() == null && prepaidCategory.getPrice() == null && prepaidCategory.getTotalPrice() == null);
         this.prepaidCategories = mutablePrepaidCategories;
@@ -225,5 +262,13 @@ public class Corporation extends Group {
 
     public void updatePrepaid(Boolean prepaid) {
         isPrepaid = prepaid;
+    }
+
+    public void updateManagerName(String managerName) {
+        this.managerName = managerName;
+    }
+
+    public void updateManagerPhone(String managerPhone) {
+        this.managerPhone = managerPhone;
     }
 }

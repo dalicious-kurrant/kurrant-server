@@ -76,13 +76,12 @@ public class PushAlarmService {
 
         LocalDateTime before24ByNow = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 
-        String queryString = "select distinct u.id, bpal.pushDateTime " +
+        String queryString = "select u.id " +
                                      "from MySpotZone msz " +
-                                     "left join UserGroup ug on ug.group = msz and ug.clientStatus = 1 " +
+                                     "left join UserGroup ug on ug.group.id = msz.id and ug.clientStatus = 1 " +
                                      "left join User u on ug.user = u " +
-                                     "left join MySpot ms on ms.group = msz and ms.userId = u.id " +
-                                     "left join BatchPushAlarmLog bpal on bpal.userId = u.id and bpal.pushCondition = 4001 " +
-                                     "where msz.mySpotZoneStatus = 1 and u.firebaseToken is not null and ms.isAlarm = true";
+                                     "where msz.mySpotZoneStatus = 1 " +
+                                     "group by u.id";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
         List<Object[]> results = query.getResultList();
@@ -90,11 +89,22 @@ public class PushAlarmService {
         List<BigInteger> userIds = new ArrayList<>();
         for (Object[] result : results) {
             BigInteger userId = (BigInteger) result[0];
-            LocalDateTime pushDateTime = (LocalDateTime) result[1];
+            userIds.add(userId);
+        }
 
-            if (pushDateTime == null || pushDateTime.isBefore(before24ByNow)) {
-                userIds.add(userId);
-            }
+        String logQueryString = "select u.id, bpal.pushDateTime " +
+                "from BatchPushAlarmLog bpal " +
+                "left join User u on bpal.userId = u.id " +
+                "where bpal.pushCondition = 4001";
+
+        TypedQuery<Object[]> logQuery = entityManager.createQuery(logQueryString, Object[].class);
+        List<Object[]> logResults = logQuery.getResultList();
+
+        for (Object[] result : logResults) {
+            BigInteger userId = (BigInteger) result[0];
+            LocalDateTime logDateTime = (LocalDateTime) result[1];
+
+            if(logDateTime.isAfter(before24ByNow)) userIds.remove(userId);
         }
 
         return userIds;
