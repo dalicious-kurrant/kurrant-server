@@ -178,7 +178,7 @@ public interface OrderMapper {
     @Mapping(target = "orderDateTime", expression = "java(timeStampToString(selectOrderDailyFoodDto.getOrderDateTime()))")
     @Mapping(target = "deliveryPrice", expression = "java(selectOrderDailyFoodDto.getDeliveryPrice() == null ? BigDecimal.ZERO : selectOrderDailyFoodDto.getDeliveryPrice())")
     @Mapping(target = "supportPrice", expression = "java(selectOrderDailyFoodDto.getSupportPrice() == null ? BigDecimal.ZERO : selectOrderDailyFoodDto.getSupportPrice())")
-    @Mapping(target = "payPrice", expression = "java(selectOrderDailyFoodDto.getPayPrice() == null ? BigDecimal.ZERO : selectOrderDailyFoodDto.getPayPrice())")
+    @Mapping(target = "payPrice", expression = "java(selectOrderDailyFoodDto.getOrderTotalPrice().compareTo(selectOrderDailyFoodDto.getTotalPrice().subtract(selectOrderDailyFoodDto.getSupportPrice())) < 0 ? selectOrderDailyFoodDto.getOrderTotalPrice() : selectOrderDailyFoodDto.getTotalPrice().subtract(selectOrderDailyFoodDto.getSupportPrice()))")
     @Mapping(target = "isMembership", expression = "java(selectOrderDailyFoodDto.getIsMembership().compareTo(0) >= 0)")
     @Mapping(target = "userName", expression = "java(selectOrderDailyFoodDto.getUserNickname() != null ? selectOrderDailyFoodDto.getUserNickname() + \"(\" + selectOrderDailyFoodDto.getUserName() + \")\" : selectOrderDailyFoodDto.getUserName())")
     OrderDto.OrderItemDailyFoodGroupList toOrderItemDailyFoodGroupListDto(SelectOrderDailyFoodDto selectOrderDailyFoodDto);
