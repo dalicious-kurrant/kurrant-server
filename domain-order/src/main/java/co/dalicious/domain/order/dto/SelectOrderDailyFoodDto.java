@@ -26,8 +26,8 @@ public class SelectOrderDailyFoodDto {
     private Timestamp orderDateTime;
     private BigDecimal totalPrice;
     private BigDecimal supportPrice;
+    private BigDecimal orderTotalPrice;
     private BigDecimal point;
-    private BigDecimal payPrice;
     private BigDecimal deliveryPrice;
     private Integer isMembership;
     private BigInteger userId;
