@@ -7,6 +7,7 @@ import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.service.GroupService;
 import co.kurrant.app.admin_api.service.AdminPaycheckService;
+import co.kurrant.app.admin_api.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,6 +25,7 @@ public class PublicController {
     private final AdminPaycheckService adminPaycheckService;
     private final GroupService groupService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final UserService userService;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -82,6 +84,16 @@ public class PublicController {
         applicationEventPublisher.publishEvent(new ReloadEvent(idList.getIdList()));
         return ResponseMessage.builder()
                 .message("메세지 전송 성공")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.PUBLIC)
+    @Operation(summary = "유저 조회", description = "유저 조회")
+    @GetMapping("/users")
+    public ResponseMessage getUserInfo() {
+        return ResponseMessage.builder()
+                .data(userService.getUserInfos())
+                .message("유저 조회에 성공하였습니다.")
                 .build();
     }
 }
