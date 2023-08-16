@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.UpdateRequestDto;
@@ -73,7 +74,7 @@ public class GroupController {
     @ControllerMarker(ControllerType.GROUP)
     @Operation(summary = "기업 정보 상세 수정", description = "기업 의 상세정보를 수정합니다.")
     @PatchMapping("/detail")
-    public ResponseMessage updateSpotDetail(@RequestBody GroupListDto.GroupInfoList updateSpotDetailRequestDto) throws ParseException {
+    public ResponseMessage updateSpotDetail(@RequestBody UpdateGroupListDto.GroupInfoList updateSpotDetailRequestDto) throws ParseException {
         groupService.updateGroupDetail(updateSpotDetailRequestDto);
         return ResponseMessage.builder()
                 .message("기업  상세 정보를 수정했습니다.")

@@ -12,5 +12,12 @@ public class AlimtalkRequestDto {
     private String phoneNumber;
     private String templateId;
     private String content;
+    private String redirectUrl;
 
+    public AlimtalkRequestDto(String phoneNumber, String templateId, String content, String redirectUrl) {
+        this.phoneNumber = phoneNumber;
+        this.templateId = templateId;
+        this.content = content;
+        this.redirectUrl = redirectUrl;
+    }
 }

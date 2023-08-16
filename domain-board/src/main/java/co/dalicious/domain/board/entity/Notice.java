@@ -1,27 +1,23 @@
 package co.dalicious.domain.board.entity;
 
-import co.dalicious.domain.board.entity.enums.BoardStatus;
+import co.dalicious.domain.board.converter.BoardTypeConverter;
+import co.dalicious.domain.board.converter.GroupIdListConverter;
+import co.dalicious.domain.board.entity.enums.BoardType;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "board__notice")
 public class Notice {
@@ -41,30 +37,44 @@ public class Notice {
     @Column(columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
     @Comment("수정일")
     private Timestamp updatedDateTime;
-    
+
     @Comment("공지 제목")
     private String title;
-    
+
     @Lob
     @Comment("공지 내용")
     private String content;
 
-    @Comment("스팟 공지일 경우 스팟ID")
-    @Column(name="spotId", columnDefinition = "BIGINT UNSIGNED")
-    private BigInteger spotId;
+    @Column(name = "group_ids")
+    @Convert(converter = GroupIdListConverter.class)
+    @Comment("스팟 공지일 경우 그룹ID")
+    private List<BigInteger> groupIds;
 
-    @ColumnDefault(value = "1")
-    @Comment("상태 0:비활성/1:활성/2:팝업/3:스팟공지")
-    @Column(name="status", columnDefinition = "INT")
-    private BoardStatus status;
+    @Column(name="status")
+    @Comment("상태 0:비활성 / 1:활성")
+    private Boolean isStatus;
 
+    @Column(name="e_type")
+    @Comment("상태 0:전체공지/1:스팟공지/2:팝업/3:이벤트 공지")
+    @Convert(converter = BoardTypeConverter.class)
+    private BoardType boardType;
+
+    @ColumnDefault(value = "0")
+    @Column(name="is_push_alarm")
+    @Comment("상태 0:비활성 / 1:활성")
+    private Boolean isPushAlarm;
 
     @Builder
-    public Notice(BigInteger id, String title, String content, BigInteger spotId, Integer status){
-        this.id = id;
+    public Notice(String title, String content, List<BigInteger> groupIds, Boolean isStatus, BoardType boardType, Boolean isPushAlarm) {
         this.title = title;
         this.content = content;
-        this.spotId = spotId;
-        this.status = BoardStatus.ofCode(status);
+        this.groupIds = groupIds;
+        this.isStatus = isStatus;
+        this.boardType = boardType;
+        this.isPushAlarm = isPushAlarm;
+    }
+
+    public void updatePushAlarm(Boolean pushAlarm) {
+        isPushAlarm = pushAlarm;
     }
 }

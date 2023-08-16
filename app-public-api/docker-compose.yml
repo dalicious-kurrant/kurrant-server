@@ -1,35 +1,35 @@
 version: "3"
 services:
-  kurrant_v1_prod_test_green:
-    container_name: kurrant_v1_prod_test_green
-    image: dalicious77/kurrant_v1_prod_test:${IMAGE_TAG}
+  kurrant_v1_green:
+    container_name: kurrant_v1_green
+    image: dalicious77/kurrant_v1:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=test,test-green,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=dev,dev-green,mail,sms,redis,jwt,s3,payment
     ports:
-      - "9882:9882"
+      - "8882:8882"
     logging:
       driver: "awslogs"
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "kurrant/dev"
-        awslogs-stream: "test_app"
+        awslogs-stream: "app"
 
     networks:
       - redis_redis_cluster
 
-  kurrant_v1_prod_test_blue:
-    container_name: kurrant_v1_prod_test_blue
-    image: dalicious77/kurrant_v1_prod_test:${IMAGE_TAG}
+  kurrant_v1_blue:
+    container_name: kurrant_v1_blue
+    image: dalicious77/kurrant_v1:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=test,test-blue,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
     ports:
-      - "9881:9881"
+      - "8881:8881"
     logging:
       driver: "awslogs"
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "kurrant/dev"
-        awslogs-stream: "test_app"
+        awslogs-stream: "app"
 
 networks:
   redis_redis_cluster:

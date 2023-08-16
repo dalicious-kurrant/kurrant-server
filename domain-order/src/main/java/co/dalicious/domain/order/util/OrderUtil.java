@@ -87,8 +87,16 @@ public class OrderUtil {
 
     public static Boolean isMembership(User user, Group group) {
         if (group instanceof Corporation corporation) {
-            return corporation.getIsMembershipSupport() &&
-                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now()));
+            return user.getIsMembership() || (corporation.getIsMembershipSupport() &&
+                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now())));
+        }
+        return user.getIsMembership();
+    }
+
+    public static Boolean isCorporationMembership(User user, Group group) {
+        if (group instanceof Corporation corporation) {
+            return (corporation.getIsMembershipSupport() &&
+                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now())));
         }
         return user.getIsMembership();
     }

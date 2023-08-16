@@ -11,8 +11,10 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
 
 @Repository
@@ -27,6 +29,13 @@ public class QSpotRepository {
                 .from(spot)
                 .where(spot.group.id.eq(corporationId))
                 .fetch();
+    }
+
+    public Optional<Spot> findByIdFetchGroup(BigInteger spotId) {
+        return Optional.ofNullable(queryFactory.selectFrom(spot)
+                .leftJoin(spot.group, group).fetchJoin()
+                .where(spot.id.eq(spotId))
+                .fetchOne());
     }
 
 

@@ -27,7 +27,7 @@ import java.util.List;
 @DynamicInsert
 @NoArgsConstructor
 @Table(name = "review__review")
-public class Reviews{
+public class Reviews {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(columnDefinition = "BIGINT UNSIGNED", nullable = false)

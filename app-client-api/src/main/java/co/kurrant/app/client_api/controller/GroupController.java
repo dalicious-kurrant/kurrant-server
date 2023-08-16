@@ -1,6 +1,7 @@
 package co.kurrant.app.client_api.controller;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.kurrant.app.client_api.dto.StringDto;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.GroupService;
 import co.kurrant.app.client_api.util.UserUtil;
@@ -37,6 +38,16 @@ public class GroupController {
         return ResponseMessage.builder()
                 .message("기업 상세 스팟을 조회했습니다.")
                 .data(groupService.getSpots(groupId, securityUser))
+                .build();
+    }
+
+    @Operation(summary = "기업 매니저 정보 수정", description = "기업 매니저 정보를 수정한다.")
+    @PostMapping("/setting/manager/{information}")
+    public ResponseMessage postManagerInformation(Authentication authentication, @PathVariable String information, @RequestBody StringDto stringDto) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        groupService.postManagerInformation(securityUser, information, stringDto.getValue());
+        return ResponseMessage.builder()
+                .message("기업 매니저 정보를 수정하였습니다.")
                 .build();
     }
 

@@ -22,7 +22,7 @@ public interface AuthService {
     // Sms 인증
     String sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws IOException, NoSuchAlgorithmException, InvalidKeyException;
     // 회원가입
-    User signUp(SignUpRequestDto signUpRequestDto);
+    void signUp(SignUpRequestDto signUpRequestDto);
     // 로그인
     LoginResponseDto login(LoginRequestDto loginRequestDto);
     LoginResponseDto lookingAround();

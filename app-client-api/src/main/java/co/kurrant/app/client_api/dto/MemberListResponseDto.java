@@ -35,4 +35,6 @@ public class MemberListResponseDto {
     private GourmetType gourmetType;
     @Schema(description = "멤버십 여부")
     private Boolean isMembership;
+    @Schema(description = "메모")
+    private String memo;
 }

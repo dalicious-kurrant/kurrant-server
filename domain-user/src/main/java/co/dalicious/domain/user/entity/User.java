@@ -136,10 +136,6 @@ public class User {
     @JsonBackReference(value = "user_spot_fk")
     private List<UserSpot> userSpots;
 
-    @OneToMany(mappedBy = "user", orphanRemoval = true)
-    @JsonBackReference(value = "user_department_fk")
-    private List<UserDepartment> userDepartments;
-
     @Size(max = 16)
     @Column(name = "phone", length = 16,
             columnDefinition = "VARCHAR(16)")
@@ -329,15 +325,6 @@ public class User {
         return StringUtils.StringListToString(groupNames);
     }
 
-    public String getDepartment(){
-        //관련 기획이 없으므로 임시로 부서가 1개라고 가정하고 작성
-        if (!getUserDepartments().isEmpty()){
-            return getUserDepartments().get(0).getDepartment().getName();
-        }
-
-        return "없음";
-    }
-
 
     public String getProviderEmail(Provider provider) {
         return getProviderEmails().stream()
@@ -455,6 +442,7 @@ public class User {
     }
 
     public UserGroup getUserGroupByGroup(Group group) {
+        if (this.groups == null) return null;
         return this.groups.stream()
                 .filter(v -> v.getGroup().equals(group))
                 .findAny()

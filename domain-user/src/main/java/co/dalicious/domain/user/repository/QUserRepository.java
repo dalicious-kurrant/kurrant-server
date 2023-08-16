@@ -2,15 +2,20 @@ package co.dalicious.domain.user.repository;
 
 
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -118,7 +123,7 @@ public class QUserRepository {
                 .execute();
     }
 
-    public List<User> findAllByParameter(Map<String, Object> parameters) {
+    public Page<User> findAllByParameter(Map<String, Object> parameters, Pageable pageable) {
         Integer userStatus = !parameters.containsKey("userStatus") || parameters.get("userStatus").equals("") ? null : Integer.parseInt((String) parameters.get("userStatus"));
         BigInteger groupId = !parameters.containsKey("group") || parameters.get("group").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("group")));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
@@ -130,20 +135,25 @@ public class QUserRepository {
         }
         // TODO: 수정 필요
         if (groupId != null) {
-            whereClause.and(
-                    JPAExpressions.selectFrom(userGroup)
-                            .join(userGroup.group, group)
-                            .where(userGroup.user.eq(user), group.id.eq(groupId))
-                            .exists()
-            );
+            whereClause.and(user.in(
+                    JPAExpressions.select(userGroup.user)
+                            .from(userGroup)
+                            .innerJoin(userGroup.group, group)
+                            .where(group.id.eq(groupId), userGroup.clientStatus.eq(ClientStatus.BELONG))
+                            .groupBy(userGroup.user)
+            ));
         }
         if (userId != null) {
             whereClause.and(user.id.eq(userId));
         }
 
-        return queryFactory.selectFrom(user)
+        QueryResults<User> results = queryFactory.selectFrom(user)
                 .where(whereClause)
-                .fetch();
+                .limit(pageable.getPageSize())
+                .offset(pageable.getOffset())
+                .fetchResults();
+
+        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
     }
     
     public void updateUserPoint(BigInteger userId, BigDecimal point, PointStatus pointStatus) {
@@ -216,14 +226,6 @@ public class QUserRepository {
         return userIdMap;
     }
 
-    public List<String> findUserFirebaseToken(List<BigInteger> userIds) {
-
-        return queryFactory.select(user.firebaseToken)
-                .from(user)
-                .where(user.id.in(userIds), user.firebaseToken.isNotNull())
-                .fetch();
-    }
-
     public List<User> findUserFirebaseToken(Set<BigInteger> userIds) {
 
         return queryFactory.selectFrom(user)
@@ -237,5 +239,30 @@ public class QUserRepository {
                 .where(user.phone.eq(to))
                 .limit(1)
                 .fetchOne());
+    }
+
+    public List<User> findAllByNotNullFirebaseToken() {
+        return queryFactory.selectFrom(user)
+                .where(user.firebaseToken.isNotNull())
+                .fetch();
+    }
+
+    public Optional<User> findOneByEmail(String email) {
+        return Optional.ofNullable(queryFactory.selectFrom(user)
+                .where(user.email.eq(email))
+                .limit(1)
+                .fetchOne());
+
+    }
+
+    public Map<BigInteger, String> findUserIdAndPhoneByUserId(List<BigInteger> userIds) {
+        List<Tuple> userResult = queryFactory.select(user.id, user.phone)
+                .from(user)
+                .where(user.id.in(userIds))
+                .fetch();
+
+        Map<BigInteger, String> userIdMap = new HashMap<>();
+        userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.phone)));
+        return userIdMap;
     }
 }

@@ -215,7 +215,7 @@ public class AuthServiceImpl implements AuthService {
 
     // 회원가입
     @Override
-    public User signUp(SignUpRequestDto signUpRequestDto) {
+    public void signUp(SignUpRequestDto signUpRequestDto) {
 
         //가입가능 리스트에 있는 유저검색
         List<Employee> employeeList = employeeRepository.findAllByEmail(signUpRequestDto.getEmail());
@@ -273,7 +273,6 @@ public class AuthServiceImpl implements AuthService {
             employeeRepository.deleteAllByEmail(employeeList.get(0).getEmail());
         }
 
-        return user;
     }
 
     // 유저 인증 완료 후 토큰 발급
@@ -559,7 +558,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(TokenDto tokenDto) {
         // 1. Refresh Token 검증
         if (!jwtTokenProvider.validateRefreshToken(tokenDto.getRefreshToken())) {
-            throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
+            return;
         }
         // 2. Access Token 에서 UserId 를 가져오기.
         String userId = jwtTokenProvider.getUserPk(tokenDto.getAccessToken());
@@ -586,7 +585,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findIdRequestDto.phone, RequiredAuth.FIND_ID);
 
         // 유저 가져오기
-        User user = userRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = qUserRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 아이디 찾기 응답 Response 생성
         List<ProviderEmailDto> connectedSns = new ArrayList<>();
@@ -619,7 +618,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
 
         // 유저 정보 가져오기
-        User user = userRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = qUserRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);
