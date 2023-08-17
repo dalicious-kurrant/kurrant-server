@@ -46,7 +46,7 @@ public interface OrderMapper {
     @Mapping(target = "orderStatus", constant = "COMPLETED")
     @Mapping(target = "deliveryFee", constant = "0")
         // TODO: 배송비 추가가 필요한 경우 수정 필요
-    OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(ServiceDiningDto serviceDiningDto);
+    OrderItemDailyFoodGroup toOrderItemDailyFoodGroup(ServiceDiningVo serviceDiningVo);
 
     @Mapping(source = "order", target = "order")
     @Mapping(target = "orderStatus", constant = "COMPLETED")
@@ -335,13 +335,13 @@ public interface OrderMapper {
 
     default List<OrderDto.OrderItemStatic> toOrderItemStatic(List<OrderItemDailyFood> orderItemDailyFoods, List<UserGroup> userGroups) {
         List<OrderDto.OrderItemStatic> orderItemStatics = new ArrayList<>();
-        MultiValueMap<ServiceDiningDto, OrderItemDailyFood> orderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningVo, OrderItemDailyFood> orderItemDailyFoodMultiValueMap = new LinkedMultiValueMap<>();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDailyFood().getDiningType());
-            orderItemDailyFoodMultiValueMap.add(serviceDiningDto, orderItemDailyFood);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(orderItemDailyFood.getDailyFood().getServiceDate(), orderItemDailyFood.getDailyFood().getDiningType());
+            orderItemDailyFoodMultiValueMap.add(serviceDiningVo, orderItemDailyFood);
         }
-        for (ServiceDiningDto serviceDiningDto : orderItemDailyFoodMultiValueMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoodMultiValueMap.get(serviceDiningDto);
+        for (ServiceDiningVo serviceDiningVo : orderItemDailyFoodMultiValueMap.keySet()) {
+            List<OrderItemDailyFood> orderItemDailyFoodList = orderItemDailyFoodMultiValueMap.get(serviceDiningVo);
 
             Set<User> orderUsers = (orderItemDailyFoodList == null) ? Collections.emptySet() :
                     orderItemDailyFoodList.stream()
@@ -363,9 +363,9 @@ public interface OrderMapper {
             }
 
             OrderDto.OrderItemStatic orderItemStatic = new OrderDto.OrderItemStatic();
-            Integer userCount = UserGroup.activeUserCount(serviceDiningDto.getServiceDate(), userGroups).intValue();
-            orderItemStatic.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
-            orderItemStatic.setDiningType(serviceDiningDto.getDiningType().getDiningType());
+            Integer userCount = UserGroup.activeUserCount(serviceDiningVo.getServiceDate(), userGroups).intValue();
+            orderItemStatic.setServiceDate(DateUtils.format(serviceDiningVo.getServiceDate()));
+            orderItemStatic.setDiningType(serviceDiningVo.getDiningType().getDiningType());
             orderItemStatic.setUserCount(userCount);
             orderItemStatic.setOrderUserCount(orderUsers.size());
             orderItemStatic.setFoodCount(foodCount);

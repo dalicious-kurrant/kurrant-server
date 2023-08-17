@@ -21,8 +21,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -359,17 +357,17 @@ public class QOrderDailyFoodRepository {
     public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
         Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
         Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
-        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
+        Set<ServiceDiningVo> serviceDiningVos = new HashSet<>();
         Set<Makers> makersSet = new HashSet<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood);
-            serviceDiningDtos.add(serviceDiningDto);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(dailyFood);
+            serviceDiningVos.add(serviceDiningVo);
             makersSet.add(dailyFood.getFood().getMakers());
         }
 
         // 기간 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningVos);
 
         List<Tuple> aggregatedResults = queryFactory.select(
                         dailyFood.serviceDate,
