@@ -219,7 +219,7 @@ public class Makers {
         if (saveMakersRequestDto.getManagerName() != null && !saveMakersRequestDto.getManagerName().isEmpty())
             this.managerName = saveMakersRequestDto.getManagerName();
         if (saveMakersRequestDto.getManagerPhone() != null && !saveMakersRequestDto.getManagerPhone().isEmpty())
-            this.CEOPhone = saveMakersRequestDto.getCeoPhone();
+            this.managerPhone = saveMakersRequestDto.getManagerPhone();
         if (saveMakersRequestDto.getServiceType() != null && !saveMakersRequestDto.getServiceType().isEmpty())
             this.serviceType = ServiceType.ofString(saveMakersRequestDto.getServiceType());
         if (saveMakersRequestDto.getServiceForm() != null && !saveMakersRequestDto.getServiceForm().isEmpty())
