@@ -44,7 +44,7 @@ public interface UserPreferenceMapper {
         List<FoodTag> result = new ArrayList<>();
         List<String> split = Arrays.stream(foodTags.split(",")).toList();
         for (String foodTagString : split ){
-            System.out.println(foodTagString);
+            if (foodTagString.equals("")) continue;
             result.add(FoodTag.ofString(foodTagString));
         }
         return result;
