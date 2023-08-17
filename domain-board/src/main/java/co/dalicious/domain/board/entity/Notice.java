@@ -13,6 +13,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -64,17 +65,23 @@ public class Notice {
     @Comment("상태 0:비활성 / 1:활성")
     private Boolean isPushAlarm;
 
+    @Column(name = "active_date")
+    @Comment("상태변경 일")
+    private LocalDate activeDate;
+
     @Builder
-    public Notice(String title, String content, List<BigInteger> groupIds, Boolean isStatus, BoardType boardType, Boolean isPushAlarm) {
+    public Notice(String title, String content, List<BigInteger> groupIds, Boolean isStatus, BoardType boardType, Boolean isPushAlarm, LocalDate activeDate) {
         this.title = title;
         this.content = content;
         this.groupIds = groupIds;
         this.isStatus = isStatus;
         this.boardType = boardType;
         this.isPushAlarm = isPushAlarm;
+        this.activeDate = activeDate;
     }
 
     public void updatePushAlarm(Boolean pushAlarm) {
-        isPushAlarm = pushAlarm;
+        this.isPushAlarm = pushAlarm;
     }
+    public void updateActiveDate(LocalDate activeDate) { this.activeDate = activeDate;}
 }
