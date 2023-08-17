@@ -71,7 +71,7 @@ public class UserPreference {
     @Comment("비건 여부")
     private Boolean isVegan;
 
-    @Column(name = "began_level", columnDefinition = "INT")
+    @Column(name = "vegan_level", columnDefinition = "INT")
     @Comment("비건 정도")
     private Integer veganLevel;
 
