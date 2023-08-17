@@ -29,6 +29,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.persistence.EntityManagerFactory;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -153,7 +154,9 @@ public class OrderItemJob {
                 log.info("[OrderItem 상태 업데이트 시작] : {}", item.getId());
                 User user = item.getOrder().getUser();
                 Group group = item.getDailyFood().getGroup();
-                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                LocalDate serviceDate = item.getDailyFood().getServiceDate();
+                LocalDate now = LocalDate.now();
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isCorporationMembership(user, group) && !user.getIsMembership() && serviceDate.getMonth().equals(now.getMonth())) {
                     orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
                 item.updateOrderStatus(OrderStatus.DELIVERED);

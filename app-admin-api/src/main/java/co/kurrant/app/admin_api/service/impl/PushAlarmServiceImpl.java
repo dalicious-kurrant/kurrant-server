@@ -204,7 +204,10 @@ public class PushAlarmServiceImpl implements PushAlarmService {
                 "\n" +
                 "감사합니다.";
 
-        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content65, alimtalkTestDto.getTemplateId(), null);
+        String content95 = "(고객사 정보 변경 승인 알림) 달리셔스 담당자님 안녕하세요. 정보 변경 승인(이)가 완료 및 승인되었습니다.자세한 사항은 고객사 공지 페이지에서 확인해주세요! ▶https//group.dalicious.co/notice";
+
+
+        kakaoUtil.sendAlimTalk(alimtalkTestDto.getPhoneNumber(), content95, alimtalkTestDto.getTemplateId(), null);
 
 
     }

@@ -1,8 +1,8 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
+import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
@@ -14,7 +14,9 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.client.repository.*;
+import co.dalicious.domain.client.repository.GroupRepository;
+import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
@@ -26,9 +28,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.food.repository.QDailyFoodRepository;
 import co.dalicious.domain.food.repository.QFoodCapacityRepository;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
-import co.dalicious.domain.order.dto.ExtraOrderDto;
-import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
+import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.entity.*;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -36,6 +36,7 @@ import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.DailyFoodSupportPriceMapper;
 import co.dalicious.domain.order.mapper.ExtraOrderMapper;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
+import co.dalicious.domain.order.mapper.OrderMapper;
 import co.dalicious.domain.order.repository.*;
 import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
@@ -43,11 +44,15 @@ import co.dalicious.domain.order.util.OrderMembershipUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
-import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
-import co.dalicious.domain.user.entity.enums.*;
-import co.dalicious.domain.user.repository.*;
+import co.dalicious.domain.user.entity.enums.PushCondition;
+import co.dalicious.domain.user.entity.enums.Role;
+import co.dalicious.domain.user.entity.enums.UserStatus;
+import co.dalicious.domain.user.repository.QMembershipRepository;
+import co.dalicious.domain.user.repository.QUserGroupRepository;
+import co.dalicious.domain.user.repository.QUserRepository;
+import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningTypesUtils;
@@ -55,10 +60,8 @@ import co.dalicious.system.util.PeriodDto;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
-import co.dalicious.domain.order.dto.OrderDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
-import co.dalicious.domain.order.mapper.OrderMapper;
 import co.kurrant.app.admin_api.service.OrderDailyFoodService;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -72,7 +75,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -142,10 +144,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
-        List<Membership> memberships = qMembershipRepository.findAllByFilter(startDate, endDate, group, userId);
+        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<BigInteger> memberships = qMembershipRepository.findAllUserIdByFilter(startDate, endDate, group, userId);
 
-        return orderMapper.toOrderItemDailyFoodGroupList(orderItemDailyFoods, memberships);
+        return orderMapper.toOrderItemDailyFoodGroupLists(selectOrderDailyFoodDtos, memberships);
     }
 
     @Override
@@ -251,7 +253,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 // 멤버십 추가
                 User user = orderItemDailyFood.getOrder().getUser();
                 Group group = (Group) Hibernate.unproxy(orderItemDailyFood.getDailyFood().getGroup());
-                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership()) {
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isCorporationMembership(user, group) && !user.getIsMembership()) {
                     orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
 
