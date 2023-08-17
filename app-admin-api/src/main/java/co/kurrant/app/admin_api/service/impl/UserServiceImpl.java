@@ -18,6 +18,7 @@ import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.TestDataResponseDto;
 import co.dalicious.domain.user.dto.UserDto;
+import co.dalicious.domain.user.dto.UserInfoDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
@@ -525,5 +526,10 @@ public class UserServiceImpl implements UserService {
             resultList.add(dto);
         }
         return resultList;
+    }
+
+    @Override
+    public List<UserInfoDto> getUserInfos() {
+        return qUserRepository.findAllUserIdAndName();
     }
 }
