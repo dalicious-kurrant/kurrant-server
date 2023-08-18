@@ -4,12 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @Getter
 @Setter
-public class MemberMemoSaveRequestDto {
+public class MemberMemoSaveDto {
 
-    private List<MemberMemoSaveDto> memoList;
+    private String memo;
+    private BigInteger userId;
 
 }

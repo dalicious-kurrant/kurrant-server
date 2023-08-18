@@ -62,7 +62,7 @@ public class DailyReportServiceImpl implements DailyReportService {
         List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
         UserPreference userPreference = null;
 
-        userPreference =userPreferenceMapper.toEntity(user, userPreferenceDto);
+        userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
 //            List<FoodTag> foodTags = userPreference.getFavoriteCountryFood();
 
 //        foodTags = foodTags.stream()
