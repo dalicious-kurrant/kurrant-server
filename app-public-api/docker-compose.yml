@@ -23,7 +23,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
     ports:
-      - "8881:8881"
+      - "8881:8882"
     logging:
       driver: "awslogs"
       options:
