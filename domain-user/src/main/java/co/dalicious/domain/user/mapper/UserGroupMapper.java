@@ -210,6 +210,8 @@ public interface UserGroupMapper {
                     .diningTypes(DiningTypesUtils.diningTypesToCodes(openGroup.getDiningTypes()))
                     .mealInfos(toMealInfoDtos(openGroup.getMealInfos()))
                     .spots(toSpotDtos(openGroup.getSpots()))
+                    .longitude(openGroup.getAddress().getLatitudeAndLongitude().get("longitude"))
+                    .latitude(openGroup.getAddress().getLatitudeAndLongitude().get("latitude"))
                     .build();
         }
         if(Hibernate.unproxy(group) instanceof MySpotZone mySpotZone) {

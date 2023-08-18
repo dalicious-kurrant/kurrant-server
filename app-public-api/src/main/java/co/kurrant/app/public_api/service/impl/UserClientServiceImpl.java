@@ -153,7 +153,7 @@ public class UserClientServiceImpl implements UserClientService {
     public List<OpenGroupListForKeywordDto> getOpenGroupsForKeyword(SecurityUser securityUser) {
         User user = userUtil.getUser(securityUser);
 
-        List<Group> groups = qGroupRepository.findAllOpenGroup();
+        List<OpenGroup> groups = qGroupRepository.findAllOpenGroup();
         List<OpenGroupListForKeywordDto> openGroupListForKeywordDtos = new ArrayList<>();
         if(groups.isEmpty()) return  openGroupListForKeywordDtos;
 

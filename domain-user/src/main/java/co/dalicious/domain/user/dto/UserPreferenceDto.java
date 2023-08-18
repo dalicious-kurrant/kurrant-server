@@ -26,7 +26,7 @@ public class UserPreferenceDto {
     @Schema(description = "기타 알러지 정보")
     private String allergyInfoEtc;
     @Schema(description = "비건여부")
-    private Boolean isBegan;
+    private Boolean isVegan;
     @Schema(description = "비건 정도")
     private Integer veganLevel;
     @Schema(description = "프로틴 섭취여부")
