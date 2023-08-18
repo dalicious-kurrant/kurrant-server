@@ -42,6 +42,7 @@ public interface UserPreferenceMapper {
     @Named("makeFoodTagList")
     default List<FoodTag> makeFoodTagList(String foodTags){
         if (foodTags == null || foodTags.equals("") ) return null;
+        System.out.println(foodTags + " foodTags");
         List<FoodTag> result = new ArrayList<>();
         List<String> split = Arrays.stream(foodTags.split(",")).toList();
         for (String foodTagString : split ){
