@@ -20,6 +20,8 @@ if [ -z "$IS_GREEN"  ];then # blue라면
   echo "2. green container up"
   docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml up -d kurrant_v1_green # green 컨테이너 실행
 
+  sleep 10
+
   while [ 1 = 1 ]; do
   echo "3. green health check..."
   sleep 3
@@ -45,6 +47,8 @@ else
 
   echo "2. blue container up"
   docker-compose -f /home/ubuntu/kurrant_v1/docker/app-public-api/docker-compose.yml up -d kurrant_v1_blue
+
+  sleep 10
 
   while [ 1 = 1 ]; do
     echo "3. blue health check..."
