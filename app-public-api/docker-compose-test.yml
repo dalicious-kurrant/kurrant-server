@@ -30,6 +30,8 @@ services:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "kurrant/dev"
         awslogs-stream: "test_app"
+    networks:
+      - redis_redis_cluster
 
 networks:
   redis_redis_cluster:
