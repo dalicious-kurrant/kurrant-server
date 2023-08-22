@@ -5,6 +5,7 @@ services:
     image: dalicious77/kurrant_v1:${IMAGE_TAG}
     environment:
       - SPRING_PROFILES_ACTIVE=dev,dev-green,mail,sms,redis,jwt,s3,payment
+      - UWSGI_PORT=8082
     ports:
       - "8882:8882"
     logging:
@@ -22,6 +23,7 @@ services:
     image: dalicious77/kurrant_v1:${IMAGE_TAG}
     environment:
       - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
+      - UWSGI_PORT=8081
     ports:
       - "8881:8882"
     logging:
