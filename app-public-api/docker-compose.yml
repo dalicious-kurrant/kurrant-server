@@ -31,6 +31,9 @@ services:
         awslogs-group: "kurrant/dev"
         awslogs-stream: "app"
 
+    networks:
+      - redis_redis_cluster
+
 networks:
   redis_redis_cluster:
     external: true
