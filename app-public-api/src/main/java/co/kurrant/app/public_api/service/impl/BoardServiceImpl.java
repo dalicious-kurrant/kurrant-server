@@ -91,13 +91,13 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public void readAllAlarm(SecurityUser securityUser, List<String> ids) {
         List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(securityUser.getId());
-        if (!pushAlarmHashes.isEmpty()) pushAlarmHashes.stream()
-                .filter(v -> ids.contains(v.getId()) && !v.getIsRead())
-                .findAny()
-                .ifPresent(v -> {
-                    v.setRead(true);
-                    pushAlarmHashRepository.save(v);
-                });
+        if (pushAlarmHashes.isEmpty()) return;
+        for (PushAlarmHash pushAlarmHash : pushAlarmHashes) {
+            if (ids.contains(pushAlarmHash.getId())) {
+                pushAlarmHash.setRead(true);
+                pushAlarmHashRepository.save(pushAlarmHash);
+            }
+        }
 
     }
 
