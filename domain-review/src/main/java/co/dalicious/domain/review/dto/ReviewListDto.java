@@ -25,6 +25,7 @@ public class ReviewListDto {
     @Getter
     @Setter
     public static class Comment{
+        private BigInteger commentId;
         private String writer;
         private String content;
         private String createDate;
