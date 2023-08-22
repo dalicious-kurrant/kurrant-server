@@ -102,9 +102,9 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public List<Group> findAllOpenGroup() {
-        return queryFactory.selectFrom(group)
-                .where(group.instanceOf(OpenGroup.class), group.isActive)
+    public List<OpenGroup> findAllOpenGroup() {
+        return queryFactory.selectFrom(openGroup)
+                .where(openGroup.isActive.isTrue())
                 .fetch();
     }
 
