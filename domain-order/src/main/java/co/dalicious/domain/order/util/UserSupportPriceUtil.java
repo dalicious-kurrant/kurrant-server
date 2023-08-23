@@ -5,6 +5,8 @@ import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
 import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.OrderDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.util.PeriodDto;
@@ -38,6 +40,27 @@ public class UserSupportPriceUtil {
     }
 
     public static SupportType getSupportType(BigDecimal supportPrice) {
+        if (supportPrice == null || supportPrice.compareTo(BigDecimal.ZERO) == 0) {
+            return SupportType.NONE;
+        }
+        if ((supportPrice.compareTo(BigDecimal.ZERO) > 0 && supportPrice.compareTo(BigDecimal.ONE) < 1) || supportPrice.equals(PARTIAL_NUMBER)) {
+            return SupportType.PARTIAL;
+        }
+        return SupportType.FIXED;
+    }
+
+    public static SupportType getSupportTypeByOrderItem(OrderItemDailyFood orderItemDailyFood) {
+        String todayOfWeek = orderItemDailyFood.getDailyFood().getServiceDate().getDayOfWeek().getDisplayName(TextStyle.SHORT, Locale.KOREA);
+        List<MealInfo> mealInfos = orderItemDailyFood.getDailyFood().getGroup().getMealInfos();
+        CorporationMealInfo mealInfo = (CorporationMealInfo) mealInfos.stream().filter(v -> v.getDiningType().equals(orderItemDailyFood.getDailyFood().getDiningType()))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MEAL_INFO));
+        List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = mealInfo.getServiceDaysAndSupportPrices();
+        ServiceDaysAndSupportPrice serviceDaysAndSupportPrice = serviceDaysAndSupportPriceList.stream()
+                .filter(o -> o.getSupportDays().contains(Days.ofString(todayOfWeek)))
+                .findAny().orElse(null);
+
+        BigDecimal supportPrice  = serviceDaysAndSupportPrice == null ? BigDecimal.ZERO : serviceDaysAndSupportPrice.getSupportPrice();
         if (supportPrice == null || supportPrice.compareTo(BigDecimal.ZERO) == 0) {
             return SupportType.NONE;
         }

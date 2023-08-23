@@ -6,6 +6,7 @@ import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.SupportType;
+import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.delivery.utils.DeliveryUtils;
 import co.dalicious.domain.food.dto.DiscountDto;
@@ -101,6 +102,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final QSpotRepository qSpotRepository;
 
     @Override
     @Transactional
@@ -110,9 +112,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Set<BigInteger> makersIds = new HashSet<>();
         synchronized (userLocks.computeIfAbsent(user, u -> new Object())) {
             // 그룹/스팟 정보 가져오기
-            Spot spot = spotRepository.findById(orderItemDailyFoodReqDto.getOrderItems().getSpotId()).orElseThrow(
-                    () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-            );
+            Spot spot = qSpotRepository.findByIdFetchGroup(orderItemDailyFoodReqDto.getOrderItems().getSpotId())
+                    .orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
             Group group = spot.getGroup();
             // 유저가 그 그룹의 스팟에 포함되는지 확인.
             UserGroupUtil.isUserIncludedInGroup(user, group);
@@ -161,6 +162,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 OrderItemDailyFood orderItemDailyFood = null;
                 BigDecimal orderItemGroupTotalPrice = BigDecimal.ZERO;
                 BigDecimal supportPrice = getSupportPrice(user, spot, cartDailyFoodDto, periodDto);
+                SupportType supportType = UserSupportPriceUtil.getSupportType(supportPrice);
                 // 4. 주문 음식 가격이 일치하는지 검증 및 주문 저장
                 for (CartDailyFoodDto.DailyFood cartDailyFood : cartDailyFoodDto.getCartDailyFoods()) {
                     CartDailyFood selectedCartDailyFood = cartDailyFoods.stream().filter(v -> v.getId().equals(cartDailyFood.getId()))
@@ -188,12 +190,10 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (spot instanceof CorporationSpot) {
                     BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                     if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
-                        DailyFoodSupportPrice dailyFoodSupportPrice;
-                        if (spot.getGroup().getId().equals(BigInteger.valueOf(97)) || spot.getGroup().getId().equals(BigInteger.valueOf(154))) {
-                            dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toMedTronicSupportPrice(orderItemDailyFood, orderItemGroupTotalPrice);
-                        } else {
-                            dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
+                        if (supportType.equals(SupportType.PARTIAL)) {
+                            usableSupportPrice = orderItemGroupTotalPrice.multiply(usableSupportPrice);
                         }
+                        DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, usableSupportPrice);
                         dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
                         totalSupportPrice = totalSupportPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                     }
@@ -264,7 +264,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     public void cancelOrderItemDailyFoodNice(SecurityUser securityUser, BigInteger orderItemId) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
 
-        OrderItemDailyFood orderItemDailyFood = orderItemDailyFoodRepository.findById(orderItemId).orElseThrow(
+        OrderItemDailyFood orderItemDailyFood = qOrderDailyFoodRepository.findByIdFetchOrderDailyFood(orderItemId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.ORDER_ITEM_NOT_FOUND)
         );
 
