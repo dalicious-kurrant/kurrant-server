@@ -86,8 +86,11 @@ public class MemberServiceImpl implements MemberService {
 
         Corporation corporation = userUtil.getCorporation(securityUser);
 
-        qUserGroupRepository.updateUserGroupMemo(corporation.getId(), memberMemoSaveRequestDto.getMemo(), memberMemoSaveRequestDto.getUserId());
-
+        if (!memberMemoSaveRequestDto.getMemoList().isEmpty()){
+            for (MemberMemoSaveDto memo : memberMemoSaveRequestDto.getMemoList()){
+                qUserGroupRepository.updateUserGroupMemo(corporation.getId(), memo.getMemo(), memo.getUserId());
+            }
+        }
     }
 
     @Override

@@ -60,9 +60,10 @@ public class DailyReportServiceImpl implements DailyReportService {
         User user = userUtil.getUser(securityUser);
 
         List<UserPreference> preferenceList = userPreferenceRepository.findAllByUserId(user.getId());
+        UserPreference userPreference = null;
 
-        UserPreference userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
-        List<FoodTag> foodTags = userPreference.getFavoriteCountryFood();
+        userPreference = userPreferenceMapper.toEntity(user, userPreferenceDto);
+//            List<FoodTag> foodTags = userPreference.getFavoriteCountryFood();
 
 //        foodTags = foodTags.stream()
 //                .filter(v -> v.getCode().equals(1))
@@ -87,6 +88,7 @@ public class DailyReportServiceImpl implements DailyReportService {
         if (saveResult.getId() == null) {
             return "유저 정보 저장에 실패했습니다.";
         }
+
         for (UserSelectTestDataDto selectData : userPreferenceDto.getUserSelectTestDataList()) {
             UserSelectTestData userSelectTestData = userSelectTestDataMapper.toEntity(selectData.getSelectedFoodId(), selectData.getUnselectedFoodId(), saveResult.getId(), saveResult.getUser());
             userSelectTestDataRepository.save(userSelectTestData);

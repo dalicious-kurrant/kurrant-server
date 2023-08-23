@@ -67,11 +67,11 @@ public class UserPreference {
     @Comment("알러지 정보")
     private String allergyInfoEtc;
 
-    @Column(name = "is_began")
+    @Column(name = "is_vegan")
     @Comment("비건 여부")
-    private Boolean isBegan;
+    private Boolean isVegan;
 
-    @Column(name = "began_level", columnDefinition = "INT")
+    @Column(name = "vegan_level", columnDefinition = "INT")
     @Comment("비건 정도")
     private Integer veganLevel;
 
@@ -130,7 +130,7 @@ public class UserPreference {
 
     @Builder
     public UserPreference(User user,  Integer breakfastCount, Integer midnightSnackCount, Integer exerciseCount, Integer drinkCount,
-                   List<FoodTag> favoriteCountryFood, List<FoodTag> allergyInfo, String allergyInfoEtc, Boolean isBegan, Integer veganLevel, Boolean isProtein,
+                   List<FoodTag> favoriteCountryFood, List<FoodTag> allergyInfo, String allergyInfoEtc, Boolean isVegan, Integer veganLevel, Boolean isProtein,
                    Integer proteinFrequency, String birthYear, String birthMonth, String birthDay, Integer gender, Country country,
                    JobType jobType, JobType detailJobType, String selectedFoodId, String unselectedFoodId){
         this.user = user;
@@ -141,7 +141,7 @@ public class UserPreference {
         this.favoriteCountryFood = favoriteCountryFood;
         this.allergyInfo = allergyInfo;
         this.allergyInfoEtc = allergyInfoEtc;
-        this.isBegan = isBegan;
+        this.isVegan = isVegan;
         this.veganLevel = veganLevel;
         this.isProtein = isProtein;
         this.proteinFrequency = proteinFrequency;

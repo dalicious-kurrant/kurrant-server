@@ -47,6 +47,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -106,7 +108,9 @@ public class BoardServiceImpl implements BoardService {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
+
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
+        if(requestDto.getIsStatus() && !notice.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
         noticeMapper.updateNotice(requestDto, notice);
     }
 

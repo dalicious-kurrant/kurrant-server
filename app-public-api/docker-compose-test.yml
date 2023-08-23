@@ -23,13 +23,15 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=test,test-blue,mail,sms,redis,jwt,s3,payment
     ports:
-      - "9881:9881"
+      - "9881:9882"
     logging:
       driver: "awslogs"
       options:
         awslogs-region: "ap-northeast-2"
         awslogs-group: "kurrant/dev"
         awslogs-stream: "test_app"
+    networks:
+      - redis_redis_cluster
 
 networks:
   redis_redis_cluster:

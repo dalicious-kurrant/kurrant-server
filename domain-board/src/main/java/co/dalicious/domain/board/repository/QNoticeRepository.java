@@ -13,6 +13,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +28,10 @@ public class QNoticeRepository {
 
     public List<Notice> findPopupNotice() {
         return queryFactory.selectFrom(notice)
-                .where(notice.isStatus.isTrue(), notice.boardType.in(BoardType.POPUP))
+                .where(notice.isStatus.isTrue(),
+                        notice.boardType.in(BoardType.POPUP),
+                        notice.activeDate.goe(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7)))
+                .orderBy(notice.createdDateTime.desc())
                 .fetch();
     }
 
@@ -45,6 +50,7 @@ public class QNoticeRepository {
         }
         else {
             whereCause.and(notice.boardType.in(BoardType.showApp()));
+            whereCause.and(notice.boardType.ne(BoardType.SPOT));
         }
 
 
