@@ -217,15 +217,14 @@ public class ReviewServiceImpl implements ReviewService {
         User user = userUtil.getUser(securityUser);
 
         // user가 작성한 리뷰 찾기 - 삭제 제외
-        List<Reviews> reviews = qReviewRepository.findAllByUser(user);
+        List<SelectAppReviewByUserDto> reviews = qReviewRepository.findAllByUser(user);
 
         List<ReviewListDto> reviewListDtos = new ArrayList<>();
         if(reviews == null || reviews.isEmpty()) {
             return ReviewsForUserResDto.create(reviewListDtos);
         }
-        for(Reviews review : reviews) {
-            BigInteger dailyFoodId = qDailyFoodRepository.findOneByFoodId(review.getFood().getId());
-            ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review,dailyFoodId);
+        for(SelectAppReviewByUserDto review : reviews) {
+            ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review);
             reviewListDtos.add(reviewListDto);
         }
 
