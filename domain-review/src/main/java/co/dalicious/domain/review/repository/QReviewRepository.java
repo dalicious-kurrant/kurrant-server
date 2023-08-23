@@ -1,10 +1,13 @@
 package co.dalicious.domain.review.repository;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.dto.AverageAndTotalCount;
+import co.dalicious.domain.review.dto.SelectAppReviewByUserDto;
+import co.dalicious.domain.review.dto.SelectCommentByReviewDto;
 import co.dalicious.domain.review.entity.AdminComments;
 import co.dalicious.domain.review.entity.MakersComments;
 import co.dalicious.domain.review.entity.QComments;
@@ -16,9 +19,8 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.SimpleExpression;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -41,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
@@ -146,12 +149,50 @@ public class QReviewRepository {
                 .fetchOne();
     }
 
-    public List<Reviews> findAllByUser(User user) {
-        return queryFactory.selectFrom(reviews)
-                .leftJoin(reviews.comments, comments)
+    public List<SelectAppReviewByUserDto> findAllByUser(User user) {
+        NumberExpression<BigInteger> getDailyFoodId = Expressions.cases().when(reviews.food.isNotNull())
+                .then(orderItemDailyFood.dailyFood.id).otherwise(BigInteger.valueOf(0));
+        LiteralExpression<String> getMakersName = Expressions.cases().when(reviews.orderItem.instanceOf(OrderItemDailyFood.class))
+                .then(makers.name).otherwise("");
+        LiteralExpression<String> getItemName = Expressions.cases().when(reviews.orderItem.instanceOf(OrderItemDailyFood.class))
+                .then(food.name).otherwise("");
+
+        List<SelectAppReviewByUserDto> results = queryFactory.select(Projections.fields(SelectAppReviewByUserDto.class,
+                        reviews.id.as("reviewId"), getDailyFoodId.as("dailyFoodId"), reviews.content, reviews.satisfaction,
+                        reviews.createdDateTime.as("createDate"), reviews.updatedDateTime.as("updateDate"), reviews.forMakers,
+                        getMakersName.as("makersName"), getItemName.as("itemName")))
+                .from(reviews)
+                .innerJoin(reviews.orderItem, orderItem)
+                .innerJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood.food, food)
+                .innerJoin(food.makers, makers)
                 .where(reviews.isDelete.ne(true), reviews.user.eq(user))
                 .orderBy(reviews.createdDateTime.desc())
                 .distinct()
+                .fetch();
+
+        Set<BigInteger> getReviewIdSet = results.stream().map(SelectAppReviewByUserDto::getReviewId).collect(Collectors.toSet());
+        List<Tuple> getCommentByReview = findAllCommentByReview(getReviewIdSet);
+
+        for (SelectAppReviewByUserDto result : results) {
+            result.setCommentList(getCommentByReview.stream()
+                    .filter(v -> Objects.requireNonNull(v.get(0, BigInteger.class)).equals(result.getReviewId()))
+                    .map(v -> v.get(1, SelectCommentByReviewDto.class))
+                    .toList()
+            );
+        }
+
+        return results;
+    }
+
+    private List<Tuple> findAllCommentByReview(Set<BigInteger> reviewIds) {
+        LiteralExpression<String> getCommentWriter = Expressions.cases().when(comments.instanceOf(MakersComments.class))
+                .then("makers").otherwise("admin");
+        return queryFactory.select(comments.reviews.id, Projections.fields(SelectCommentByReviewDto.class,
+                        comments.id, getCommentWriter.as("writer"), comments.content,
+                        comments.createdDateTime.as("createDate"), comments.updatedDateTime.as("updateDate")))
+                .from(comments)
+                .where(comments.isDelete.isFalse(), comments.reviews.id.in(reviewIds))
                 .fetch();
     }
 
