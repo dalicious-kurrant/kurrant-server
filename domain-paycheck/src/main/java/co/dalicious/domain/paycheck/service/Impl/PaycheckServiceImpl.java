@@ -1,12 +1,11 @@
 package co.dalicious.domain.paycheck.service.Impl;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.OrderCount;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -24,7 +23,6 @@ import co.dalicious.domain.paycheck.repository.MakersPaycheckRepository;
 import co.dalicious.domain.paycheck.service.ExcelService;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.dalicious.domain.paycheck.util.PaycheckUtils;
-import co.dalicious.domain.user.repository.QUserRepository;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
@@ -90,16 +88,16 @@ public class PaycheckServiceImpl implements PaycheckService {
     @Override
     @Transactional
     public MakersPaycheck generateMakersPaycheck(Makers makers, List<OrderItemDailyFood> dailyFoods) {
-        MultiValueMap<ServiceDiningDto, OrderItemDailyFood> serviceDiningMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningVo, OrderItemDailyFood> serviceDiningMap = new LinkedMultiValueMap<>();
         List<PaycheckDailyFood> paycheckDailyFoods = new ArrayList<>();
 
         // 1. 식사 일정별로 묶기
         for (OrderItemDailyFood orderItemDailyFood : dailyFoods) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(orderItemDailyFood.getDailyFood());
-            serviceDiningMap.add(serviceDiningDto, orderItemDailyFood);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(orderItemDailyFood.getDailyFood());
+            serviceDiningMap.add(serviceDiningVo, orderItemDailyFood);
         }
-        for (ServiceDiningDto serviceDiningDto : serviceDiningMap.keySet()) {
-            List<OrderItemDailyFood> dailyFoodListByDate = serviceDiningMap.get(serviceDiningDto);
+        for (ServiceDiningVo serviceDiningVo : serviceDiningMap.keySet()) {
+            List<OrderItemDailyFood> dailyFoodListByDate = serviceDiningMap.get(serviceDiningVo);
             MultiValueMap<Food, OrderItemDailyFood> foodMap = new LinkedMultiValueMap<>();
 
             // 2. 음식별로 묶기
@@ -114,8 +112,8 @@ public class PaycheckServiceImpl implements PaycheckService {
 
                 // 3. 메이커스 정산 리스트에 추가
                 PaycheckDailyFood paycheckDailyFood = PaycheckDailyFood.builder()
-                        .serviceDate(serviceDiningDto.getServiceDate())
-                        .diningType(serviceDiningDto.getDiningType())
+                        .serviceDate(serviceDiningVo.getServiceDate())
+                        .diningType(serviceDiningVo.getDiningType())
                         .name(orderItemDailyFoodsByFood.get(0).getName())
                         .supplyPrice(orderItemDailyFoodsByFood.get(0).getDailyFood().getSupplyPrice() == null ? orderItemDailyFoodsByFood.get(0).getDailyFood().getFood().getSupplyPrice() : orderItemDailyFoodsByFood.get(0).getDailyFood().getSupplyPrice())
                         .count(count)

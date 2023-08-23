@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.mapper.food;
 
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
@@ -12,7 +13,6 @@ import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import co.dalicious.domain.recommend.entity.UserRecommends;
-import co.dalicious.domain.review.entity.Reviews;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -28,11 +28,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -163,7 +162,7 @@ public interface PublicDailyFoodMapper {
             DailyFoodByDateDto.ServiceInfo diningTypeDto = new DailyFoodByDateDto.ServiceInfo(diningType.getCode(), serviceDays, deliveryTimesStr);
 
             // 요일별 식사 지원금
-            if (Hibernate.getClass(group).equals(Corporation.class) && group.getMealInfo(diningType) != null) {
+            if (group instanceof Corporation && group.getMealInfo(diningType) != null) {
                 List<DailyFoodByDateDto.SupportPriceByDay> supportPriceByDays = new ArrayList<>();
                 CorporationMealInfo corporationMealInfo = (CorporationMealInfo) Hibernate.unproxy(group.getMealInfo(diningType));
                 List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPrices = corporationMealInfo.getServiceDaysAndSupportPrices();
@@ -216,8 +215,11 @@ public interface PublicDailyFoodMapper {
 
             for (DiningType diningType : allDates.keySet()) {
                 DailyFoodByDateDto.DailyFoodByDate dailyFoodByDate = new DailyFoodByDateDto.DailyFoodByDate();
+                BigDecimal supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, date, diningType);
+                SupportType supportType = UserSupportPriceUtil.getSupportType(supportPrice);
                 dailyFoodByDate.setDiningType(diningType.getCode());
-                dailyFoodByDate.setSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, date, diningType));
+                dailyFoodByDate.setSupportPrice(supportType.equals(SupportType.FIXED) ? supportPrice : null);
+                dailyFoodByDate.setSupportPercent(supportType.equals(SupportType.PARTIAL) ? supportPrice : null);
 
                 List<DailyFood> foodsForDate = dailyFoodMap.getOrDefault(new AbstractMap.SimpleEntry<>(date, diningType), new ArrayList<>());
 
@@ -246,7 +248,6 @@ public interface PublicDailyFoodMapper {
     }
 
 
-
     @Mapping(source = "sort", target = "sort")
     @Mapping(source = "dailyFood", target = "lastOrderTime", qualifiedByName = "getLastOrderTime")
     @Mapping(source = "totalCount", target = "totalReviewCount")
@@ -273,7 +274,7 @@ public interface PublicDailyFoodMapper {
     DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
 
     @Named("getLastOrderTime")
-    default String getLastOrderTime(DailyFood dailyFood){
+    default String getLastOrderTime(DailyFood dailyFood) {
         DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
         DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
         DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();

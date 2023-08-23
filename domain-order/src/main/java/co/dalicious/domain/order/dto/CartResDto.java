@@ -16,7 +16,6 @@ public class CartResDto {
     List<SpotCarts> spotCarts;
     BigDecimal userPoint;
 
-    @Builder
     public CartResDto(List<SpotCarts> spotCarts, BigDecimal userPoint) {
         this.spotCarts = spotCarts;
         this.userPoint = userPoint;

@@ -2,9 +2,11 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.converter.DeliveryFeeOptionConverter;
+import co.dalicious.domain.client.converter.SupportTypeConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.enums.DeliveryFeeOption;
+import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;

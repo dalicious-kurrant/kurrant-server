@@ -1,6 +1,8 @@
 package co.kurrant.app.public_api.dto.food;
 
+import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.food.dto.DailyFoodDto;
+import co.dalicious.domain.order.util.UserSupportPriceUtil;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -46,8 +48,10 @@ public class DailyFoodByDateDto {
     public static class DailyFoodByDate {
         private Integer diningType;
         private BigDecimal supportPrice;
+        private BigDecimal supportPercent;
         private List<DailyFoodDto> dailyFoodDtos;
     }
+
     @Getter
     @Setter
     public static class SupportPriceByDay {
@@ -56,18 +60,21 @@ public class DailyFoodByDateDto {
 
         public SupportPriceByDay(String day, BigDecimal supportPrice) {
             this.day = day;
-            if(supportPrice.compareTo(BigDecimal.valueOf(62471004L)) == 0 ) {
-                this.supportPrice = "금액의 50%";
-                return;
-            }
-            int price = supportPrice.intValue();
-            String formattedPrice;
-            if (price < 1000) {
-                formattedPrice = String.valueOf(price);
+
+            if (UserSupportPriceUtil.getSupportType(supportPrice).equals(SupportType.PARTIAL)) {
+                this.supportPrice = "금액의 " + supportPrice.multiply(BigDecimal.valueOf(100L)).intValue() + "%";
+            } else if (UserSupportPriceUtil.getSupportType(supportPrice).equals(SupportType.FIXED)) {
+                int price = supportPrice.intValue();
+                String formattedPrice;
+                if (price < 1000) {
+                    formattedPrice = String.valueOf(price);
+                } else {
+                    formattedPrice = String.format("%,d", price);
+                }
+                this.supportPrice = formattedPrice;
             } else {
-                formattedPrice = String.format("%,d", price);
+                this.supportPrice = null;
             }
-            this.supportPrice = formattedPrice;
         }
     }
 }

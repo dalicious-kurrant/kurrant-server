@@ -352,17 +352,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .collect(Collectors.toSet());
         Set<BigInteger> makersIds = new HashSet<>();
 
-        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
+        Set<ServiceDiningVo> serviceDiningVos = new HashSet<>();
         MultiValueMap<BigInteger, ExtraOrderDto.Request> requestMap = new LinkedMultiValueMap<>();
         for (ExtraOrderDto.Request orderDto : orderDtos) {
             requestMap.add(orderDto.getSpotId(), orderDto);
 
             LocalDate serviceDate = DateUtils.stringToDate(orderDto.getServiceDate());
             DiningType diningType = DiningType.ofString(orderDto.getDiningType());
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(serviceDate, diningType);
-            serviceDiningDtos.add(serviceDiningDto);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(serviceDate, diningType);
+            serviceDiningVos.add(serviceDiningVo);
         }
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningVos);
         List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByFoodsBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), foodIds);
 
         // 3. 음식을 추가하는 스팟 가져오기
@@ -387,17 +387,17 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             BigDecimal defaultPrice = BigDecimal.ZERO;
 
             // 6. 식사일정별로 DailyFood 묶기 (OrderItemDailyFoodGroup)
-            MultiValueMap<ServiceDiningDto, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
+            MultiValueMap<ServiceDiningVo, ExtraOrderDto.Request> orderDailyFoodGroupMap = new LinkedMultiValueMap<>();
             for (ExtraOrderDto.Request request : requestsBySpot) {
-                ServiceDiningDto serviceDiningDto = new ServiceDiningDto(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
-                orderDailyFoodGroupMap.add(serviceDiningDto, request);
+                ServiceDiningVo serviceDiningVo = new ServiceDiningVo(DateUtils.stringToDate(request.getServiceDate()), DiningType.ofString(request.getDiningType()));
+                orderDailyFoodGroupMap.add(serviceDiningVo, request);
             }
 
-            for (ServiceDiningDto serviceDiningDto : orderDailyFoodGroupMap.keySet()) {
+            for (ServiceDiningVo serviceDiningVo : orderDailyFoodGroupMap.keySet()) {
                 // 7. OrderItemDailyFoodGroup 저장
-                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(serviceDiningDto));
+                OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.save(orderMapper.toOrderItemDailyFoodGroup(serviceDiningVo));
 
-                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(serviceDiningDto);
+                List<ExtraOrderDto.Request> requests = orderDailyFoodGroupMap.get(serviceDiningVo);
                 List<OrderItemDailyFood> orderItemDailyFoods = new ArrayList<>();
                 assert requests != null;
                 BigDecimal supportPrice = BigDecimal.ZERO;
