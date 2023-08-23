@@ -43,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
@@ -152,16 +153,19 @@ public class QReviewRepository {
         NumberExpression<BigInteger> getDailyFoodId = Expressions.cases().when(reviews.food.isNotNull())
                 .then(orderItemDailyFood.dailyFood.id).otherwise(BigInteger.valueOf(0));
         LiteralExpression<String> getMakersName = Expressions.cases().when(reviews.orderItem.instanceOf(OrderItemDailyFood.class))
-                .then(orderItemDailyFood.dailyFood.food.makers.name).otherwise("");
+                .then(makers.name).otherwise("");
         LiteralExpression<String> getItemName = Expressions.cases().when(reviews.orderItem.instanceOf(OrderItemDailyFood.class))
-                .then(orderItemDailyFood.dailyFood.food.name).otherwise("");
+                .then(food.name).otherwise("");
 
         List<SelectAppReviewByUserDto> results = queryFactory.select(Projections.fields(SelectAppReviewByUserDto.class,
                         reviews.id.as("reviewId"), getDailyFoodId.as("dailyFoodId"), reviews.content, reviews.satisfaction,
                         reviews.createdDateTime.as("createDate"), reviews.updatedDateTime.as("updateDate"), reviews.forMakers,
-                        getMakersName.as("makersName"), getItemName.as("itemName"), reviews.count().as("count"), reviews.images))
+                        getMakersName.as("makersName"), getItemName.as("itemName")))
                 .from(reviews)
-                .innerJoin(orderItemDailyFood).on(reviews.orderItem.id.eq(orderItemDailyFood.id))
+                .innerJoin(reviews.orderItem, orderItem)
+                .innerJoin(orderItemDailyFood).on(orderItem.id.eq(orderItemDailyFood.id))
+                .innerJoin(orderItemDailyFood.dailyFood.food, food)
+                .innerJoin(food.makers, makers)
                 .where(reviews.isDelete.ne(true), reviews.user.eq(user))
                 .orderBy(reviews.createdDateTime.desc())
                 .distinct()

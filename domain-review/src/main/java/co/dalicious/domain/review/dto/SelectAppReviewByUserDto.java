@@ -20,7 +20,6 @@ public class SelectAppReviewByUserDto {
     private Boolean forMakers;
     private String makersName;
     private String itemName;
-    private Integer count;
     private List<Image> images;
     private List<SelectCommentByReviewDto> commentList;
 }

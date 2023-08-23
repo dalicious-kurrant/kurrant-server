@@ -65,8 +65,20 @@ public interface ReviewMapper {
     @Mapping(target = "dailyFoodId", expression = "java(reviews.getDailyFoodId().equals(0) ? null : reviews.getDailyFoodId())")
     @Mapping(target = "makersName", expression = "java(reviews.getMakersName().equals(\"null\") ? null : reviews.getMakersName())")
     @Mapping(target = "itemName", expression = "java(reviews.getItemName().equals(\"null\") ? null : reviews.getItemName())")
-    @Mapping(source = "comments", target = "commentList", qualifiedByName = "setCommentList")
     ReviewListDto toReviewListDto(SelectAppReviewByUserDto reviews);
+
+    default ReviewsForUserResDto toReviewsForUserResDto(List<SelectAppReviewByUserDto> reviewList) {
+        List<ReviewListDto> reviewListDtos  = new ArrayList<>();
+        if (reviewList == null && reviewList.isEmpty()) {
+            return ReviewsForUserResDto.create(reviewListDtos);
+        }
+        for (SelectAppReviewByUserDto selectAppReviewByUserDto : reviewList) {
+            ReviewListDto reviewListDto = toReviewListDto(selectAppReviewByUserDto);
+            reviewListDto.setCommentList(setCommentList(selectAppReviewByUserDto.getCommentList(), selectAppReviewByUserDto));
+            reviewListDtos.add(reviewListDto);
+        }
+        return ReviewsForUserResDto.create(reviewListDtos);
+    }
 
     @Mapping(source = "isGood", target = "isGood")
     @Mapping(source = "isWriter", target = "isWriter")
@@ -97,6 +109,7 @@ public interface ReviewMapper {
         for (SelectCommentByReviewDto selectCommentByReviewDto : commentsList) {
             ReviewListDto.Comment comment = new ReviewListDto.Comment();
 
+            comment.setCommentId(selectCommentByReviewDto.getCommentId());
             comment.setContent(selectCommentByReviewDto.getContent());
             comment.setWriter(selectCommentByReviewDto.getWriter().equals("makers") ? review.getMakersName() : selectCommentByReviewDto.getWriter());
             comment.setCreateDate(String.valueOf(selectCommentByReviewDto.getCreateDate()));

@@ -218,17 +218,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         // user가 작성한 리뷰 찾기 - 삭제 제외
         List<SelectAppReviewByUserDto> reviews = qReviewRepository.findAllByUser(user);
-
-        List<ReviewListDto> reviewListDtos = new ArrayList<>();
-        if(reviews == null || reviews.isEmpty()) {
-            return ReviewsForUserResDto.create(reviewListDtos);
-        }
-        for(SelectAppReviewByUserDto review : reviews) {
-            ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review);
-            reviewListDtos.add(reviewListDto);
-        }
-
-        return ReviewsForUserResDto.create(reviewListDtos);
+        return reviewMapper.toReviewsForUserResDto(reviews);
     }
 
     @Override
