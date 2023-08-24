@@ -8,7 +8,7 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.data.redis.pubsub.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.repository.QRegionRepository;
@@ -49,6 +49,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -77,7 +78,7 @@ public class GroupServiceImpl implements GroupService {
     private final PushService pushService;
     private final QUserGroupRepository qUserGroupRepository;
     private final UserSpotRepository userSpotRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -405,9 +406,9 @@ public class GroupServiceImpl implements GroupService {
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
-                    sseService.send(user.getId(), 6, null, null, null);
+                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
                 }
-                sseService.send(user.getId(), 7, null, mySpotZone.getId(), null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null));
             });
         }
     }

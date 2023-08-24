@@ -5,6 +5,7 @@ import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
@@ -24,6 +25,7 @@ import org.springframework.batch.item.database.JpaItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,7 +45,7 @@ public class ReviewJob {
     private final PushUtil pushUtil;
     private final EntityManagerFactory entityManagerFactory;
     private final PushService pushService;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final int CHUNK_SIZE = 100;
 
     @Bean(name = "reviewJob1")
@@ -106,7 +108,7 @@ public class ReviewJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, null);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
-                    sseService.send(user.getId(), 6, null, null, null);
+                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.REVIEW, null);
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());

@@ -1,5 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.address.entity.Region;
@@ -344,7 +345,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if (userGroup != null) {
             if (zoneStatus) {
                 userGroup.updateStatus(ClientStatus.BELONG);
-                notificationHashRepository.save(sseService.createNotification(user.getId(), 7, null, LocalDate.now(ZoneId.of("Asia/Seoul")), mySpotZone.getId(), null));
+                notificationHashRepository.save(sseService.createNotification(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null), LocalDate.now(ZoneId.of("Asia/Seoul"))));
             }
             else userGroup.updateStatus(ClientStatus.WAITING);
         } else {

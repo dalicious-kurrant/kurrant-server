@@ -12,8 +12,8 @@ import co.dalicious.client.alarm.repository.PushAlarmRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
@@ -31,6 +31,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
     private final KakaoUtil kakaoUtil;
     private final PushUtil pushUtil;
     private final PushAlarmHashRepository pushAlarmHashRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final QUserGroupRepository qUserGroupRepository;
     private final QUserSpotRepository qUserSpotRepository;
 
@@ -169,7 +170,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
 
             userWithFcmToken.keySet().forEach(v -> {
                 pushAlarmHashList.add(pushUtil.createPushAlarmHash(null, reqDto.getMessage(), v, AlarmType.NOTICE, null));
-                sseService.send(v, 6, null, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(v, 6, null, null, null));
             });
         }
 

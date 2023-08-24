@@ -6,7 +6,7 @@ import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
-import co.dalicious.data.redis.pubsub.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.review.dto.CommentReqDto;
@@ -25,6 +25,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,7 +46,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final UserUtil userUtil;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -63,13 +64,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         MakersComments comments = reviewMapper.toMakersComment(reqDto, reviews);
         commentsRepository.save(comments);
-        sseService.send(reviews.getUser().getId(), 8, null, null, comments.getId());
+        applicationEventPublisher.publishEvent(new SseReceiverDto(reviews.getUser().getId(), 8, null, null, comments.getId()));
 
         // 댓글 생성 푸시알림
         PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(reviews.getUser(), PushCondition.REVIEW_GET_COMMENT, null);
         if(pushRequestDtoByUser != null) {
             pushService.sendToPushByKey(List.of(pushRequestDtoByUser), Collections.singletonMap("reviewId", String.valueOf(reviews.getId())));
-            sseService.send(reviews.getUser().getId(), 6, null, null, null);
+            applicationEventPublisher.publishEvent(new SseReceiverDto(reviews.getUser().getId(), 6, null, null, null));
             pushUtil.savePushAlarmHash(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), reviews.getUser().getId(), AlarmType.REVIEW, reviews.getId());
         }
     }
