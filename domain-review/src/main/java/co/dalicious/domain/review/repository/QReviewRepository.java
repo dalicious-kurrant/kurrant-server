@@ -189,7 +189,7 @@ public class QReviewRepository {
         LiteralExpression<String> getCommentWriter = Expressions.cases().when(comments.instanceOf(MakersComments.class))
                 .then("makers").otherwise("admin");
         return queryFactory.select(comments.reviews.id, Projections.fields(SelectCommentByReviewDto.class,
-                        comments.id, getCommentWriter.as("writer"), comments.content,
+                        comments.id.as("commentId"), getCommentWriter.as("writer"), comments.content,
                         comments.createdDateTime.as("createDate"), comments.updatedDateTime.as("updateDate")))
                 .from(comments)
                 .where(comments.isDelete.isFalse(), comments.reviews.id.in(reviewIds))
