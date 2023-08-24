@@ -101,7 +101,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QUserRepository qUserRepository;
     private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final QSpotRepository qSpotRepository;
 
     @Override
