@@ -3,7 +3,6 @@ package co.kurrant.app.public_api.service.impl;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.CustomerService;

@@ -101,7 +101,6 @@ public interface ReviewMapper {
         return createdDateTime.toString().substring(0, 10);
     }
 
-    @Named("setCommentList")
     default List<ReviewListDto.Comment> setCommentList(List<SelectCommentByReviewDto> commentsList, SelectAppReviewByUserDto review) {
         List<ReviewListDto.Comment> comments = new ArrayList<>();
         if(commentsList.isEmpty()) return comments;

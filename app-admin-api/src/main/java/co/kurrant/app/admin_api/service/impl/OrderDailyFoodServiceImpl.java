@@ -6,9 +6,9 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.event.ReloadEvent;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
@@ -121,7 +121,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QUserGroupRepository qUserGroupRepository;
-    private final SseService sseService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final QFoodCapacityRepository qFoodCapacityRepository;
 
@@ -275,7 +274,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                         .type(AlarmType.ORDER_STATUS.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
-                sseService.send(user.getId(), 6, null, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);

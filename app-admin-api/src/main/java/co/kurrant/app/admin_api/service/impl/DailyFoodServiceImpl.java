@@ -6,8 +6,8 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
@@ -44,6 +44,7 @@ import exception.ApiException;
 import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -82,7 +83,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushService pushService;
     private final QPushAlarmsRepository qPushAlarmsRepository;
     private final PushAlarmHashRepository pushAlarmHashRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final FoodCapacityRepository foodCapacityRepository;
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
     @Override
@@ -146,7 +147,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .build();
             pushAlarmHashes.add(pushAlarmHash);
 
-            sseService.send(user.getId(), 6, null, null, null);
+            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
         }
         pushService.sendToPush(pushRequestDtoByUsers);
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
@@ -409,7 +410,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .type(AlarmType.MEAL.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
-                sseService.send(user.getId(), 6, null, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);
