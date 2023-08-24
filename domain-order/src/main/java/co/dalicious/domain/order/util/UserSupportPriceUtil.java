@@ -36,11 +36,11 @@ public class UserSupportPriceUtil {
         ServiceDaysAndSupportPrice serviceDaysAndSupportPrice = serviceDaysAndSupportPriceList.stream()
                 .filter(o -> o.getSupportDays().contains(Days.ofString(todayOfWeek)))
                 .findAny().orElse(null);
-        return serviceDaysAndSupportPrice == null ? BigDecimal.ZERO : serviceDaysAndSupportPrice.getSupportPrice();
+        return serviceDaysAndSupportPrice == null ? null : serviceDaysAndSupportPrice.getSupportPrice();
     }
 
     public static SupportType getSupportType(BigDecimal supportPrice) {
-        if (supportPrice == null || supportPrice.compareTo(BigDecimal.ZERO) == 0) {
+        if (supportPrice == null) {
             return SupportType.NONE;
         }
         if ((supportPrice.compareTo(BigDecimal.ZERO) > 0 && supportPrice.compareTo(BigDecimal.ONE) < 1) || supportPrice.equals(PARTIAL_NUMBER)) {
