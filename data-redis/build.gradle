@@ -7,4 +7,5 @@ dependencies {
     implementation project(path: ':system-core')
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.1'
 }

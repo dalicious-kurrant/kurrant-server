@@ -1,9 +1,11 @@
 package co.dalicious.data.redis;
 
 import co.dalicious.data.redis.entity.CertificationHash;
+import co.dalicious.data.redis.entity.NotificationHash;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -50,6 +53,7 @@ public class RedisConfig {
                 .allowIfBaseType(Object.class)
                 .build();
         objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
+        objectMapper.registerModule(new JavaTimeModule());
 
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
@@ -99,10 +103,18 @@ public class RedisConfig {
 //        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 //        redisTemplate.setConnectionFactory(redisConnectionFactory());
 //        redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(CertificationHash.class));
+//
+//        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//        // Java 8 date/time 타입을 지원하기 위해 모듈을 등록
+//        mapper.registerModule(new JavaTimeModule());
+//        serializer.setObjectMapper(mapper);
+//
+//        redisTemplate.setValueSerializer(serializer);
+//
 //        return redisTemplate;
 //    }
-//
 //    @Bean
 //    public StringRedisTemplate stringRedisTemplate() {
 //        StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
@@ -121,4 +133,5 @@ public class RedisConfig {
 //    public ChannelTopic topic() {
 //        return new ChannelTopic("makers_reload");
 //    }
+//
 //}
