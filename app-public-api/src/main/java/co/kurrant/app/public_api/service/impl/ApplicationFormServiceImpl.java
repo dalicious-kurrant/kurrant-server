@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.data.redis.dto.SseReceiverDto;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
@@ -43,6 +42,7 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -82,7 +82,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final QRequestedMySpotRepository qRequestedMySpotRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final NotificationHashRepository notificationHashRepository;
     private final UserRepository userRepository;
 
@@ -345,7 +345,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if (userGroup != null) {
             if (zoneStatus) {
                 userGroup.updateStatus(ClientStatus.BELONG);
-                notificationHashRepository.save(sseService.createNotification(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null), LocalDate.now(ZoneId.of("Asia/Seoul"))));
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null));
             }
             else userGroup.updateStatus(ClientStatus.WAITING);
         } else {

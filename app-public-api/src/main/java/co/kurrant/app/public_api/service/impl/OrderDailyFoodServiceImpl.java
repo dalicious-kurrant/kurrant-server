@@ -1,8 +1,8 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.event.ReloadEvent;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.SupportType;
@@ -89,7 +89,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final OrderUtil orderUtil;
     private final OrderRepository orderRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final NotificationHashRepository notificationHashRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QDailyFoodRepository qDailyFoodRepository;
@@ -442,7 +442,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         //다음주 주문 중 모든 서비스 날이 포함 되었는지 확인
         if (nextWeekOrderFoods.size() < groupServiceDays.size()) {
-            sseService.send(user.getId(), 5, "다음주 식사 구매하셨나요?", null, null);
+            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 5, "다음주 식사 구매하셨나요?", null, null));
         }
 
     }
@@ -453,14 +453,14 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             if (mealInfo.getMembershipBenefitTime() != null && mealInfo.getMembershipBenefitTime().isValidDayAndTime(2, null)) {
                 // 오늘이 멤버십 할인 시간
                 String content = "내일 " + mealInfo.getDiningType().getDiningType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(mealInfo.getLastOrderTime().getTime()) + "까지 해야 멤버십 할인을 받을 수 있어요!";
-                sseService.send(user.getId(), 4, content, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 4, content, null, null));
                 return;
 
             }
             // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
             if(mealInfo.getLastOrderTime() != null && mealInfo.getLastOrderTime().isValidDayAndTime(2, null)) {
                 String content = "내일 " + mealInfo.getDiningType().getDiningType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(mealInfo.getLastOrderTime().getTime()) + "에 마감이예요!";
-                sseService.send(user.getId(), 4, content, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 4, content, null, null));
                 return;
             }
         }
@@ -488,7 +488,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
 
         // sse
-        sseService.send(user.getId(), 3, null, null, null);
+        applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 3, null, null, null));
     }
 
     @Override

@@ -6,7 +6,6 @@ import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
 import co.dalicious.data.redis.dto.SseReceiverDto;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;

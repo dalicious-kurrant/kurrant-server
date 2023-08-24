@@ -6,7 +6,6 @@ import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.data.redis.dto.SseReceiverDto;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
