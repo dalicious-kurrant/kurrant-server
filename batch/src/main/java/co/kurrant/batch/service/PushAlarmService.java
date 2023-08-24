@@ -29,20 +29,39 @@ public class PushAlarmService {
         log.info("[고객사 주문 마감 시간 Group 읽기 시작] : {}", DateUtils.localDateTimeToString(currentTime));
 
         // 고객사 주문 마감 시간 그룹 조회
-        String queryStringForGroup = "SELECT g.id, df.serviceDate, mi.lastOrderTime, fc.lastOrderTime, mc.lastOrderTime " +
+        String queryStringForGroup = "SELECT g.id, df.serviceDate, mi.lastOrderTime " +
                 "FROM DailyFood df " +
                 "LEFT JOIN df.group g " +
                 "LEFT JOIN MealInfo mi ON mi.group.id = g.id AND mi.diningType = df.diningType  " +
-                "LEFT JOIN df.food f " +
-                "LEFT JOIN FoodCapacity fc ON f = df.food AND fc.diningType = df.diningType " +
-                "LEFT JOIN Makers m ON m = f.makers " +
-                "LEFT JOIN MakersCapacity mc ON mc.makers = m " +
-                "WHERE fc.lastOrderTime IS NOT NULL " +
-                "  and mc.lastOrderTime IS NOT NULL " +
-                "  and (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
+                "WHERE (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
 
         TypedQuery<Object[]> queryForGroup = entityManager.createQuery(queryStringForGroup, Object[].class);
         List<Object[]> resultsForGroup = queryForGroup.getResultList();
+
+        String queryStringForMakers = "SELECT g.id, df.serviceDate, mc.lastOrderTime " +
+                "FROM DailyFood df " +
+                "LEFT JOIN df.group g " +
+                "LEFT JOIN df.food f " +
+                "LEFT JOIN Makers m ON m = f.makers " +
+                "LEFT JOIN MakersCapacity mc ON mc.makers = m " +
+                "WHERE mc.lastOrderTime IS NOT NULL " +
+                "  and (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
+
+        TypedQuery<Object[]> queryForMakers = entityManager.createQuery(queryStringForMakers, Object[].class);
+        List<Object[]> resultsForMakers = queryForMakers.getResultList();
+
+        String queryStringForFood = "SELECT g.id, df.serviceDate, fc.lastOrderTime " +
+                "FROM DailyFood df " +
+                "LEFT JOIN df.group g " +
+                "LEFT JOIN df.food f " +
+                "LEFT JOIN FoodCapacity fc ON f = df.food AND fc.diningType = df.diningType " +
+                "WHERE fc.lastOrderTime IS NOT NULL " +
+                "  and (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
+
+        TypedQuery<Object[]> queryForFood = entityManager.createQuery(queryStringForFood, Object[].class);
+        List<Object[]> resultsForFood = queryForFood.getResultList();
+
+        
 
         for (Object[] result : resultsForGroup) {
             BigInteger groupId = (BigInteger) result[0];
@@ -51,16 +70,6 @@ public class PushAlarmService {
             List<LocalDateTime> lastOrderDateTime = new ArrayList<>();
 
             DayAndTime lastOrderDayAndTimeByGroup = (DayAndTime) result[2];
-            LocalDate lastOrderDateByGroup = serviceDate.minusDays(lastOrderDayAndTimeByGroup.getDay());
-            lastOrderDateTime.add(lastOrderDateByGroup.atTime(lastOrderDayAndTimeByGroup.getTime()).minusHours(1));
-
-            DayAndTime lastOrderDayAndTimeByFood = (DayAndTime) result[3];
-            LocalDate lastOrderDateByFood = serviceDate.minusDays(lastOrderDayAndTimeByFood.getDay());
-            lastOrderDateTime.add(lastOrderDateByFood.atTime(lastOrderDayAndTimeByFood.getTime()).minusHours(1));
-
-            DayAndTime lastOrderDayAndTimeByMakers = (DayAndTime) result[4];
-            LocalDate lastOrderDateByMakers = serviceDate.minusDays(lastOrderDayAndTimeByMakers.getDay());
-            lastOrderDateTime.add(lastOrderDateByMakers.atTime(lastOrderDayAndTimeByMakers.getTime()).minusHours(1));
 
             Collections.sort(lastOrderDateTime);
 

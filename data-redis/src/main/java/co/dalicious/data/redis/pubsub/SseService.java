@@ -11,8 +11,7 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.connection.StringRedisConnection;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.scheduling.annotation.Async;
@@ -40,7 +39,7 @@ public class SseService {
     private final EmitterRepository emitterRepository;
     private final NotificationHashRepository notificationHashRepository;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
-    private final StringRedisTemplate stringRedisTemplate;
+    private final RedisTemplate redisTemplate;
 
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
         //구독한 유저를 특정하기 위한 id.
@@ -92,7 +91,7 @@ public class SseService {
 
         String id = String.valueOf(sseReceiverDto.getReceiver());
         emitterRepository.saveEventCache(id, notification);
-        stringRedisTemplate.convertAndSend(getChannelName(id), notification);
+        redisTemplate.convertAndSend(getChannelName(id), notification);
     }
 
     //notification 생성
