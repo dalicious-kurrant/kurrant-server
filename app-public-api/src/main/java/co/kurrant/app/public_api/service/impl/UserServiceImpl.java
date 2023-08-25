@@ -5,7 +5,7 @@ import co.dalicious.client.core.filter.provider.JwtTokenProvider;
 import co.dalicious.client.core.repository.RefreshTokenRepository;
 import co.dalicious.client.oauth.SnsLoginResponseDto;
 import co.dalicious.client.oauth.SnsLoginService;
-import co.dalicious.data.redis.pubsub.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.application_form.utils.ApplicationUtil;
 import co.dalicious.domain.client.dto.GroupCountDto;
 import co.dalicious.domain.client.dto.SpotListResponseDto;
@@ -52,6 +52,7 @@ import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -97,7 +98,7 @@ public class UserServiceImpl implements UserService {
     private final UserSpotMapper userSpotMapper;
     private final QGroupRepository qGroupRepository;
     private final ApplicationUtil applicationUtil;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
 
     @Override
@@ -454,7 +455,7 @@ public class UserServiceImpl implements UserService {
             if (selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
                 selectedGroup.get().updateStatus(ClientStatus.BELONG);
                 openGroup.updateOpenGroupUserCount(1, true);
-                sseService.send(user.getId(), 7, null, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, selectedGroup.get().getId(), null));
                 return;
             }
             return;
@@ -463,7 +464,7 @@ public class UserServiceImpl implements UserService {
         UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
         openGroup.updateOpenGroupUserCount(1, true);
-        sseService.send(user.getId(), 7, null, null, null);
+        applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, userCorporation.getId(), null));
     }
 
     @Override

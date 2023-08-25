@@ -9,7 +9,7 @@ import co.dalicious.client.alarm.util.KakaoUtil;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.data.redis.pubsub.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.board.dto.*;
 import co.dalicious.domain.board.entity.BackOfficeNotice;
 import co.dalicious.domain.board.entity.ClientNotice;
@@ -40,6 +40,7 @@ import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -65,7 +66,7 @@ public class BoardServiceImpl implements BoardService {
     private final QUserGroupRepository qUserGroupRepository;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final QUserRepository qUserRepository;
     private final BackOfficeNoticeRepository backOfficeNoticeRepository;
     private final BackOfficeNoticeMapper backOfficeNoticeMapper;
@@ -141,7 +142,8 @@ public class BoardServiceImpl implements BoardService {
             pushRequestDtoByUserList.add(pushRequestDtoByUser);
 
             pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), AlarmType.NOTICE, notice.getId());
-            sseService.send(user.getId(), sseType, null, null, null);
+            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), sseType, null, null, null));
         }
 
         pushService.sendToPush(pushRequestDtoByUserList);

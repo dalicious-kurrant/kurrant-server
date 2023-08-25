@@ -33,7 +33,7 @@ public class QSpotRepository {
 
     public Optional<Spot> findByIdFetchGroup(BigInteger spotId) {
         return Optional.ofNullable(queryFactory.selectFrom(spot)
-                .leftJoin(spot.group, group).fetchJoin()
+                .innerJoin(spot.group, group).fetchJoin()
                 .where(spot.id.eq(spotId))
                 .fetchOne());
     }

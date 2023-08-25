@@ -1,7 +1,7 @@
 package co.kurrant.app.public_api.service.impl;
 
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.NotificationHash;
-import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.file.dto.ImageResponseDto;
 import co.dalicious.domain.file.entity.embeddable.Image;
@@ -34,6 +34,7 @@ import co.kurrant.app.public_api.util.WordsUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -67,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final QUserRepository qUserRepository;
     private final PointUtil pointUtil;
     private final NotificationHashRepository notificationHashRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
     private final QKeywordRepository qKeywordRepository;
     private final DailyFoodRepository dailyFoodRepository;
@@ -205,7 +206,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, false);
         if(!notificationHashList.isEmpty()) {
-            sseService.send(user.getId(), 3, null, null, null);
+            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 3, null, null, null));
         }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
@@ -217,19 +218,8 @@ public class ReviewServiceImpl implements ReviewService {
         User user = userUtil.getUser(securityUser);
 
         // user가 작성한 리뷰 찾기 - 삭제 제외
-        List<Reviews> reviews = qReviewRepository.findAllByUser(user);
-
-        List<ReviewListDto> reviewListDtos = new ArrayList<>();
-        if(reviews == null || reviews.isEmpty()) {
-            return ReviewsForUserResDto.create(reviewListDtos);
-        }
-        for(Reviews review : reviews) {
-            BigInteger dailyFoodId = qDailyFoodRepository.findOneByFoodId(review.getFood().getId());
-            ReviewListDto reviewListDto = reviewMapper.toReviewListDto(review,dailyFoodId);
-            reviewListDtos.add(reviewListDto);
-        }
-
-        return ReviewsForUserResDto.create(reviewListDtos);
+        List<SelectAppReviewByUserDto> reviews = qReviewRepository.findAllByUser(user);
+        return reviewMapper.toReviewsForUserResDto(reviews);
     }
 
     @Override

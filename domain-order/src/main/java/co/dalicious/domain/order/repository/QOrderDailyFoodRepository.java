@@ -21,8 +21,6 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.core.types.dsl.NumberExpression;
-import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -225,7 +223,7 @@ public class QOrderDailyFoodRepository {
     private List<Tuple> getTotalDiscountPrice(Set<BigInteger> orderItemDailyFoodGroupId) {
         return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
                         Expressions.cases().when(orderItemDailyFood.orderStatus.eq(OrderStatus.CANCELED)).then(BigDecimal.ZERO)
-                        .otherwise(orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).sum().add(orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee).coalesce(BigDecimal.ZERO)))
+                                .otherwise(orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).sum().add(orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee).coalesce(BigDecimal.ZERO)))
                 .from(orderItemDailyFood)
                 .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId))
                 .groupBy(orderItemDailyFood.orderItemDailyFoodGroup)
@@ -245,15 +243,15 @@ public class QOrderDailyFoodRepository {
         // 이 예제에서는 주요 DTO의 정보를 사용하지 않았지만 필요에 따라 조건을 추가하여 사용 가능
         return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
                         Projections.bean(SelectOrderItemDailyFoodsDto.class,
-                        orderItemDailyFood.id.as("orderItemDailyFoodId"),
-                        orderItemDailyFood.deliveryTime,
-                        makers.name.as("makers"),
-                        food.name.as("foodName"),
-                        orderItemDailyFood.count,
-                        orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).as("price"),
-                        orderItemDailyFood.dailyFood.supplyPrice.multiply(orderItemDailyFood.count).coalesce(orderItemDailyFood.dailyFood.food.supplyPrice.multiply(orderItemDailyFood.count)).as("supplyPrice"),
-                        orderItemDailyFood.orderStatus
-                ))
+                                orderItemDailyFood.id.as("orderItemDailyFoodId"),
+                                orderItemDailyFood.deliveryTime,
+                                makers.name.as("makers"),
+                                food.name.as("foodName"),
+                                orderItemDailyFood.count,
+                                orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).as("price"),
+                                orderItemDailyFood.dailyFood.supplyPrice.multiply(orderItemDailyFood.count).coalesce(orderItemDailyFood.dailyFood.food.supplyPrice.multiply(orderItemDailyFood.count)).as("supplyPrice"),
+                                orderItemDailyFood.orderStatus
+                        ))
                 .from(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood.food, food)
                 .innerJoin(food.makers, makers)
@@ -359,17 +357,17 @@ public class QOrderDailyFoodRepository {
     public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
         Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
         Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
-        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
+        Set<ServiceDiningVo> serviceDiningVos = new HashSet<>();
         Set<Makers> makersSet = new HashSet<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood);
-            serviceDiningDtos.add(serviceDiningDto);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(dailyFood);
+            serviceDiningVos.add(serviceDiningVo);
             makersSet.add(dailyFood.getFood().getMakers());
         }
 
         // 기간 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningVos);
 
         List<Tuple> aggregatedResults = queryFactory.select(
                         dailyFood.serviceDate,
@@ -600,4 +598,13 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
+    public Optional<OrderItemDailyFood> findByIdFetchOrderDailyFood(BigInteger id) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(orderItemDailyFood)
+                        .innerJoin(orderItemDailyFood.order, order).fetchJoin()
+                        .innerJoin(order.user, user).fetchJoin()
+                        .where(orderItemDailyFood.id.eq(id))
+                        .fetchOne()
+        );
+    }
 }
