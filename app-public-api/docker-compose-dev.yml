@@ -4,14 +4,14 @@ services:
     container_name: kurrant_v1_green
     image: dalicious77/kurrant_v1:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=prod,prod-green,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=dev,dev-green,mail,sms,redis,jwt,s3,payment
     ports:
       - "8882:8882"
     logging:
       driver: "awslogs"
       options:
         awslogs-region: "ap-northeast-2"
-        awslogs-group: "kurrant/prod"
+        awslogs-group: "kurrant/dev"
         awslogs-stream: "app"
 
     networks:
@@ -21,14 +21,14 @@ services:
     container_name: kurrant_v1_blue
     image: dalicious77/kurrant_v1:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=prod,prod-blue,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
     ports:
       - "8881:8881"
     logging:
       driver: "awslogs"
       options:
         awslogs-region: "ap-northeast-2"
-        awslogs-group: "kurrant/prod"
+        awslogs-group: "kurrant/dev"
         awslogs-stream: "app"
 
     networks:
