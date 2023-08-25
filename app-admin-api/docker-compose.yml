@@ -1,12 +1,12 @@
 version: "3"
 services:
-  kurrant_v1_green:
-    container_name: kurrant_v1_green
-    image: dalicious77/kurrant_v1:${IMAGE_TAG}
+  admin_kurrant_v1_green:
+    container_name: admin_kurrant_v1_green
+    image: dalicious77/admin_kurrant_v1:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=prod,prod-green,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=prod,prod-green,mail, sms, jwt, s3, payment, alimtalk
     ports:
-      - "8882:8882"
+      - "8888:8888"
     logging:
       driver: "awslogs"
       options:
@@ -17,13 +17,13 @@ services:
     networks:
       - redis_redis_cluster
 
-  kurrant_v1_blue:
-    container_name: kurrant_v1_blue
-    image: dalicious77/kurrant_v1:${IMAGE_TAG}
+  admin_kurrant_v1_blue:
+    container_name: admin_kurrant_v1_blue
+    image: dalicious77/admin_kurrant_v1:${IMAGE_TAG}
     environment:
-      - SPRING_PROFILES_ACTIVE=prod,prod-blue,mail,sms,redis,jwt,s3,payment
+      - SPRING_PROFILES_ACTIVE=prod,prod-blue,mail, sms, jwt, s3, payment, alimtalk
     ports:
-      - "8881:8881"
+      - "8887:8887"
     logging:
       driver: "awslogs"
       options:
