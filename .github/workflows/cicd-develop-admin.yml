@@ -5,11 +5,11 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
 
-name: 개발서버 앱 배포
+name: 개발서버 백오피스 배포
 
 on:
   push:
-    branches: [ "dev/app" ]
+    branches: [ "dev/admin" ]
 
 permissions:
   contents: read
@@ -25,18 +25,18 @@ jobs:
           java-version: '17'
           distribution: 'adopt'
 
-      # app-public-api의 설정파일(.yaml) 생성
-      - name: app-public-api application.yaml(dev) 생성
+      # app-admin-api의 설정파일(.yaml) 생성
+      - name: app-admin-api application.yaml(dev) 생성
         run: |
-          cd ./app-public-api/src/main
+          cd ./app-admin-api/src/main
           if [ ! -d resources ]; then
           mkdir resources
           fi
           cd resources
           touch ./application.yaml
-          echo "${{ secrets.APP_PUBLIC_API_DEV_YAML }}" > ./application.yaml
+          echo "${{ secrets.APP_ADMIN_API_DEV_YAML }}" > ./application.yaml
           touch ./application-dev.yaml
-          echo "${{ secrets.APP_PUBLIC_API_DEV_DEV_YAML }}" > ./application-dev.yaml
+          echo "${{ secrets.APP_ADMIN_API_DEV_DEV_YAML }}" > ./application-dev.yaml
         shell: bash
 
       - name: client-core application-jwt.properties 생성
@@ -150,10 +150,10 @@ jobs:
       - name: Docker 빌드
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-          cd app-public-api
-          docker build -t kurrant_v1 .
-          docker tag kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
-          docker push ${{ secrets.DOCKER_USERNAME }}/kurrant_v1:${GITHUB_SHA::7}
+          cd app-admin-api
+          docker build -t admin_kurrant_v1 .
+          docker tag admin_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
+          docker push ${{ secrets.DOCKER_USERNAME }}/admin_kurrant_v1:${GITHUB_SHA::7}
 
   deploy:
     needs: build-image
@@ -169,7 +169,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           port: 22
-          source: "app-public-api/deploy.sh,app-public-api/docker-compose.yml"
+          source: "app-admin-api/deploy.sh,app-admin-api/docker-compose-dev.yml"
           target: "/home/ubuntu/kurrant_v1/docker"
 
       - name: 배포
@@ -182,5 +182,5 @@ jobs:
           script: |
             export IMAGE_TAG=${GITHUB_SHA::7}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            chmod 777 /home/ubuntu/kurrant_v1/docker/app-public-api/deploy.sh
-            /home/ubuntu/kurrant_v1/docker/app-public-api/deploy.sh $IMAGE_TAG $DOCKER_USERNAME
+            chmod 777 /home/ubuntu/kurrant_v1/docker/app-admin-api/deploy.sh
+            /home/ubuntu/kurrant_v1/docker/app-admin-api/deploy.sh $IMAGE_TAG $DOCKER_USERNAME

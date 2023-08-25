@@ -24,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -204,20 +205,21 @@ public interface GroupMapper {
 
     default List<ServiceDaysAndSupportPrice> toServiceDaysAndSupportPrice(List<GroupListDto.SupportPriceByDay> supportPriceByDays) {
         if(supportPriceByDays == null) return null;
-        MultiValueMap<Integer, Days> supportPriceByDayMap = new LinkedMultiValueMap<>();
+        MultiValueMap<BigDecimal, Days> supportPriceByDayMap = new LinkedMultiValueMap<>();
         for (GroupListDto.SupportPriceByDay supportPriceByDay : supportPriceByDays) {
-            supportPriceByDayMap.add(supportPriceByDay.getSupportPrice().intValue(), Days.ofString(supportPriceByDay.getServiceDay()));
+            BigDecimal supportPriceHalfUp = supportPriceByDay.getSupportPrice().setScale(2, RoundingMode.HALF_UP);
+            supportPriceByDayMap.add(supportPriceHalfUp, Days.ofString(supportPriceByDay.getServiceDay()));
         }
 
         List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-        for (Integer integer : supportPriceByDayMap.keySet()) {
-            if (integer != null && integer != 0) {
-                List<Days> days = supportPriceByDayMap.get(integer);
+        for (BigDecimal bigDecimal : supportPriceByDayMap.keySet()) {
+            if (bigDecimal != null && bigDecimal.compareTo(BigDecimal.ZERO) != 0) {
+                List<Days> days = supportPriceByDayMap.get(bigDecimal);
                 days = days.stream().sorted(Comparator.comparing(Days::getCode))
                         .toList();
                 serviceDaysAndSupportPriceList.add(ServiceDaysAndSupportPrice.builder()
                         .supportDays(days)
-                        .supportPrice(BigDecimal.valueOf(integer))
+                        .supportPrice(bigDecimal)
                         .build());
             }
         }
