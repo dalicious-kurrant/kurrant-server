@@ -169,7 +169,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           port: 22
-          source: "app-public-api/deploy.sh,app-public-api/docker-compose.yml"
+          source: "app-public-api/deploy.sh,app-public-api/docker-compose-dev.yml"
           target: "/home/ubuntu/kurrant_v1/docker"
 
       - name: 배포
