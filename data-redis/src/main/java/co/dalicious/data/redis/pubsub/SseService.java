@@ -42,16 +42,7 @@ public class SseService {
     private final RedisMessageListenerContainer redisMessageListenerContainer;
     private final RedisTemplate redisTemplate;
 
-    // 생명주기 동안 락을 걸 사용자 ID를 저장하는 맵
-    private static final ConcurrentHashMap<BigInteger, Long> lockedUsers = new ConcurrentHashMap<>();
-
     public SseEmitter subscribe(BigInteger userId, String lastEventId) {
-
-        // 이미 락이 걸린 사용자인지 확인
-        if (isLocked(userId)) {
-            // 락이 걸린 사용자에 대해 적절한 응답 또는 예외 처리
-            return emitterRepository.findAllStartWithById(String.valueOf(userId)).get(String.valueOf(userId));
-        }
 
         //구독한 유저를 특정하기 위한 id.
         String id = String.valueOf(userId);
@@ -85,8 +76,6 @@ public class SseService {
                     .forEach(entry -> sendToClient(emitter, entry.getKey(), entry.getValue()));
             emitterRepository.deleteAllEventCacheStartWithId(String.valueOf(userId));
         }
-
-        setLock(userId);
 
         return emitter;
     }
@@ -188,25 +177,5 @@ public class SseService {
 
     private String getChannelName(final String userId) {
         return "appTopics:" + userId;
-    }
-
-    private boolean isLocked(BigInteger userId) {
-        Long lockedTime = lockedUsers.get(userId);
-        if (lockedTime == null) {
-            return false;
-        }
-
-        long elapsedTime = System.currentTimeMillis() - lockedTime;
-        if (elapsedTime > DEFAULT_TIMEOUT) {
-            lockedUsers.remove(userId);
-            return false;
-        }
-
-        return true;
-    }
-
-    // 사용자에게 락을 설정하는 메서드
-    private void setLock(BigInteger userId) {
-        lockedUsers.put(userId, System.currentTimeMillis());
     }
 }
