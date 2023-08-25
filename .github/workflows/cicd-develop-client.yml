@@ -169,7 +169,7 @@ jobs:
           host: ${{ secrets.DEV_HOST }}
           key: ${{ secrets.DEV_PRIVATE_KEY }}
           port: 22
-          source: "app-client-api/deploy.sh,app-client-api/docker-compose-dev.yml"
+          source: "app-client-api/deploy-dev.sh,app-client-api/docker-compose-dev.yml"
           target: "/home/ubuntu/kurrant_v1/docker"
 
       - name: 배포
@@ -182,5 +182,5 @@ jobs:
           script: |
             export IMAGE_TAG=${GITHUB_SHA::7}
             export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            chmod 777 /home/ubuntu/kurrant_v1/docker/app-client-api/deploy.sh
-            /home/ubuntu/kurrant_v1/docker/app-client-api/deploy.sh $IMAGE_TAG $DOCKER_USERNAME
+            chmod 777 /home/ubuntu/kurrant_v1/docker/app-client-api/deploy-dev.sh
+            /home/ubuntu/kurrant_v1/docker/app-client-api/deploy-dev.sh $IMAGE_TAG $DOCKER_USERNAME
