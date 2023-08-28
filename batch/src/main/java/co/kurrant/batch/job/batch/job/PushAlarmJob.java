@@ -208,7 +208,7 @@ public class PushAlarmJob {
     public JpaPagingItemReader<User> lastOrderTimePushAlarmReader() {
         log.info("[user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        List<BigInteger> groupIds = pushAlarmService.getGroupsForOneHourLeftLastOrderTime();
+        Set<BigInteger> groupIds = pushAlarmService.getGroupsForOneHourLeftLastOrderTime();
 
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("groupIds", groupIds);

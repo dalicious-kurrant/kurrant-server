@@ -71,7 +71,7 @@ public class QuartzSchedule {
         dayAndTimes.addAll(makersLastOrderTimes);
         dayAndTimes.addAll(foodsLastOrderTimes);
         for (DayAndTime dayAndTime : dayAndTimes) {
-            crons.add(String.format("0 %d %d * * ?", dayAndTime.getTime().getMinute(), dayAndTime.getTime().getHour()));
+            crons.add(String.format("0 %d %d * * ?", dayAndTime.getTime().getMinute(), dayAndTime.getTime().getHour() - 1));
         }
         return crons;
     }
