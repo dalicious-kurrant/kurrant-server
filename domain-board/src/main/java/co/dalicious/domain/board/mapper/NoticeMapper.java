@@ -42,7 +42,7 @@ public interface NoticeMapper {
             appBoardResponseDto.setIsStatus(notice.getIsStatus() != null && notice.getIsStatus());
             appBoardResponseDto.setIsPushAlarm(notice.getIsPushAlarm());
             appBoardResponseDto.setCreateDate(DateUtils.toISOLocalDate(notice.getCreatedDateTime()));
-            appBoardResponseDto.setBoardOption(notice.getBoardOption().contains(BoardOption.POPUP) && !notice.getBoardOption().contains(BoardOption.EVENT) ? null : notice.getBoardOption().contains(BoardOption.EVENT) ? BoardOption.EVENT.getOption() : BoardOption.NOTICE.getOption());
+            appBoardResponseDto.setBoardOption(notice.getBoardOption().stream().map(BoardOption::getCode).toList());
 
             appBoardResponseDtos.add(appBoardResponseDto);
         }
@@ -62,7 +62,7 @@ public interface NoticeMapper {
     @Mapping(source = "notice.updatedDateTime", target = "updated", qualifiedByName = "timeFormat")
     @Mapping(source = "notice.isStatus", target = "status")
     @Mapping(target = "boardType", expression = "java(notice.getBoardType().getCode())")
-    @Mapping(target = "boardOption", expression = "java(notice.getBoardOption().contains(BoardOption.POPUP) && !notice.getBoardOption().contains(BoardOption.EVENT) ? null : notice.getBoardOption().contains(BoardOption.EVENT) ? BoardOption.EVENT.getOption() : BoardOption.NOTICE.getOption())")
+    @Mapping(target = "boardOption", expression = "java(notice.getBoardOption().stream().map(BoardOption::getCode).toList())")
     NoticeDto toDto(Notice notice);
 
     @Named("timeFormat")
