@@ -80,7 +80,7 @@ public class SseService {
         return emitter;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
     @Async
     public void send(SseReceiverDto sseReceiverDto) {
@@ -108,8 +108,8 @@ public class SseService {
 
     //client에게 이벤트 보내기
     private void sendToClient(SseEmitter emitter, String id, Object data) {
-        System.out.println("data.toString() = " + data.toString());
         try {
+            System.out.println("data.toString() = " + data.toString());
             emitter.send(SseEmitter.event()
                     .id(id)
                     .name("message")

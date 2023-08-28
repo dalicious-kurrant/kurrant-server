@@ -15,4 +15,5 @@ public class NoticeDto {
     private String content;
     private Boolean status;
     private Integer boardType;
+    private String boardOption;
 }

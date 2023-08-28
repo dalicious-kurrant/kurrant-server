@@ -1,8 +1,10 @@
 package co.dalicious.domain.board.entity;
 
 import co.dalicious.domain.board.converter.BoardTypeConverter;
+import co.dalicious.domain.board.converter.BoardOptionConverter;
 import co.dalicious.domain.board.converter.GroupIdListConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.board.entity.enums.BoardOption;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -69,8 +71,13 @@ public class Notice {
     @Comment("상태변경 일")
     private LocalDate activeDate;
 
+    @Column(name="e_option")
+    @Comment("옵션 0:공지/1:팝업/2:이벤트")
+    @Convert(converter = BoardOptionConverter.class)
+    private List<BoardOption> boardOption;
+
     @Builder
-    public Notice(String title, String content, List<BigInteger> groupIds, Boolean isStatus, BoardType boardType, Boolean isPushAlarm, LocalDate activeDate) {
+    public Notice(String title, String content, List<BigInteger> groupIds, Boolean isStatus, BoardType boardType, Boolean isPushAlarm, LocalDate activeDate, List<BoardOption> boardOption) {
         this.title = title;
         this.content = content;
         this.groupIds = groupIds;
@@ -78,6 +85,7 @@ public class Notice {
         this.boardType = boardType;
         this.isPushAlarm = isPushAlarm;
         this.activeDate = activeDate;
+        this.boardOption = boardOption;
     }
 
     public void updatePushAlarm(Boolean pushAlarm) {
