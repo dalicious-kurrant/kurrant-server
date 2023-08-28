@@ -17,5 +17,5 @@ public class AppBoardResponseDto {
     private Boolean isStatus;
     private String createDate;
     private Boolean isPushAlarm;
-    private String boardOption;
+    private List<Integer> boardOption;
 }
