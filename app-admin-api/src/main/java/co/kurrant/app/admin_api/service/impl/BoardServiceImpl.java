@@ -16,6 +16,7 @@ import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardCategory;
+import co.dalicious.domain.board.entity.enums.BoardOption;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.entity.enums.NoticeType;
 import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
@@ -46,6 +47,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -81,6 +83,7 @@ public class BoardServiceImpl implements BoardService {
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
 
         Notice notice = noticeMapper.toNotice(requestDto);
+        if(requestDto.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
         noticeRepository.save(notice);
     }
 
@@ -91,8 +94,10 @@ public class BoardServiceImpl implements BoardService {
         Boolean isStatus = !parameters.containsKey("isStatus") || parameters.get("isStatus") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isStatus")));
         Boolean isPushAlarm = !parameters.containsKey("isPushAlarm") || parameters.get("isPushAlarm") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isPushAlarm")));
         BoardType boardType = !parameters.containsKey("boardType") || parameters.get("boardType") == null ? null : BoardType.ofCode(Integer.parseInt(String.valueOf(parameters.get("boardType"))));
+        Boolean isPopup = !parameters.containsKey("isPopup") || parameters.get("isPopup") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isPopup")));
+        Boolean isEvent = !parameters.containsKey("isEvent") || parameters.get("isEvent") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isEvent")));
 
-        Page<Notice> noticeList = qNoticeRepository.findAllByParameters(groupIds, boardType, isStatus, isPushAlarm, pageable);
+        Page<Notice> noticeList = qNoticeRepository.findAllByParameters(groupIds, boardType, isStatus, isPushAlarm, isPopup, isEvent, pageable);
 
         if(noticeList.isEmpty()) ListItemResponseDto.<AppBoardResponseDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) noticeList.getTotalPages()).build();
 
@@ -108,7 +113,6 @@ public class BoardServiceImpl implements BoardService {
     public void updateAppBoard(BigInteger noticeId, AppBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
-
 
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         if(requestDto.getIsStatus() && !notice.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));

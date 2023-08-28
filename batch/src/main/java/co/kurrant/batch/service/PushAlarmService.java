@@ -22,8 +22,8 @@ public class PushAlarmService {
 
     private final EntityManager entityManager;
 
-    public List<BigInteger> getGroupsForOneHourLeftLastOrderTime() {
-        List<BigInteger> groupIds = new ArrayList<>();
+    public Set<BigInteger> getGroupsForOneHourLeftLastOrderTime() {
+        Set<BigInteger> groupIds = new HashSet<>();
         LocalDateTime currentTime = LocalDateTime.now();
 
         log.info("[고객사 주문 마감 시간 Group 읽기 시작] : {}", DateUtils.localDateTimeToString(currentTime));
@@ -61,21 +61,36 @@ public class PushAlarmService {
         TypedQuery<Object[]> queryForFood = entityManager.createQuery(queryStringForFood, Object[].class);
         List<Object[]> resultsForFood = queryForFood.getResultList();
 
-        
+        List<Object[]> combinedResults = new ArrayList<>();
+        combinedResults.addAll(resultsForGroup);
+        combinedResults.addAll(resultsForMakers);
+        combinedResults.addAll(resultsForFood);
 
-        for (Object[] result : resultsForGroup) {
-            BigInteger groupId = (BigInteger) result[0];
-            LocalDate serviceDate = (LocalDate) result[1];
+        for (Object[] combinedResult : combinedResults) {
+            BigInteger groupId = (BigInteger) combinedResult[0];
+            LocalDate serviceDate = (LocalDate) combinedResult[1];
+            DayAndTime lastOrderDayAndTime = (DayAndTime) combinedResult[2];
 
-            List<LocalDateTime> lastOrderDateTime = new ArrayList<>();
+            LocalDateTime deadlineDate = serviceDate.minusDays(lastOrderDayAndTime.getDay()).atTime(lastOrderDayAndTime.getTime());
 
-            DayAndTime lastOrderDayAndTimeByGroup = (DayAndTime) result[2];
+            if (deadlineDate.minusHours(1).equals(currentTime)) groupIds.add(groupId);
+        }
 
-            Collections.sort(lastOrderDateTime);
+        String logQueryString = "select g.id, bpal.pushDateTime " +
+                "from BatchPushAlarmLog bpal " +
+                "inner join User u on bpal.userId = u.id " +
+                "inner join UserGroup ug on u = ug.user " +
+                "inner join Group g on ug.group = g " +
+                "where bpal.pushCondition = 2";
 
-            if (currentTime.equals(lastOrderDateTime.get(0))) {
-                groupIds.add(groupId);
-            }
+        TypedQuery<Object[]> logQuery = entityManager.createQuery(logQueryString, Object[].class);
+        List<Object[]> logResults = logQuery.getResultList();
+
+        for (Object[] logResult : logResults) {
+            BigInteger groupId = (BigInteger) logResult[0];
+            LocalDateTime pushDateTime = (LocalDateTime) logResult[1];
+
+            if(pushDateTime.toLocalDate().equals(currentTime.toLocalDate())) groupIds.remove(groupId);
         }
 
         return groupIds;
