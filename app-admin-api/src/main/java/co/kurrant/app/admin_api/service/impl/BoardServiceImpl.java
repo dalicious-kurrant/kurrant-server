@@ -126,17 +126,16 @@ public class BoardServiceImpl implements BoardService {
         if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
-        int sseType;
-        List<User> users;
-        if(notice.getGroupIds() == null || notice.getGroupIds().isEmpty()) {
+        int sseType = 0;
+        List<User> users = null;
+        if(notice.getBoardType().equals(BoardType.ALL)) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
             sseType = 1;
-        } else {
+        } else if (notice.getBoardType().equals(BoardType.SPOT)) {
             users = qUserGroupRepository.findAllUserByGroupIdsAadFirebaseTokenNotNull(notice.getGroupIds());
             sseType = 2;
         }
 
-        System.out.println("notice.getTitle() = " + notice.getTitle());
         String customMessage = pushUtil.getContextAppNotice(notice.getTitle(), PushCondition.NEW_NOTICE);
         System.out.println("customMessage = " + customMessage);
         List<PushRequestDtoByUser> pushRequestDtoByUserList = new ArrayList<>();
@@ -145,7 +144,7 @@ public class BoardServiceImpl implements BoardService {
             if(pushRequestDtoByUser == null) continue;
             pushRequestDtoByUserList.add(pushRequestDtoByUser);
 
-            pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), AlarmType.NOTICE, notice.getId());
+            pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), notice.getBoardOption().contains(BoardOption.EVENT) ? AlarmType.EVENT : AlarmType.NOTICE, notice.getId());
             applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
             applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), sseType, null, null, null));
         }
