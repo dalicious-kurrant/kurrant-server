@@ -10,7 +10,6 @@ import java.util.List;
 public enum BoardType {
     ALL("전체공지", 0),
     SPOT("스팟공지", 1),
-    POPUP("팝업", 2),
     EVENT("이벤트 공지", 3),
     MAKERS("메이커스 공지", 4),
     CLIENT("고객사 공지", 5),
@@ -40,8 +39,6 @@ public enum BoardType {
         List<BoardType> list = new ArrayList<>();
         list.add(BoardType.ALL);
         list.add(BoardType.SPOT);
-        list.add(BoardType.POPUP);
-        list.add(BoardType.EVENT);
         return list;
     }
 
