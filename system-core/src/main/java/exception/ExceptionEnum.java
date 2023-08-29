@@ -68,6 +68,7 @@ public enum ExceptionEnum {
 	ALREADY_SEND_ALARM(HttpStatus.BAD_REQUEST, "E4000112", "이미 알림을 보낸 공지입니다."),
 	WRONG_PARAMETER(HttpStatus.BAD_REQUEST, "E4000113", "잘못된 파라미터입니다."),
 	MUST_GROUP_ID(HttpStatus.BAD_REQUEST, "E4000114", "스팟 공지는 스팟 선택이 필수입니다."),
+	MUST_MAKERS_ID(HttpStatus.BAD_REQUEST, "E4000114", "메이커스 공지는 메이커스 선택이 필수입니다."),
 	NOT_NECESSARY_GROUP_ID(HttpStatus.BAD_REQUEST, "E4000115", "전체 공지는 스팟을 선택할 수 없습니다."),
 
 	/* E401 */
