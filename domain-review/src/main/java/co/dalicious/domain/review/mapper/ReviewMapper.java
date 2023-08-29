@@ -59,7 +59,6 @@ public interface ReviewMapper {
         return reviewableItemListDto;
     }
 
-    @Mapping(source = "images", target = "imageLocation", qualifiedByName = "getImagesLocations")
     @Mapping(target = "createDate", expression = "java(String.valueOf(reviews.getCreateDate()))")
     @Mapping(target = "updateDate", expression = "java(String.valueOf(reviews.getUpdateDate()))")
     @Mapping(target = "dailyFoodId", expression = "java(reviews.getDailyFoodId().equals(0) ? null : reviews.getDailyFoodId())")
