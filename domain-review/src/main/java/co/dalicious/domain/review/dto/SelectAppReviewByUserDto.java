@@ -20,6 +20,6 @@ public class SelectAppReviewByUserDto {
     private Boolean forMakers;
     private String makersName;
     private String itemName;
-    private List<Image> images;
+    private List<String> imageLocation;
     private List<SelectCommentByReviewDto> commentList;
 }
