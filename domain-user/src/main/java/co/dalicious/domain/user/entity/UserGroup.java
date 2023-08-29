@@ -21,7 +21,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "user__user_group")
+@Table(name = "user__user_group", uniqueConstraints={@UniqueConstraint(columnNames={"group_id", "user_id"})})
 public class UserGroup {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,6 +55,10 @@ public class UserGroup {
     @Column(name = "updated_datetime", nullable = false, insertable = false, updatable = false,
             columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6) ON UPDATE NOW(6) COMMENT '수정일'")
     private Timestamp updatedDateTime;
+
+    @Column(name = "memo", columnDefinition = "VARCHAR(255)")
+    @Comment("메모")
+    private String memo;
 
     public void updateStatus(ClientStatus clientStatus) {
         this.clientStatus = clientStatus;

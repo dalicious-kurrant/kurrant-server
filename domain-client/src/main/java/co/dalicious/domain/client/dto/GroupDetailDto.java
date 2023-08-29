@@ -15,17 +15,21 @@ public class GroupDetailDto {
     private String address;
     private String phone;
     private Integer userCount;
+    private String latitude;
+    private String longitude;
     private List<Integer> diningTypes;
     private List<MealInfo> mealInfos;
     private List<SpotInfo> spots;
 
     @Builder
-    public GroupDetailDto(BigInteger id, String name, String address, String phone, Integer userCount, List<Integer> diningTypes, List<MealInfo> mealInfos, List<SpotInfo> spots) {
+    public GroupDetailDto(BigInteger id, String name, String address, String phone, Integer userCount, String latitude, String longitude, List<Integer> diningTypes, List<MealInfo> mealInfos, List<SpotInfo> spots) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.phone = phone;
         this.userCount = userCount;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.diningTypes = diningTypes;
         this.mealInfos = mealInfos;
         this.spots = spots;

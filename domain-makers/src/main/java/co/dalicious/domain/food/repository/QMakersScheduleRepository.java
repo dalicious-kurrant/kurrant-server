@@ -1,6 +1,7 @@
 package co.dalicious.domain.food.repository;
 
 import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.domain.food.entity.FoodSchedule;
 import co.dalicious.domain.food.entity.MakersSchedule;
 import co.dalicious.system.enums.DiningType;
 import com.mysema.commons.lang.Pair;
@@ -15,6 +16,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static co.dalicious.domain.food.entity.QFoodSchedule.foodSchedule;
 import static co.dalicious.domain.food.entity.QMakersSchedule.makersSchedule;
 
 

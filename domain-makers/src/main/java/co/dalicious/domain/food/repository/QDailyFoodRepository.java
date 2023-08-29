@@ -5,22 +5,28 @@ import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.food.dto.DeliveryInfoDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.food.entity.QFood.food;
+import static co.dalicious.domain.food.entity.QMakers.makers;
+import static co.dalicious.domain.food.entity.embebbed.QDeliverySchedule.deliverySchedule;
 
 @Repository
 @RequiredArgsConstructor
@@ -57,6 +63,7 @@ public class QDailyFoodRepository {
                 .selectFrom(dailyFood)
                 .where(dailyFood.serviceDate.goe(startDate),
                         dailyFood.serviceDate.loe(endDate),
+                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME),
                         whereCause)
                 .fetch();
     }
@@ -154,27 +161,37 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> findAllFilterGroupAndSpot(LocalDate start, LocalDate end, List<Group> groups, List<Spot> spotList) {
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        if (start != null) {
-            whereClause.and(dailyFood.serviceDate.goe(start));
-        }
-        if (end != null) {
-            whereClause.and(dailyFood.serviceDate.loe(end));
-        }
-        if (groups != null && !groups.isEmpty()) {
-            whereClause.and(group.in(groups));
-        }
-        if (spotList != null && !spotList.isEmpty()) {
-            whereClause.and(group.spots.any().in(spotList));
-        }
-
-        return queryFactory.selectFrom(dailyFood)
+    public List<DeliveryInfoDto> groupingByServiceDateAndRoute(LocalDate startDate, LocalDate endDate) {
+        List<Tuple> tuples = queryFactory.select(dailyFood.serviceDate, dailyFood.diningType, group, makers, deliverySchedule.deliveryTime)
+                .from(dailyFood)
                 .leftJoin(dailyFood.group, group)
-                .where(whereClause, group.instanceOf(Corporation.class).or(group.instanceOf(OpenGroup.class)))
-                .distinct()
+                .leftJoin(dailyFood.food, food)
+                .leftJoin(food.makers, makers)
+                .rightJoin(dailyFood.dailyFoodGroup.deliverySchedules, deliverySchedule)
+                .where(dailyFood.serviceDate.between(startDate, endDate))
+                .groupBy(dailyFood.serviceDate, dailyFood.diningType, group.id, makers.id, deliverySchedule.deliveryTime)
+                .orderBy(dailyFood.serviceDate.asc(), dailyFood.diningType.asc(), group.id.asc(), makers.id.asc(), deliverySchedule.deliveryTime.asc())
                 .fetch();
+
+        return tuples.parallelStream()
+                .map(tuple -> new DeliveryInfoDto(
+                        tuple.get(dailyFood.serviceDate),
+                        tuple.get(dailyFood.diningType),
+                        tuple.get(group),
+                        tuple.get(makers),
+                        tuple.get(deliverySchedule.deliveryTime)
+                ))
+                .toList();
+    }
+
+    public BigInteger findOneByFoodId(BigInteger foodId) {
+        return queryFactory.select(dailyFood.id)
+                .from(dailyFood)
+                .where(dailyFood.food.id.eq(foodId))
+                .orderBy(dailyFood.serviceDate.desc())
+                .limit(1)
+                .fetchOne();
+
     }
 }
 

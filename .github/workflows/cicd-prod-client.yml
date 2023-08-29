@@ -29,7 +29,9 @@ jobs:
     - name: app-client-api application.yaml(prod) 생성
       run: |
         cd ./app-client-api/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application.yaml
         echo "${{ secrets.APP_CLIENT_API_PROD_YAML }}" > ./application.yaml
@@ -40,7 +42,9 @@ jobs:
     - name: client-core application-jwt.properties 생성
       run: |
         cd ./client-core/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-jwt.properties
         echo "${{ secrets.CLIENT_CORE_JWT_PROPERTIES }}" > ./application-jwt.properties
@@ -49,7 +53,9 @@ jobs:
     - name: client-external-mail application-mail.properties 생성
       run: |
         cd ./client-external-mail/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-mail.properties
         echo "${{ secrets.CLIENT_EXTERNAL_MAIL_PROPERTIES }}" > ./application-mail.properties
@@ -58,7 +64,9 @@ jobs:
     - name: client-external-sms application-mail.properties 생성
       run: |
         cd ./client-external-sms/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-sms.properties
         echo "${{ secrets.CLIENT_EXTERNAL_SMS_PROPERTIES }}" > ./application-sms.properties
@@ -67,7 +75,9 @@ jobs:
     - name: data-redis application-redis.yml 생성
       run: |
         cd ./data-redis/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-redis.properties
         echo "${{ secrets.DATA_REDIS_REDIS_PROPERTIES }}" > ./application-redis.properties
@@ -76,7 +86,9 @@ jobs:
     - name: domain-payment application-payment.properties 생성
       run: |
         cd ./domain-payment/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-payment.properties
         echo "${{ secrets.DOMAIN_PAYMENT_PROD_PROPERTIES }}" > ./application-payment.properties
@@ -85,7 +97,9 @@ jobs:
     - name: domain-file application-s3.properties 생성
       run: |
         cd ./domain-file/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-s3.properties
         echo "${{ secrets.DOMAIN_FILE_S3_PROPERTIES }}" > ./application-s3.properties
@@ -94,7 +108,9 @@ jobs:
     - name: system-core application-alimtalk.properties 생성
       run: |
         cd ./system-core/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-alimtalk.properties
         echo "${{ secrets.SYSTEM_CORE_ALIMTALK }}" > ./application-alimtalk.properties
@@ -103,7 +119,9 @@ jobs:
     - name: client-alarm application-map.properties 생성
       run: |
         cd ./domain-address/src/main
+        if [ ! -d resources ]; then
         mkdir resources
+        fi
         cd resources
         touch ./application-map.properties
         echo "${{ secrets.SYSTEM_CORE_MAP }}" > ./application-map.properties
@@ -123,20 +141,32 @@ jobs:
         docker tag client_kurrant_v1 ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
         docker push ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
 
+  deploy:
+    needs: build-image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: 배포
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.PROD_HOST }}
-        username: ubuntu
-        key: ${{ secrets.PROD_PRIVATE_KEY }}
-        envs: GITHUB_SHA
-        script: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-          docker pull ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7}
-          docker tag ${{ secrets.DOCKER_USERNAME }}/client_kurrant_v1:${GITHUB_SHA::7} client_kurrant_v1
-          docker stop client_kurrant_v1
-          sleep 5
-          docker run -i -t --log-driver=awslogs --log-opt awslogs-region=ap-northeast-2 --log-opt awslogs-group=kurrant/prod --log-opt awslogs-stream=client -d --rm --net redis_redis_cluster --name client_kurrant_v1 -p 8886:8886 client_kurrant_v1
-          
+      - name: EC2로 파일 보내기
+        uses: appleboy/scp-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.PROD_HOST }}
+          key: ${{ secrets.PROD_PRIVATE_KEY }}
+          port: 22
+          source: "app-client-api/deploy.sh,app-client-api/docker-compose.yml"
+          target: "/home/ubuntu/kurrant_v1/docker"
 
+      - name: 배포
+        uses: appleboy/ssh-action@master
+        with:
+          username: ubuntu
+          host: ${{ secrets.PROD_HOST }}
+          key: ${{ secrets.PROD_PRIVATE_KEY }}
+          envs: GITHUB_SHA
+          script: |
+            export IMAGE_TAG=${GITHUB_SHA::7}
+            export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            chmod 777 /home/ubuntu/kurrant_v1/docker/app-client-api/deploy.sh
+            /home/ubuntu/kurrant_v1/docker/app-client-api/deploy.sh $IMAGE_TAG $DOCKER_USERNAME

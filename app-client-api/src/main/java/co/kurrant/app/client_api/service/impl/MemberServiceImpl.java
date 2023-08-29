@@ -18,10 +18,8 @@ import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.*;
-import co.kurrant.app.client_api.dto.MemberIdListDto;
-import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
-import co.kurrant.app.client_api.dto.MemberListResponseDto;
-import co.kurrant.app.client_api.dto.MemberWaitingListResponseDto;
+import co.dalicious.system.util.StringUtils;
+import co.kurrant.app.client_api.dto.*;
 import co.kurrant.app.client_api.mapper.MemberMapper;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.MemberService;
@@ -60,6 +58,9 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public List<MemberListResponseDto> getUserList(SecurityUser securityUser) {
+
+        List<MemberListResponseDto> result = new ArrayList<>();
+
         //code로 CorporationId 찾기 (=GroupId)
         Corporation corporation = userUtil.getCorporation(securityUser);
 
@@ -68,12 +69,28 @@ public class MemberServiceImpl implements MemberService {
         //groupID로 user목록 조회
         List<User> groupUserList = qUserGroupRepository.findAllByGroupId(corporation.getId());
 
-
         Optional<User> any = groupUserList.stream().filter(u -> u.getUserStatus().getCode() != 0)
                 .findAny();
 
-        return groupUserList.stream()
-                .map((user) -> memberMapper.toMemberListDto(user, userGroupName)).collect(Collectors.toList());
+        for (User groupUser : groupUserList){
+            String memo = qUserGroupRepository.findUserMemo(groupUser.getId(),corporation.getId());
+            result.add(memberMapper.toMemberListDto(groupUser, userGroupName, memo));
+        }
+
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void saveUserMemo(SecurityUser securityUser, MemberMemoSaveRequestDto memberMemoSaveRequestDto) {
+
+        Corporation corporation = userUtil.getCorporation(securityUser);
+
+        if (!memberMemoSaveRequestDto.getMemoList().isEmpty()){
+            for (MemberMemoSaveDto memo : memberMemoSaveRequestDto.getMemoList()){
+                qUserGroupRepository.updateUserGroupMemo(corporation.getId(), memo.getMemo(), memo.getUserId());
+            }
+        }
     }
 
     @Override
@@ -242,10 +259,10 @@ public class MemberServiceImpl implements MemberService {
             if(email == null || email.isBlank()) throw new ApiException(ExceptionEnum.NOT_VALID_EMAIL);
 
             if (employee.isPresent()) {
-                email = email.replaceAll("\\s","");
+                email = email.replaceAll("\\s", "");
                 qEmployeeRepository.patchEmployee(employeeDto.getId(), phone, email, name);
             } else {
-                email = email.replaceAll("\\s","");
+                email = email.replaceAll("\\s", "");
                 Employee newEmployee = employeeMapper.toEntity(email, name, phone, corporation);
                 employeeRepository.save(newEmployee);
             }

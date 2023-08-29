@@ -24,7 +24,8 @@ public class UserUtil {
         );
     }
     // SecurityUser를 통해서 유저의 id를 가져온다.
-    public BigInteger getMakersId(SecurityUser securityUser) {
+    public static BigInteger getMakersId(Authentication authentication) {
+        SecurityUser securityUser = (SecurityUser) authentication.getPrincipal();
         return securityUser.getId();
     }
 

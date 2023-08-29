@@ -19,6 +19,8 @@ public class MemberListResponseDto {
     private String password;
     @Schema(description = "이름")
     private String name;
+    @Schema(description = "닉네임")
+    private String nickname;
     @Schema(description = "유저 타입 (0: 일반, 1: 관리자)")
     private String userType;
     @Schema(description = "휴대폰 번호")
@@ -33,4 +35,6 @@ public class MemberListResponseDto {
     private GourmetType gourmetType;
     @Schema(description = "멤버십 여부")
     private Boolean isMembership;
+    @Schema(description = "메모")
+    private String memo;
 }

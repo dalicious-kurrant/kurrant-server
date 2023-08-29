@@ -5,7 +5,7 @@ import co.dalicious.domain.client.entity.PrepaidCategory;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.domain.order.dto.DailySupportPriceDto;
 import co.dalicious.domain.order.dto.OrderCount;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.paycheck.entity.PaycheckCategory;
 import co.dalicious.system.enums.CategoryPrice;
@@ -100,14 +100,14 @@ public class PaycheckUtils {
         dailyFoodSupportPrices = dailyFoodSupportPrices.stream()
                 .sorted(Comparator.comparing(DailyFoodSupportPrice::getServiceDate).thenComparing(DailyFoodSupportPrice::getDiningType)).toList();
 
-        Map<ServiceDiningDto, Integer> serviceDiningTypeMap = new HashMap<>();
+        Map<ServiceDiningVo, Integer> serviceDiningTypeMap = new HashMap<>();
         for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFoodSupportPrice.getServiceDate(), dailyFoodSupportPrice.getDiningType());
-            if (serviceDiningTypeMap.containsKey(serviceDiningDto)) {
-                Integer count = serviceDiningTypeMap.get(serviceDiningDto) + dailyFoodSupportPrice.getCount();
-                serviceDiningTypeMap.put(serviceDiningDto, count);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(dailyFoodSupportPrice.getServiceDate(), dailyFoodSupportPrice.getDiningType());
+            if (serviceDiningTypeMap.containsKey(serviceDiningVo)) {
+                Integer count = serviceDiningTypeMap.get(serviceDiningVo) + dailyFoodSupportPrice.getCount();
+                serviceDiningTypeMap.put(serviceDiningVo, count);
             } else {
-                serviceDiningTypeMap.put(serviceDiningDto, dailyFoodSupportPrice.getCount());
+                serviceDiningTypeMap.put(serviceDiningVo, dailyFoodSupportPrice.getCount());
             }
         }
 
@@ -166,7 +166,7 @@ public class PaycheckUtils {
     }
 
     // 고객사 배송비
-    public static List<PaycheckCategory> getDeliveryFee(Map<ServiceDiningDto, Integer> serviceDiningTypeMap) {
+    public static List<PaycheckCategory> getDeliveryFee(Map<ServiceDiningVo, Integer> serviceDiningTypeMap) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
         BigDecimal over50TotalPrice = BigDecimal.ZERO;
         BigDecimal under50TotalPrice = BigDecimal.ZERO;
@@ -175,8 +175,8 @@ public class PaycheckUtils {
         Integer under50 = 0;
         Integer countOver50 = 0;
 
-        for (ServiceDiningDto serviceDiningDto : serviceDiningTypeMap.keySet()) {
-            Integer count = serviceDiningTypeMap.get(serviceDiningDto);
+        for (ServiceDiningVo serviceDiningVo : serviceDiningTypeMap.keySet()) {
+            Integer count = serviceDiningTypeMap.get(serviceDiningVo);
             if (count >= 50) {
                 over50TotalPrice = over50TotalPrice.add(DELIVERY_FEE_PER_ITEM.multiply(BigDecimal.valueOf(count)));
                 countOver50 += count;

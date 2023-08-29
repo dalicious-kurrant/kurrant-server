@@ -1,19 +1,14 @@
 package co.kurrant.app.admin_api.service.impl;
 
-import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
-import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.PushAlarmHash;
-import co.dalicious.data.redis.repository.PushAlarmHashRepository;
-import co.dalicious.domain.food.entity.DailyFood;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.review.dto.CommentReqDto;
@@ -32,14 +27,17 @@ import co.kurrant.app.admin_api.service.ReviewService;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.C;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +52,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final KeywordMapper keywordMapper;
     private final QKeywordRepository qKeywordRepository;
     private final FoodRepository foodRepository;
-    private SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional(readOnly = true)
@@ -126,13 +124,17 @@ public class ReviewServiceImpl implements ReviewService {
 
         AdminComments adminComments = reviewMapper.toAdminComment(reqDto, reviews);
         commentsRepository.save(adminComments);
-        sseService.send(reviews.getUser().getId(), 8, null, null, adminComments.getId());
+        if (reviews.getUser().getId() != null && adminComments.getId() != null){ //에러방지 - userId 못가져오면 sse발송 안되게 처리
+            applicationEventPublisher.publishEvent(new SseReceiverDto(reviews.getUser().getId(), 8, null, null, adminComments.getId()));
+        }
 
         // 댓글 생성 푸시알림
         PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(reviews.getUser(), PushCondition.REVIEW_GET_COMMENT, null);
-        pushService.sendToPushByKey(List.of(pushRequestDtoByUser), Collections.singletonMap("reviewId", String.valueOf(reviews.getId())));
-        sseService.send(reviews.getUser().getId(), 6, null, null, null);
-        pushUtil.savePushAlarmHash(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), reviews.getUser().getId(), AlarmType.REVIEW, reviews.getId());
+        if(pushRequestDtoByUser != null) {
+            pushService.sendToPushByKey(List.of(pushRequestDtoByUser), Collections.singletonMap("reviewId", String.valueOf(reviews.getId())));
+            applicationEventPublisher.publishEvent(new SseReceiverDto(reviews.getUser().getId(), 6, null, null, null));
+            pushUtil.savePushAlarmHash(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), reviews.getUser().getId(), AlarmType.REVIEW, reviews.getId());
+        }
     }
 
     @Override

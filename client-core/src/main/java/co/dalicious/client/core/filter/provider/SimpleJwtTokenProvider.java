@@ -34,7 +34,7 @@ public class SimpleJwtTokenProvider {
 
     private final UserDetailsService userDetailsService;
 
-     private static final long ACCESS_TOKEN_EXPIRE_TIME = 8 * 60 * 60 * 1000L; // 8시간
+    private static final long ACCESS_TOKEN_EXPIRE_TIME = 8 * 60 * 60 * 1000L; // 8시간
 
     @PostConstruct
     protected void init() {
@@ -43,9 +43,9 @@ public class SimpleJwtTokenProvider {
     }
 
     // Jwt 토큰 생성
-    public LoginTokenDto createToken(String userPk, List<String> roles) {
+    public LoginTokenDto createToken(String userName, List<String> roles) {
         // Access Token 생성
-        Claims claims = Jwts.claims().setSubject(userPk);
+        Claims claims = Jwts.claims().setSubject(userName);
         claims.put("roles", roles);
         Date now = new Date();
 
@@ -90,13 +90,13 @@ public class SimpleJwtTokenProvider {
             Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(new Date());
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
+            log.error("Invalid JWT Token");
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            log.error("Expired JWT Token");
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
+            log.error("Unsupported JWT Token");
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
+            log.error("JWT claims string is empty.");
         } catch (Exception e) {
             return false;
         }

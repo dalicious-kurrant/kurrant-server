@@ -23,6 +23,7 @@ public class QReviewGoodRepository {
         return Optional.ofNullable(queryFactory.selectFrom(reviewGood)
                 .where(reviewGood.user.id.eq(userId),
                         reviewGood.reviewId.id.eq(reviewId))
+                .limit(1)
                 .fetchOne());
     }
 }

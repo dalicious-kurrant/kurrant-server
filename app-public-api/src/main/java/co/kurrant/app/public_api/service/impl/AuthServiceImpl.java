@@ -30,7 +30,7 @@ import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.AuthService;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.mapper.user.UserMapper;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.util.VerifyUtil;
 import exception.ApiException;
 import exception.CustomException;
@@ -53,6 +53,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -181,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
 
     // Sms 인증
     @Override
-    public void sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException, JsonProcessingException {
+    public String sendSms(SmsMessageRequestDto smsMessageRequestDto, String type) throws IOException, NoSuchAlgorithmException, InvalidKeyException {
         // 인증을 요청하는 위치 파악하기
         RequiredAuth requiredAuth = RequiredAuth.ofId(type);
         switch (requiredAuth) {
@@ -205,11 +206,16 @@ public class AuthServiceImpl implements AuthService {
         // Redis에 인증번호 저장
         CertificationHash certificationHash = CertificationHash.builder().id(null).type(type).to(smsMessageRequestDto.getTo()).certificationNumber(key).build();
         certificationHashRepository.save(certificationHash);
+
+        if (requiredAuth == RequiredAuth.SIGNUP) {
+            return UserUtil.generateRandomNickName();
+        }
+        return null;
     }
 
     // 회원가입
     @Override
-    public User signUp(SignUpRequestDto signUpRequestDto) {
+    public void signUp(SignUpRequestDto signUpRequestDto) {
 
         //가입가능 리스트에 있는 유저검색
         List<Employee> employeeList = employeeRepository.findAllByEmail(signUpRequestDto.getEmail());
@@ -237,7 +243,14 @@ public class AuthServiceImpl implements AuthService {
 
         // 기존에 회원가입을 한 이력이 없는 유저라면 -> 유저 생성
         if (user == null) {
-            UserDto userDto = UserDto.builder().email(signUpRequestDto.getEmail().trim()).phone(signUpRequestDto.getPhone()).password(hashedPassword).name(signUpRequestDto.getName()).role(Role.USER).build();
+            UserDto userDto = UserDto.builder()
+                    .email(signUpRequestDto.getEmail().trim())
+                    .phone(signUpRequestDto.getPhone())
+                    .password(hashedPassword)
+                    .name(signUpRequestDto.getName())
+                    .nickname(signUpRequestDto.getNickname())
+                    .role(Role.USER)
+                    .build();
 
             // Corporation가 null로 대입되는 오류 발생 -> nullable = true 설정
             user = userMapper.toEntity(userDto);
@@ -260,7 +273,6 @@ public class AuthServiceImpl implements AuthService {
             employeeRepository.deleteAllByEmail(employeeList.get(0).getEmail());
         }
 
-        return user;
     }
 
     // 유저 인증 완료 후 토큰 발급
@@ -289,6 +301,7 @@ public class AuthServiceImpl implements AuthService {
                 .spotStatus(spotStatus.getCode())
                 .isActive(user.getUserStatus().equals(UserStatus.ACTIVE))
                 .leftWithdrawDays(leftWithdrawDays)
+                .hasNickname(user.hasNickname())
                 .build();
     }
 
@@ -545,7 +558,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(TokenDto tokenDto) {
         // 1. Refresh Token 검증
         if (!jwtTokenProvider.validateRefreshToken(tokenDto.getRefreshToken())) {
-            throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
+            return;
         }
         // 2. Access Token 에서 UserId 를 가져오기.
         String userId = jwtTokenProvider.getUserPk(tokenDto.getAccessToken());
@@ -572,7 +585,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findIdRequestDto.phone, RequiredAuth.FIND_ID);
 
         // 유저 가져오기
-        User user = userRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = qUserRepository.findOneByPhone(findIdRequestDto.getPhone()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
 
         // 아이디 찾기 응답 Response 생성
         List<ProviderEmailDto> connectedSns = new ArrayList<>();
@@ -605,7 +618,7 @@ public class AuthServiceImpl implements AuthService {
         verifyUtil.isAuthenticated(findPasswordEmailRequestDto.getEmail(), RequiredAuth.FIND_PASSWORD);
 
         // 유저 정보 가져오기
-        User user = userRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
+        User user = qUserRepository.findOneByEmail(findPasswordEmailRequestDto.getEmail()).orElseThrow(() -> new ApiException(ExceptionEnum.USER_NOT_FOUND));
         // 비밀번호 변경
         String hashedPassword = passwordEncoder.encode(password);
         user.changePassword(hashedPassword);

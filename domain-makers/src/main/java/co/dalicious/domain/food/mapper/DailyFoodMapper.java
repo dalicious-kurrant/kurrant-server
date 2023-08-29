@@ -23,6 +23,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class})
@@ -51,7 +52,7 @@ public interface DailyFoodMapper {
     default DailyFoodGroup toDailyFoodGroup(Map<String, String> deliveryScheduleMap) {
         List<DeliverySchedule> deliveryScheduleList = new ArrayList<>();
 
-        deliveryScheduleMap.keySet().stream().forEach(deliveryTime -> {
+        deliveryScheduleMap.keySet().forEach(deliveryTime -> {
             DeliverySchedule deliverySchedule = new DeliverySchedule(DateUtils.stringToLocalTime(deliveryTime), DateUtils.stringToLocalTime(deliveryScheduleMap.get(deliveryTime)));
             deliveryScheduleList.add(deliverySchedule);
         });
@@ -110,6 +111,7 @@ public interface DailyFoodMapper {
     ;
 
     @Mapping(source = "sort", target = "sort")
+    @Mapping(source = "lastOrderTime", target = "lastOrderTime")
     @Mapping(source = "totalCount", target = "totalReviewCount")
     @Mapping(source = "reviewAverage", target = "reviewAverage")
     @Mapping(source = "dailyFood.diningType.code", target = "diningType")
@@ -131,7 +133,7 @@ public interface DailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
-    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
+    DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort, String lastOrderTime);
 
     @AfterMapping
     default void afterMapping(@MappingTarget DailyFoodDto dto, DailyFood dailyFood, Integer capacity, List<UserRecommends> userRecommends) {
@@ -181,5 +183,19 @@ public interface DailyFoodMapper {
     default String getMakersName(DailyFood dailyFood) {
         Makers makers = (Makers) Hibernate.unproxy(dailyFood.getFood().getMakers());
         return makers.getName();
+    }
+
+    default void updateDeliverySchedule(List<String> deliveryTimeList, List<String> pickupTimeList, @MappingTarget DailyFoodGroup dailyFoodGroup) {
+        if(deliveryTimeList.size() != pickupTimeList.size()) {
+            throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
+        }
+        List<DeliverySchedule> newDeliveryScheduleList = new ArrayList<>();
+        for (String deliveryTimeString : deliveryTimeList) {
+            LocalTime deliveryTime = DateUtils.stringToLocalTime(deliveryTimeString);
+            LocalTime pickupTime = DateUtils.stringToLocalTime(pickupTimeList.get(deliveryTimeList.indexOf(deliveryTimeString)));
+            newDeliveryScheduleList.add(new DeliverySchedule(deliveryTime, pickupTime));
+        }
+
+        dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);
     }
 }

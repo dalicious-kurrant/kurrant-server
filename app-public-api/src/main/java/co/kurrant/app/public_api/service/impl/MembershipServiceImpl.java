@@ -25,7 +25,7 @@ import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.dalicious.domain.user.repository.QMembershipRepository;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import co.kurrant.app.public_api.service.MembershipService;
 
 import exception.ApiException;
@@ -342,6 +342,7 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    @Transactional
     public void joinMembershipNice(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
         // 금액 정보가 일치하는지 확인
@@ -398,7 +399,6 @@ public class MembershipServiceImpl implements MembershipService {
         assert periodDto != null;
         // 멤버십 등록
         orderService.payMembershipNice(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
-
     }
 
     @Override

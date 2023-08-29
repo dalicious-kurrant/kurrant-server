@@ -30,6 +30,8 @@ public class OrderDailyFoodByMakersDto {
         private String serviceDate;
         private String diningType;
         private Integer spotCount;
+        private String lastOrderTime;
+        private Boolean beforeLastOrderTime;
         private List<DeliveryGroups> deliveryGroups;
 
         public Integer getSpotCount() {
@@ -42,7 +44,7 @@ public class OrderDailyFoodByMakersDto {
     @Getter
     @Setter
     public static class DeliveryGroups {
-        private String deliveryTime;
+        private String pickUpTime;
         private Integer spotCount;
         private List<Food> foods;
         private Integer foodCount;
@@ -63,7 +65,7 @@ public class OrderDailyFoodByMakersDto {
     public static class FoodBySpot {
         private String deliveryId;
         private Integer spotType;
-        private String pickUpTime;
+        private String deliveryTime;
         private String address1;
         private String address2;
         private String spotName;
@@ -87,6 +89,8 @@ public class OrderDailyFoodByMakersDto {
         private String serviceDate;
         private String diningType;
         private Integer totalCount;
+        private String lastOrderTime;
+        private Boolean beforeLastOrderTime;
         private List<Food> foods;
     }
 

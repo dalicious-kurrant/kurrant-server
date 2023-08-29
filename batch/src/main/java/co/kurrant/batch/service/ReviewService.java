@@ -23,40 +23,51 @@ public class ReviewService {
 
     public List<BigInteger> findUserIdsByReviewDeadline() {
 
-
-        LocalDate limitDay = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(5);
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate limitDay = today.minusDays(5);
         LocalDateTime before24ByNow = LocalDateTime.now(ZoneId.of("Asia/Seoul")).minusDays(1);
 
-        String queryString = "SELECT u.id, bpal.pushDateTime, df.serviceDate, oidf.deliveryTime " +
+        String queryString = "SELECT u.id, df.serviceDate, oidf.deliveryTime " +
                 "FROM OrderItem oi " +
                 "JOIN OrderItemDailyFood oidf ON oi.id = oidf.id " +
                 "JOIN oidf.dailyFood df " +
-                "JOIN df.group g " +
-                "JOIN MealInfo mi ON g.id = mi.group.id AND df.diningType = mi.diningType " +
                 "JOIN Order o ON oi.order = o " +
                 "JOIN User u ON o.user = u " +
-                "LEFT JOIN BatchPushAlarmLog bpal ON bpal.userId = u.id AND bpal.pushCondition = 2001 " +
-                "WHERE oi.orderStatus = 11L AND df.serviceDate > :limitDay " +
+                "WHERE oi.orderStatus = 11L AND df.serviceDate between :limitDay and :today " +
                 "AND u.firebaseToken IS NOT NULL " +
-                "GROUP BY u.id, bpal.pushDateTime";
+                "GROUP BY u.id, df.serviceDate, oidf.deliveryTime";
 
         TypedQuery<Object[]> query = entityManager.createQuery(queryString, Object[].class);
+        query.setParameter("today", today);
         query.setParameter("limitDay", limitDay);
         List<Object[]> results = query.getResultList();
 
         List<BigInteger> userIds = new ArrayList<>();
         for (Object[] result : results) {
             BigInteger userId = (BigInteger) result[0];
-            LocalDateTime pushDateTime = (LocalDateTime) result[1];
-            LocalDate serviceDate = (LocalDate) result[2];
-            LocalTime pickupTime = (LocalTime) result[3];
+            LocalDate serviceDate = (LocalDate) result[1];
+            LocalTime pickupTime = (LocalTime) result[2];
 
             String deadlineTime = DateUtils.calculatedDDayAndTime(serviceDate.atTime(pickupTime));
             String day = deadlineTime.split(" ")[0];
 
-            if (day.equals("0") && (pushDateTime == null || pushDateTime.isBefore(before24ByNow))) {
+            if (day.equals("0")) {
                 userIds.add(userId);
             }
+        }
+
+        String batchQueryString = "SELECT bpal.userId, bpal.pushDateTime " +
+                "FROM BatchPushAlarmLog bpal " +
+                "WHERE bpal.pushCondition = 2001";
+
+        TypedQuery<Object[]> batchQuery = entityManager.createQuery(batchQueryString, Object[].class);
+        List<Object[]> batchResults = batchQuery.getResultList();
+
+        for(Object[] result : batchResults) {
+            BigInteger userId = (BigInteger) result[0];
+            LocalDateTime pushDateTime = (LocalDateTime) result[1];
+
+            if(pushDateTime.isAfter(before24ByNow)) userIds.remove(userId);
         }
 
         return userIds;

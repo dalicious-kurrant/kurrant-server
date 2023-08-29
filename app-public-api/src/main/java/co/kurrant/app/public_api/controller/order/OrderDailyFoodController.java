@@ -1,14 +1,12 @@
 package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
-import co.dalicious.domain.payment.dto.OrderCreateBillingKeySecondReqDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodByNiceReqDto;
-import co.dalicious.domain.order.dto.OrderItemDailyFoodReqDto;
 import co.kurrant.app.public_api.dto.order.IdDto;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.model.SecurityUser;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -75,26 +73,6 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @Operation(summary = "정기식사 전체 환불", description = "정기 식사 구매내역 상세를 가져온다.")
-    @PostMapping("/refund")
-    public ResponseMessage userOrderDailyFoodDetail(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.cancelOrderDailyFood(securityUser, idDto.getId());
-        return ResponseMessage.builder()
-                .message("전체 주문 환불에 성공하였습니다.")
-                .build();
-    }
-
-    @Operation(summary = "정기식사 부분 환불", description = "주문한 한 정기식사 상품을 환불한다.")
-    @PostMapping("/dailyFoods/refund")
-    public ResponseMessage userOrderItemDailyFoodRefund(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.cancelOrderItemDailyFood(securityUser, idDto.getId());
-        return ResponseMessage.builder()
-                .message("정기식사 부분 환불에 성공하였습니다.")
-                .build();
-    }
-
     @Operation(summary = "정기식사 전체 환불 (나이스)", description = "정기 식사 구매내역 상세를 가져온다.")
     @PostMapping("/refund/nice")
     public ResponseMessage userOrderDailyFoodDetailNice(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
@@ -134,17 +112,4 @@ public class OrderDailyFoodController {
                 .message("식사 주문에 성공하였습니다.")
                 .build();
     }
-
-    /*
-    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
-    @PostMapping("")
-    public ResponseMessage userOrderByDate(Authentication authentication, @RequestBody OrderItemDailyFoodReqDto orderItemDailyFoodReqDto) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        return ResponseMessage.builder()
-                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
-                .message("식사 주문에 성공하였습니다.")
-                .build();
-    }
-    */
-
 }

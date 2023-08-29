@@ -19,15 +19,13 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Embeddable
 public class ServiceDaysAndSupportPrice {
-
     @Convert(converter = DaysListConverter.class)
     @Column(name = "emb_support_days")
     @Comment("서비스 이용일")
     private List<Days> supportDays;
 
-    @NotNull
-    @Column(name = "daily_support_price", nullable = false,columnDefinition = "DECIMAL(15, 2)")
-    @Comment("식사 일정별(아침, 점심, 저녁) 식사 지원금")
+    @Column(name = "daily_support_price", columnDefinition = "DECIMAL(15, 2)")
+    @Comment("식사 일정별(아침, 점심, 저녁) 식사 지원금 및 금액 할인율, 1미만은 금액 할인율")
     private BigDecimal supportPrice;
 
     @Builder
@@ -35,6 +33,7 @@ public class ServiceDaysAndSupportPrice {
         this.supportDays = supportDays;
         this.supportPrice = supportPrice;
     }
+
 
     public void updateSupportPrice(BigDecimal supportPrice) {
         this.supportPrice = supportPrice;

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
@@ -31,9 +32,11 @@ public class UserController {
     @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
-    public ResponseMessage getUserList(@RequestParam Map<String, Object> parameters) {
+    public ResponseMessage getUserList(@RequestParam Map<String, Object> parameters,
+                                       @RequestParam(required = false, defaultValue = "50") Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         return ResponseMessage.builder()
-                .data(userService.getUserList(parameters))
+                .data(userService.getUserList(parameters, pageable))
                 .message("유저 목록 조회")
                 .build();
     }
@@ -71,8 +74,19 @@ public class UserController {
                 .build();
     }
 
+    @Operation(summary = "테스트 데이터 조회")
+    @GetMapping("/test/data")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseMessage getTestData(){
+        return ResponseMessage.builder()
+                .message("TestData 조회 성공!")
+                .data(userService.getTestData())
+                .build();
+    }
+
+
     @ControllerMarker(ControllerType.USER)
-    @Operation(summary = "테스트 데이터 입력 Dto")
+    @Operation(summary = "테스트 데이터 입력")
     @PostMapping("/test/data")
     @ResponseStatus(HttpStatus.OK)
     public ResponseMessage saveTestData(@RequestBody SaveTestDataRequestDto saveTestDataRequestDto){

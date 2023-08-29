@@ -29,9 +29,10 @@ public class PushAlarmHash {
     LocalDateTime createdDateTime;
     Boolean isRead;
     BigInteger reviewId;
+    BigInteger noticeId;
 
     @Builder
-    public PushAlarmHash(String title, String message, BigInteger userId, String type, Boolean isRead, BigInteger reviewId) {
+    public PushAlarmHash(String title, String message, BigInteger userId, String type, Boolean isRead, BigInteger reviewId, BigInteger noticeId) {
         this.title = title;
         this.message = message;
         this.userId = userId;
@@ -39,9 +40,10 @@ public class PushAlarmHash {
         this.createdDateTime = LocalDateTime.now();
         this.isRead = isRead;
         this.reviewId = reviewId;
+        this.noticeId = noticeId;
     }
 
-    public void updateRead(Boolean read) {
+    public void setRead(Boolean read) {
         isRead = read;
     }
 }

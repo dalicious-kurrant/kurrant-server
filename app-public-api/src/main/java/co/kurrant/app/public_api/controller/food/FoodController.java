@@ -7,7 +7,7 @@ import co.dalicious.domain.food.dto.GetFoodReviewResponseDto;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.FoodService;
-import co.kurrant.app.public_api.service.UserUtil;
+import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class FoodController {
 
     private final FoodService foodService;
 
-    @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
+    @Operation(summary = "식단 조회", description = "특정스팟의 원하는 한 날짜의 식단을 조회한다.")
     @GetMapping("")
     public ResponseMessage getDailyFood(Authentication authentication,
                                         @RequestParam BigInteger spotId,
@@ -40,7 +40,7 @@ public class FoodController {
                 .build();
     }
 
-    @Operation(summary = "식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
+    @Operation(summary = "여러날짜 식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
     @GetMapping("/period")
     public ResponseMessage getDailyFoodByPeriod(Authentication authentication,
                                                 @RequestParam BigInteger spotId,
@@ -49,6 +49,19 @@ public class FoodController {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(foodService.getDailyFoodByPeriod(securityUser, spotId, startDate, endDate))
+                .message("식단 불러오기에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "여러날짜 식단 불러오기", description = "특정스팟의 원하는 날짜의 식단을 조회한다.")
+    @GetMapping("/period/by/date")
+    public ResponseMessage getDailyFoodByPeriodAndServiceDate(Authentication authentication,
+                                                @RequestParam BigInteger spotId,
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(foodService.getDailyFoodByPeriodAndServiceDate(securityUser, spotId, startDate, endDate))
                 .message("식단 불러오기에 성공하였습니다.")
                 .build();
     }

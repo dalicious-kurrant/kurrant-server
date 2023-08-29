@@ -14,12 +14,15 @@ import org.springframework.transaction.annotation.Propagation;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.util.Collection;
+import java.util.Set;
 
 public interface OrderService {
     // 정기식사 주문을 한다.
     JSONObject payDailyFood(User user, CreditCardInfo creditCardInfo, Integer amount, String orderCode, String orderName) throws IOException, ParseException;
     // 정기식사 주문을 모두 취소한다
-    void cancelOrderDailyFoodNice(OrderDailyFood orderDailyFood, User user) throws IOException, ParseException;
+    Set<BigInteger> cancelOrderDailyFoodNice(OrderDailyFood orderDailyFood, User user) throws IOException, ParseException;
     // 정기식사 주문 상품 하나를 취소한다.
     void cancelOrderItemDailyFoodNice(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException;
     // 백오피스 정기식사 주문 상품 하나를 취소한다.(상태값 무관)

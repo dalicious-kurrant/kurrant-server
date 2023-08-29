@@ -4,6 +4,7 @@ import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.food.dto.FoodReviewListDto;
 import co.dalicious.domain.food.dto.GetFoodReviewResponseDto;
 import co.dalicious.domain.food.entity.Food;
+import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItem;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.review.dto.*;
@@ -29,6 +30,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring", imports = {DateUtils.class, Math.class, UserRepository.class})
@@ -57,18 +59,25 @@ public interface ReviewMapper {
         return reviewableItemListDto;
     }
 
-    @Mapping(source = "reviews.id", target = "reviewId")
-    @Mapping(source = "reviews.images", target = "imageLocation", qualifiedByName = "getImagesLocations")
-    @Mapping(source = "reviews.content", target = "content")
-    @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "reviews.createdDateTime", target = "createDate")
-    @Mapping(source = "reviews.updatedDateTime", target = "updateDate")
-    @Mapping(source = "reviews.forMakers", target = "forMakers")
-    @Mapping(source = "reviews.orderItem", target = "makersName", qualifiedByName = "getMakersName")
-    @Mapping(source = "reviews.orderItem", target = "itemName", qualifiedByName = "getItemName")
-    @Mapping(source = "reviews.comments", target = "commentList", qualifiedByName = "setCommentList")
-    ReviewListDto toReviewListDto(Reviews reviews);
+    @Mapping(target = "createDate", expression = "java(String.valueOf(reviews.getCreateDate()))")
+    @Mapping(target = "updateDate", expression = "java(String.valueOf(reviews.getUpdateDate()))")
+    @Mapping(target = "dailyFoodId", expression = "java(reviews.getDailyFoodId().equals(0) ? null : reviews.getDailyFoodId())")
+    @Mapping(target = "makersName", expression = "java(reviews.getMakersName().equals(\"null\") ? null : reviews.getMakersName())")
+    @Mapping(target = "itemName", expression = "java(reviews.getItemName().equals(\"null\") ? null : reviews.getItemName())")
+    ReviewListDto toReviewListDto(SelectAppReviewByUserDto reviews);
 
+    default ReviewsForUserResDto toReviewsForUserResDto(List<SelectAppReviewByUserDto> reviewList) {
+        List<ReviewListDto> reviewListDtos  = new ArrayList<>();
+        if (reviewList == null && reviewList.isEmpty()) {
+            return ReviewsForUserResDto.create(reviewListDtos);
+        }
+        for (SelectAppReviewByUserDto selectAppReviewByUserDto : reviewList) {
+            ReviewListDto reviewListDto = toReviewListDto(selectAppReviewByUserDto);
+            reviewListDto.setCommentList(setCommentList(selectAppReviewByUserDto.getCommentList(), selectAppReviewByUserDto));
+            reviewListDtos.add(reviewListDto);
+        }
+        return ReviewsForUserResDto.create(reviewListDtos);
+    }
 
     @Mapping(source = "isGood", target = "isGood")
     @Mapping(source = "isWriter", target = "isWriter")
@@ -77,41 +86,36 @@ public interface ReviewMapper {
     @Mapping(source = "reviews.createdDateTime", target = "createDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.updatedDateTime", target = "updateDate", qualifiedByName = "getCreateDate")
     @Mapping(source = "reviews.satisfaction", target = "satisfaction")
-    @Mapping(source = "user.name", target = "userName")
+    @Mapping(source = "user", target = "userName", qualifiedByName = "getNameOrNickname")
     @Mapping(source = "reviews.good", target = "good")
     @Mapping(source = "reviews.id", target = "reviewId")
     FoodReviewListDto toFoodReviewListDto(Reviews reviews, User user, List<Comments> commentsList, boolean isGood, boolean isWriter);
 
+    @Named("getNameOrNickname")
+    default String getNameOrNickname(User user) {
+        return user.getNickname();
+    }
     @Named("getCreateDate")
     default String getCreateDate(Timestamp createdDateTime) {
         return createdDateTime.toString().substring(0, 10);
     }
 
-    @Named("setCommentList")
-    default List<ReviewListDto.Comment> setCommentList(List<Comments> commentsList) {
-        List<ReviewListDto.Comment> commentList = new ArrayList<>();
+    default List<ReviewListDto.Comment> setCommentList(List<SelectCommentByReviewDto> commentsList, SelectAppReviewByUserDto review) {
+        List<ReviewListDto.Comment> comments = new ArrayList<>();
+        if(commentsList.isEmpty()) return comments;
 
-        if (commentsList.isEmpty()) return commentList;
-
-        commentsList = commentsList.stream().sorted(Comparator.comparing(Comments::getCreatedDateTime)).toList();
-
-        for (Comments comments : commentsList) {
+        for (SelectCommentByReviewDto selectCommentByReviewDto : commentsList) {
             ReviewListDto.Comment comment = new ReviewListDto.Comment();
-            if (comments instanceof MakersComments makersComments && !makersComments.getIsDelete()) {
-                comment.setWriter(makersComments.getReviews().getFood().getMakers().getName());
-                comment.setContent(makersComments.getContent());
-                comment.setCreateDate(DateUtils.toISOLocalDate(makersComments.getCreatedDateTime()));
-                comment.setUpdateDate(DateUtils.toISOLocalDate(makersComments.getUpdatedDateTime()));
-                commentList.add(comment);
-            } else if (comments instanceof AdminComments adminComments && !adminComments.getIsDelete()) {
-                comment.setWriter("admin");
-                comment.setContent(adminComments.getContent());
-                comment.setCreateDate(DateUtils.toISOLocalDate(adminComments.getCreatedDateTime()));
-                comment.setUpdateDate(DateUtils.toISOLocalDate(adminComments.getUpdatedDateTime()));
-                commentList.add(comment);
-            }
+
+            comment.setCommentId(selectCommentByReviewDto.getCommentId());
+            comment.setContent(selectCommentByReviewDto.getContent());
+            comment.setWriter(selectCommentByReviewDto.getWriter().equals("makers") ? review.getMakersName() : selectCommentByReviewDto.getWriter());
+            comment.setCreateDate(String.valueOf(selectCommentByReviewDto.getCreateDate()));
+            comment.setUpdateDate(String.valueOf(selectCommentByReviewDto.getUpdateDate()));
+
+            comments.add(comment);
         }
-        return commentList;
+        return comments;
     }
 
     @Named("setCommentList2")
@@ -151,8 +155,19 @@ public interface ReviewMapper {
     @Mapping(target = "createdDate", expression = "java(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()))")
     @Mapping(source = "reviews.content", target = "content")
     @Mapping(target = "isReport", expression = "java(reviews.getIsReports() == null || !reviews.getIsReports() ? false : true)")
-    @Mapping(source = "reviews.user.name", target = "writer")
+    @Mapping(source = "reviews.user", target = "writer", qualifiedByName = "getNameAndNickname")
+    @Mapping(source = "reviews.orderItem", target = "group", qualifiedByName = "getGroupName")
     ReviewAdminResDto.ReviewList toAdminDto(Reviews reviews);
+
+    @Named("getNameAndNickname")
+    default String getNameAndNickname(User user) {
+        return user.getNameAndNickname();
+    }
+
+    @Named("getGroupName")
+    default String getGroupName(OrderItem orderItem) {
+        return ((OrderDailyFood) orderItem.getOrder()).getGroupName();
+    }
 
     default ReviewAdminResDto.ReviewDetail toReviewDetails(Reviews reviews) {
         ReviewAdminResDto.ReviewDetail reviewDetail = new ReviewAdminResDto.ReviewDetail();
@@ -164,7 +179,7 @@ public interface ReviewMapper {
         reviewDetail.setContentOrigin(reviews.getContentOrigin());
         reviewDetail.setSatisfactionOrigin(reviews.getSatisfactionOrigin());
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getNickname());
         reviewDetail.setFoodName(reviews.getFood().getName());
         reviewDetail.setIsDelete(reviews.getIsDelete());
         reviewDetail.setIsReport(reviews.getIsReports());
@@ -197,7 +212,7 @@ public interface ReviewMapper {
         reviewListDto.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
         reviewListDto.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewListDto.setForMakers(reviews.getForMakers());
-        reviewListDto.setWriter(reviews.getUser().getName());
+        reviewListDto.setWriter(reviews.getUser().getNickname());
         reviewListDto.setIsReport(reviews.getIsReports());
         reviewListDto.setOrderItemName(getItemName(reviews.getOrderItem()));
         reviewListDto.setIsMakersComments(false);
@@ -226,7 +241,7 @@ public interface ReviewMapper {
         reviewDetail.setUpdateDate(DateUtils.toISOLocalDate(reviews.getUpdatedDateTime()));
         reviewDetail.setCreateDate(DateUtils.toISOLocalDate(reviews.getCreatedDateTime()));
         reviewDetail.setForMakers(reviews.getForMakers());
-        reviewDetail.setWriter(reviews.getUser().getName());
+        reviewDetail.setWriter(reviews.getUser().getNickname());
         reviewDetail.setItemName(getItemName(reviews.getOrderItem()));
         reviewDetail.setIsReport(reviews.getIsReports());
 
@@ -342,16 +357,17 @@ public interface ReviewMapper {
     }
 
     default GetFoodReviewResponseDto toGetFoodReviewResponseDto(List<FoodReviewListDto> foodReviewListDtoList, Double starAverage, Integer totalReview, BigInteger foodId, Integer sort,
-                                                                BigInteger reviewWrite) {
+                                                                BigInteger reviewWrite, List<String> keywords, Map<Integer, Integer> stars) {
         GetFoodReviewResponseDto getFoodReviewResponseDto = new GetFoodReviewResponseDto();
-        foodReviewListDtoList = foodReviewListDtoList.stream()
-                .sorted(Comparator.comparing(FoodReviewListDto::getCreateDate).reversed())
-                .toList();
         getFoodReviewResponseDto.setReviewList(foodReviewListDtoList);
         getFoodReviewResponseDto.setStarAverage(starAverage);
         getFoodReviewResponseDto.setTotalReview(totalReview);
         getFoodReviewResponseDto.setFoodId(foodId);
         getFoodReviewResponseDto.setReviewWrite(reviewWrite);
+        getFoodReviewResponseDto.setKeywords(keywords);
+        getFoodReviewResponseDto.setStars(stars);
+
+
 
         return getFoodReviewResponseDto;
 
