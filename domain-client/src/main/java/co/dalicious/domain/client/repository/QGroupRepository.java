@@ -109,8 +109,12 @@ public class QGroupRepository {
     }
 
     public List<Group> findAllByIds(List<BigInteger> ids) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(ids != null && !ids.isEmpty()) {
+            whereCause.and(group.id.in(ids));
+        }
         return queryFactory.selectFrom(group)
-                .where(group.id.in(ids))
+                .where(whereCause)
                 .fetch();
     }
 
