@@ -57,44 +57,5 @@ public class SpotDetailResDto {
     private Boolean isHotStorage;
     private Boolean isPrepaid;
     private String memo;
-    private List<PrepaidCategory> prepaidCategoryList;
-    private List<CategoryPrice> categoryPrices;
-
-    public SpotDetailResDto() {
-        List<CategoryPrice> categoryPrices1 = new ArrayList<>();
-        for (co.dalicious.system.enums.CategoryPrice categoryPrice : co.dalicious.system.enums.CategoryPrice.values()) {
-            categoryPrices1.add(new CategoryPrice(categoryPrice));
-        }
-        this.categoryPrices = categoryPrices1;
-    }
-
-    @Getter
-    public static class CategoryPrice {
-        private final Integer code;
-        private final String category;
-        private final Integer price;
-
-        public CategoryPrice(co.dalicious.system.enums.CategoryPrice categoryPrice) {
-            this.code = categoryPrice.getCode();
-            this.category = categoryPrice.getCategory();
-            this.price = categoryPrice.getPrice().intValue();
-        }
-    }
-
-    @Getter
-    public static class PrepaidCategory {
-        private String paycheckCategoryItem;
-        private Integer count;
-        private Integer price;
-        private Integer totalPrice;
-
-        @Builder
-        public PrepaidCategory(String paycheckCategoryItem, Integer count, Integer price, Integer totalPrice) {
-            this.paycheckCategoryItem = paycheckCategoryItem;
-            this.count = count;
-            this.price = price;
-            this.totalPrice = totalPrice;
-        }
-    }
 
 }

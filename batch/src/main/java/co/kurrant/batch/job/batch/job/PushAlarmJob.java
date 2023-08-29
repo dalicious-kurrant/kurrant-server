@@ -1,12 +1,11 @@
 package co.kurrant.batch.job.batch.job;
 
 import co.dalicious.client.alarm.dto.BatchAlarmDto;
-import co.dalicious.client.alarm.dto.PushRequestDto;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
-import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.MySpotZoneStatus;
@@ -17,6 +16,7 @@ import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.batch.service.PushAlarmService;
 import exception.ApiException;
+import exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
@@ -31,8 +31,10 @@ import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaItemWriterBuilder;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -40,7 +42,6 @@ import javax.persistence.TypedQuery;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -56,7 +57,7 @@ public class PushAlarmJob {
     private final PushUtil pushUtil;
     private final PushService pushService;
     private final EntityManager entityManager;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final int CHUNK_SIZE = 500;
 
     @Bean(name = "pushAlarmJob1")
@@ -85,7 +86,7 @@ public class PushAlarmJob {
     @Bean
     @JobScope
     public Step pushAlarmJob_step() {
-        return stepBuilderFactory.get("pushAlarmJob_step1")
+        return stepBuilderFactory.get("pushAlarmJob_step")
                 .<User, User>chunk(CHUNK_SIZE)
                 .reader(lastOrderTimePushAlarmReader())
                 .processor(lastOrderTimePushAlarmProcessor())
@@ -207,7 +208,7 @@ public class PushAlarmJob {
     public JpaPagingItemReader<User> lastOrderTimePushAlarmReader() {
         log.info("[user 읽기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
-        List<BigInteger> groupIds = pushAlarmService.getGroupsForOneHourLeftLastOrderTime();
+        Set<BigInteger> groupIds = pushAlarmService.getGroupsForOneHourLeftLastOrderTime();
 
         Map<String, Object> parameterValues = new HashMap<>();
         parameterValues.put("groupIds", groupIds);
@@ -215,19 +216,17 @@ public class PushAlarmJob {
 
         if (groupIds.isEmpty()) {
             // Return an empty reader if orderItemIds is empty
-            return new JpaPagingItemReaderBuilder<User>()
-                    .name("EmptyReviewReader")
-                    .build();
+            return null;
         }
 
-        String queryString = "SELECT u FROM UserGroup ug LEFT JOIN User u ON u = ug.user WHERE ug.id in :groupIds";
+        String queryString = "SELECT u FROM UserGroup ug LEFT JOIN User u ON u = ug.user WHERE ug.group.id in :groupIds";
 
         return new JpaPagingItemReaderBuilder<User>()
                 .entityManagerFactory(entityManagerFactory) // Use the injected entityManagerFactory
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
-                .parameterValues(Collections.singletonMap("groupIds", groupIds))
+                .parameterValues(parameterValues)
                 .build();
     }
 
@@ -271,7 +270,7 @@ public class PushAlarmJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, PushCondition.LAST_ORDER_BY_DAILYFOOD, null);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, PushCondition.LAST_ORDER_BY_DAILYFOOD);
-                    sseService.send(user.getId(), 6, null, null, null);
+                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.MEAL, null);
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
@@ -296,7 +295,7 @@ public class PushAlarmJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
-                    sseService.send(user.getId(), 6, null, null, null);
+                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());

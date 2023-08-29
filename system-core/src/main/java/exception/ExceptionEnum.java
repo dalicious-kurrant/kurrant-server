@@ -65,6 +65,11 @@ public enum ExceptionEnum {
 	CANT_NOT_REQUESTED_SPOT(HttpStatus.BAD_REQUEST, "E4000109", "신청할 수 없는 지역입니다."),
 	EXIST_WAITING_DELIVERY_ORDER(HttpStatus.BAD_REQUEST, "E4000110", "배송 대기 중인 주문 건이 존재합니다. 탈퇴를 진행 할 수 없습니다."),
 	EXCEL_TIME_LIST_NOT_EQUAL(HttpStatus.BAD_REQUEST, "E4000111", "배송시간과 픽업시간의 사이즈가 다를 수 없습니다."),
+	ALREADY_SEND_ALARM(HttpStatus.BAD_REQUEST, "E4000112", "이미 알림을 보낸 공지입니다."),
+	WRONG_PARAMETER(HttpStatus.BAD_REQUEST, "E4000113", "잘못된 파라미터입니다."),
+	MUST_GROUP_ID(HttpStatus.BAD_REQUEST, "E4000114", "스팟 공지는 스팟 선택이 필수입니다."),
+	MUST_MAKERS_ID(HttpStatus.BAD_REQUEST, "E4000114", "메이커스 공지는 메이커스 선택이 필수입니다."),
+	NOT_NECESSARY_GROUP_ID(HttpStatus.BAD_REQUEST, "E4000115", "전체 공지는 스팟을 선택할 수 없습니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),

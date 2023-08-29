@@ -20,6 +20,7 @@ public class PushResponseDto {
     private String dateTime;
     private Boolean isRead;
     private BigInteger reviewId;
+    private BigInteger noticeId;
 
     public PushResponseDto(PushAlarmHash pushAlarmHash) {
         this.id = pushAlarmHash.getId();
@@ -30,5 +31,6 @@ public class PushResponseDto {
         this.dateTime = DateUtils.localDateTimeToString(pushAlarmHash.getCreatedDateTime());
         this.isRead = pushAlarmHash.getIsRead();
         this.reviewId = pushAlarmHash.getReviewId();
+        this.noticeId = pushAlarmHash.getNoticeId();
     }
 }

@@ -5,7 +5,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.dto.DiscountDto;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Food;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.dto.ExtraOrderDto;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -28,19 +28,19 @@ public interface ExtraOrderMapper {
             return  new ArrayList<>();
         }
         // 1. 식사일정별로 묶는다.
-        MultiValueMap<ServiceDiningDto, DailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningVo, DailyFood> dailyFoodMap = new LinkedMultiValueMap<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood.getServiceDate(), dailyFood.getDiningType());
-            dailyFoodMap.add(serviceDiningDto, dailyFood);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(dailyFood.getServiceDate(), dailyFood.getDiningType());
+            dailyFoodMap.add(serviceDiningVo, dailyFood);
         }
 
         List<ExtraOrderDto.DailyFoodList> dailyFoodLists = new ArrayList<>();
-        for (ServiceDiningDto serviceDiningDto : dailyFoodMap.keySet()) {
+        for (ServiceDiningVo serviceDiningVo : dailyFoodMap.keySet()) {
             ExtraOrderDto.DailyFoodList dailyFoodList = new ExtraOrderDto.DailyFoodList();
 
             // 2. 음식별로 묶는다.
-            List<DailyFood> dailyFoodsByServiceDate = dailyFoodMap.get(serviceDiningDto);
+            List<DailyFood> dailyFoodsByServiceDate = dailyFoodMap.get(serviceDiningVo);
             MultiValueMap<Food, DailyFood> foodDailyFoodMap = new LinkedMultiValueMap<>();
             for (DailyFood dailyFood : dailyFoodsByServiceDate) {
                 foodDailyFoodMap.add(dailyFood.getFood(), dailyFood);
@@ -80,8 +80,8 @@ public interface ExtraOrderMapper {
                 dailyFood.setGroupList(groupDtos);
                 dailyFoodDtos.add(dailyFood);
             }
-            dailyFoodList.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
-            dailyFoodList.setDiningType(serviceDiningDto.getDiningType().getDiningType());
+            dailyFoodList.setServiceDate(DateUtils.format(serviceDiningVo.getServiceDate()));
+            dailyFoodList.setDiningType(serviceDiningVo.getDiningType().getDiningType());
             dailyFoodList.setDailyFoods(dailyFoodDtos);
             dailyFoodLists.add(dailyFoodList);
         }

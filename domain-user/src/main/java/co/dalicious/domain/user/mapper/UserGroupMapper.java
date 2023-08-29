@@ -21,6 +21,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -209,6 +210,8 @@ public interface UserGroupMapper {
                     .diningTypes(DiningTypesUtils.diningTypesToCodes(openGroup.getDiningTypes()))
                     .mealInfos(toMealInfoDtos(openGroup.getMealInfos()))
                     .spots(toSpotDtos(openGroup.getSpots()))
+                    .longitude(openGroup.getAddress().getLatitudeAndLongitude().get("longitude"))
+                    .latitude(openGroup.getAddress().getLatitudeAndLongitude().get("latitude"))
                     .build();
         }
         if(Hibernate.unproxy(group) instanceof MySpotZone mySpotZone) {
@@ -265,4 +268,5 @@ public interface UserGroupMapper {
                 .map(this::toSpotDto)
                 .toList();
     }
+
 }

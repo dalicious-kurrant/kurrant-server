@@ -28,7 +28,7 @@ public interface UserPreferenceMapper {
     @Mapping(source = "userPreferenceDto.proteinFrequency", target = "proteinFrequency")
     @Mapping(source = "userPreferenceDto.isProtein", target = "isProtein")
     @Mapping(source = "userPreferenceDto.veganLevel", target = "veganLevel")
-    @Mapping(source = "userPreferenceDto.isBegan", target = "isBegan")
+    @Mapping(source = "userPreferenceDto.isVegan", target = "isVegan")
     @Mapping(source = "userPreferenceDto.allergyInfo", target = "allergyInfo", qualifiedByName = "makeFoodTagList")
     @Mapping(source = "userPreferenceDto.allergyInfoEtc", target = "allergyInfoEtc")
     @Mapping(source = "userPreferenceDto.favoriteCountryFood", target = "favoriteCountryFood", qualifiedByName = "makeFoodTagList")
@@ -41,6 +41,8 @@ public interface UserPreferenceMapper {
 
     @Named("makeFoodTagList")
     default List<FoodTag> makeFoodTagList(String foodTags){
+        if (foodTags == null || foodTags.equals("") ) return null;
+        System.out.println(foodTags + " foodTags");
         List<FoodTag> result = new ArrayList<>();
         List<String> split = Arrays.stream(foodTags.split(",")).toList();
         for (String foodTagString : split ){

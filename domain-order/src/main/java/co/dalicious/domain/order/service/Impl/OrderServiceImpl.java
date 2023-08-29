@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.service.Impl;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.event.MembershipDiscountEvent;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
@@ -58,9 +59,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -124,10 +123,11 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void cancelOrderDailyFoodNice(OrderDailyFood order, User user) throws IOException, ParseException {
+    public Set<BigInteger> cancelOrderDailyFoodNice(OrderDailyFood order, User user) throws IOException, ParseException {
         BigDecimal price = BigDecimal.ZERO;
         BigDecimal deliveryFee = BigDecimal.ZERO;
         BigDecimal point = BigDecimal.ZERO;
+        Set<BigInteger> makersIds = new HashSet<>();
         synchronized (niceItemsLocks.computeIfAbsent(user, u -> new Object())) {
             // 이전에 환불을 진행한 경우
             List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
@@ -181,6 +181,7 @@ public class OrderServiceImpl implements OrderService {
                     pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
                 }
                 orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+                makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
             }
             user.updatePoint(user.getPoint().add(point));
 
@@ -190,13 +191,14 @@ public class OrderServiceImpl implements OrderService {
                 niceUtil.cardCancelOne(order.getPaymentKey(), "전체 주문 취소", price.intValue(), token);
             }
         }
+        return makersIds;
     }
 
     @Override
     @Transactional
     public void cancelOrderItemDailyFoodNice(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
         Order order = orderItemDailyFood.getOrder();
-        User orderUser = (User) Hibernate.unproxy(order.getUser());
+        User orderUser = order.getUser();
 
         synchronized (niceItemsLocks.computeIfAbsent(user, u -> new Object())) {
 
@@ -220,13 +222,12 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
-                    ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+            if (supportType.equals(SupportType.PARTIAL)) {
+                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
-
 
             if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
                 List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
@@ -298,11 +299,11 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
-                ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+            if (supportType.equals(SupportType.PARTIAL)) {
+                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
-                refundPriceDto = OrderUtil.getRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
 
             if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
@@ -545,6 +546,7 @@ public class OrderServiceImpl implements OrderService {
             orderItemMembership.updateOrderStatus(OrderStatus.FAILED);
             throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
         }
+        user.updateIsMembership(true);
     }
 
 
@@ -639,10 +641,9 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
 
             RefundPriceDto refundPriceDto = null;
-
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
-                ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+            if (supportType.equals(SupportType.PARTIAL)) {
+                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }

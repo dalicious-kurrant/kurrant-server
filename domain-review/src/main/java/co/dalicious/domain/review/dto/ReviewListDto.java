@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 public class ReviewListDto {
     private BigInteger reviewId;
+    private BigInteger dailyFoodId;
     private List<String> imageLocation;
     private String content;
     private Integer satisfaction;
@@ -24,6 +25,7 @@ public class ReviewListDto {
     @Getter
     @Setter
     public static class Comment{
+        private BigInteger commentId;
         private String writer;
         private String content;
         private String createDate;
@@ -31,7 +33,7 @@ public class ReviewListDto {
     }
 
     @Builder
-    public ReviewListDto(BigInteger reviewId, List<String> imageLocation, String content, Integer satisfaction, String createDate, String updateDate, Boolean forMakers, String makersName, String itemName, List<Comment> commentList) {
+    public ReviewListDto(BigInteger reviewId, List<String> imageLocation, String content, Integer satisfaction, String createDate, String updateDate, Boolean forMakers, String makersName, String itemName, List<Comment> commentList, BigInteger dailyFoodId) {
         this.reviewId = reviewId;
         this.imageLocation = imageLocation;
         this.content = content;
@@ -42,5 +44,6 @@ public class ReviewListDto {
         this.makersName = makersName;
         this.itemName = itemName;
         this.commentList = commentList;
+        this.dailyFoodId = dailyFoodId;
     }
 }

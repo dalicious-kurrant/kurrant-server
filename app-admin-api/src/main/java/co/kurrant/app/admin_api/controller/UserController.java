@@ -32,9 +32,11 @@ public class UserController {
     @Operation(summary = "유저조회", description = "유저 목록을 조회한다.")
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/all")
-    public ResponseMessage getUserList(@RequestParam Map<String, Object> parameters) {
+    public ResponseMessage getUserList(@RequestParam Map<String, Object> parameters,
+                                       @RequestParam(required = false, defaultValue = "50") Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest pageable = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         return ResponseMessage.builder()
-                .data(userService.getUserList(parameters))
+                .data(userService.getUserList(parameters, pageable))
                 .message("유저 목록 조회")
                 .build();
     }

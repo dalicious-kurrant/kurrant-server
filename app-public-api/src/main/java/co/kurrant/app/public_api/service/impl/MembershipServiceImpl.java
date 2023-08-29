@@ -342,6 +342,7 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
+    @Transactional
     public void joinMembershipNice(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
         // 금액 정보가 일치하는지 확인
@@ -398,7 +399,6 @@ public class MembershipServiceImpl implements MembershipService {
         assert periodDto != null;
         // 멤버십 등록
         orderService.payMembershipNice(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
-
     }
 
     @Override

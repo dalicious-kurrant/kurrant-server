@@ -6,13 +6,12 @@ import co.kurrant.batch.job.batch.job.RescheduleQuartzBatchJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Configuration
@@ -153,6 +152,23 @@ public class QuartzService {
     }
 
     public void rescheduleJob(Class<? extends Job> jobClass, String baseJobName, String description, List<String> newCrons) throws SchedulerException {
+        List<JobDetail> allJobDetails = getAllJobDetailsForBaseName(scheduler, baseJobName);
+        Set<String> existingCrons = new HashSet<>();
+        for (JobDetail jobDetail : allJobDetails) {
+            for (Trigger trigger : scheduler.getTriggersOfJob(jobDetail.getKey())) {
+                if (trigger instanceof CronTrigger) {
+                    existingCrons.add(((CronTrigger) trigger).getCronExpression());
+                }
+            }
+        }
+
+        for (String existingCron : existingCrons) {
+            if (!newCrons.contains(existingCron)) {
+                String uniqueJobName = createCronJobName(baseJobName, existingCron);
+                scheduler.deleteJob(JobKey.jobKey(uniqueJobName));
+            }
+        }
+
         for (String newCron : newCrons) {
             String uniqueJobName = createCronJobName(baseJobName, newCron);
             JobKey jobKey = JobKey.jobKey(uniqueJobName);
@@ -180,6 +196,7 @@ public class QuartzService {
                 if (jobDetail == null) {
                     Map<String, Object> parameters = getDefaultJobParameters();
                     jobDetail = buildDurableJobDetail(jobClass, uniqueJobName, description, parameters);
+                    scheduler.addJob(jobDetail, false);
                 }
                 Trigger newTrigger = buildCronTrigger(uniqueJobName, newCron, jobDetail);
                 scheduler.scheduleJob(newTrigger);
@@ -199,5 +216,17 @@ public class QuartzService {
         jobParameters.put("executeCount", executeCount);
         jobParameters.put("date", dateString);
         return jobParameters;
+    }
+
+    private List<JobDetail> getAllJobDetailsForBaseName(Scheduler scheduler, String baseName) throws SchedulerException {
+        List<JobDetail> matchingJobDetails = new ArrayList<>();
+
+        for (JobKey jobKey : scheduler.getJobKeys(GroupMatcher.jobGroupEquals(Scheduler.DEFAULT_GROUP))) {
+            if (jobKey.getName().startsWith(baseName)) {
+                matchingJobDetails.add(scheduler.getJobDetail(jobKey));
+            }
+        }
+
+        return matchingJobDetails;
     }
 }

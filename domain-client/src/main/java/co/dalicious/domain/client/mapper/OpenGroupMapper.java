@@ -92,7 +92,7 @@ public interface OpenGroupMapper {
 
     @Mapping(source = "address.address3", target = "jibunAddress")
     @Mapping(source = "group", target = "address", qualifiedByName = "mappingAddress")
-    OpenGroupListForKeywordDto toOpenGroupListForKeywordDto(Group group);
+    OpenGroupListForKeywordDto toOpenGroupListForKeywordDto(OpenGroup group);
 
     @Named("mappingAddress")
     default String mappingAddress(Group group) {

@@ -57,12 +57,17 @@ public class QDeliveryInstanceRepository {
     }
 
     public List<DeliveryInstance> findAllBy(LocalDate serviceDate, DiningType diningType, LocalTime deliveryTime, Collection<String> makersNames, String groupName) {
-        return queryFactory.selectFrom(deliveryInstance)
-                .where(deliveryInstance.deliveryTime.eq(deliveryTime),
-                        deliveryInstance.diningType.eq(diningType),
-                        deliveryInstance.serviceDate.eq(serviceDate),
-                        deliveryInstance.makers.name.in(makersNames),
-                        deliveryInstance.spot.group.name.eq(groupName))
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        whereClause.and(deliveryInstance.deliveryTime.eq(deliveryTime));
+        whereClause.and(deliveryInstance.diningType.eq(diningType));
+        whereClause.and(deliveryInstance.serviceDate.eq(serviceDate));
+        whereClause.and(deliveryInstance.makers.name.in(makersNames));
+        whereClause.and(deliveryInstance.spot.group.name.eq(groupName));
+        
+        return queryFactory
+                .selectFrom(deliveryInstance)
+                .where(whereClause)
                 .fetch();
     }
 
@@ -92,7 +97,7 @@ public class QDeliveryInstanceRepository {
             whereClause.and(deliveryInstance.serviceDate.loe(endDate));
         }
         return queryFactory.selectFrom(deliveryInstance)
-                .where(whereClause)
+                .where(whereClause, deliveryInstance.driver.isNotNull())
                 .fetch();
     }
 

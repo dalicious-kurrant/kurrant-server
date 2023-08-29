@@ -81,6 +81,7 @@ public class DriverServiceImpl implements DriverService {
     public void postDriverSchedule(List<DeliveryInstanceDto> deliveryInstanceDtos) {
         Set<String> driverNames = deliveryInstanceDtos.stream()
                 .map(DeliveryInstanceDto::getDriver)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         Set<String> makersNames = deliveryInstanceDtos.stream()
                 .flatMap(dto -> dto.getMakersNames().stream())
@@ -88,16 +89,16 @@ public class DriverServiceImpl implements DriverService {
         Set<String> groupNames = deliveryInstanceDtos.stream()
                 .map(DeliveryInstanceDto::getGroupName)
                 .collect(Collectors.toSet());
-        List<Driver> drivers = qDriverRepository.findAllByDriverNames(driverNames);
+        List<Driver> drivers = (driverNames.isEmpty()) ? Collections.emptyList() : qDriverRepository.findAllByDriverNames(driverNames);
         List<Makers> makers = qMakersRepository.getMakersByName(makersNames);
         List<Group> groups = qGroupRepository.findAllByNames(groupNames);
         for (DeliveryInstanceDto scheduleDto : deliveryInstanceDtos) {
-            if (scheduleDto.isTempDto()) {
-                List<DeliveryInstance> deliveryInstances = deliveryInstanceMapper.toEntities(scheduleDto, makers, groups);
-                deliveryInstanceRepository.saveAll(deliveryInstances);
-            }
             List<DeliveryInstance> deliveryInstances = qDeliveryInstanceRepository.findAllBy(DateUtils.stringToDate(scheduleDto.getDeliveryDate()), DiningType.ofString(scheduleDto.getDiningType()), DateUtils.stringToLocalTime(scheduleDto.getDeliveryTime()), scheduleDto.getMakersNames(), scheduleDto.getGroupName());
-            Driver driver = drivers.stream().filter(v -> v.getName().equals(scheduleDto.getDriver())).findAny().orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400028", "일치하는 배송 기사를 찾을 수 없습니다."));
+            if (scheduleDto.isTempDto() && deliveryInstances.isEmpty()) {
+                List<DeliveryInstance> newDeliveryInstances = deliveryInstanceMapper.toEntities(scheduleDto, makers, groups);
+                deliveryInstanceRepository.saveAll(newDeliveryInstances);
+            }
+            Driver driver = drivers.stream().filter(v -> v.getName().equals(scheduleDto.getDriver())).findAny().orElse(null);
             deliveryInstances.forEach(v -> v.updateDriver(driver));
         }
     }
