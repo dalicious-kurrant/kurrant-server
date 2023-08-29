@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Getter
 @Setter
@@ -15,4 +16,5 @@ public class NoticeDto {
     private String content;
     private Boolean status;
     private Integer boardType;
+    private List<Integer> boardOption;
 }

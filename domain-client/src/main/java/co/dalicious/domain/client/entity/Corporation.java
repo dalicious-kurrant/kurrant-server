@@ -2,9 +2,11 @@ package co.dalicious.domain.client.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.converter.DeliveryFeeOptionConverter;
+import co.dalicious.domain.client.converter.SupportTypeConverter;
 import co.dalicious.domain.client.dto.GroupExcelRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.entity.enums.DeliveryFeeOption;
+import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
 import co.dalicious.system.converter.FoodTagsConverter;
 import co.dalicious.system.enums.FoodTag;
@@ -127,7 +129,6 @@ public class Corporation extends Group {
         this.membershipEndDate = membershipEndDate;
         this.prepaidCategories = prepaidCategories;
         this.isMembershipSupport = isMembershipSupport;
-        this.deliveryFeeOption = deliveryFeeOption;
         this.employeeCount = employeeCount;
         this.isGarbage = isGarbage;
         this.isHotStorage = isHotStorage;
@@ -144,6 +145,7 @@ public class Corporation extends Group {
         this.managerId = managerId;
         this.managerName = managerName;
         this.managerPhone = managerPhone;
+        this.deliveryFeeOption = deliveryFeeOption;
     }
 
     @Builder

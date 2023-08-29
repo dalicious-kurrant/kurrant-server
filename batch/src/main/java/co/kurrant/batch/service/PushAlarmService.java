@@ -22,51 +22,75 @@ public class PushAlarmService {
 
     private final EntityManager entityManager;
 
-    public List<BigInteger> getGroupsForOneHourLeftLastOrderTime() {
-        List<BigInteger> groupIds = new ArrayList<>();
+    public Set<BigInteger> getGroupsForOneHourLeftLastOrderTime() {
+        Set<BigInteger> groupIds = new HashSet<>();
         LocalDateTime currentTime = LocalDateTime.now();
 
         log.info("[고객사 주문 마감 시간 Group 읽기 시작] : {}", DateUtils.localDateTimeToString(currentTime));
 
         // 고객사 주문 마감 시간 그룹 조회
-        String queryStringForGroup = "SELECT g.id, df.serviceDate, mi.lastOrderTime, fc.lastOrderTime, mc.lastOrderTime " +
+        String queryStringForGroup = "SELECT g.id, df.serviceDate, mi.lastOrderTime " +
                 "FROM DailyFood df " +
                 "LEFT JOIN df.group g " +
                 "LEFT JOIN MealInfo mi ON mi.group.id = g.id AND mi.diningType = df.diningType  " +
-                "LEFT JOIN df.food f " +
-                "LEFT JOIN FoodCapacity fc ON f = df.food AND fc.diningType = df.diningType " +
-                "LEFT JOIN Makers m ON m = f.makers " +
-                "LEFT JOIN MakersCapacity mc ON mc.makers = m " +
-                "WHERE fc.lastOrderTime IS NOT NULL " +
-                "  and mc.lastOrderTime IS NOT NULL " +
-                "  and (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
+                "WHERE (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
 
         TypedQuery<Object[]> queryForGroup = entityManager.createQuery(queryStringForGroup, Object[].class);
         List<Object[]> resultsForGroup = queryForGroup.getResultList();
 
-        for (Object[] result : resultsForGroup) {
-            BigInteger groupId = (BigInteger) result[0];
-            LocalDate serviceDate = (LocalDate) result[1];
+        String queryStringForMakers = "SELECT g.id, df.serviceDate, mc.lastOrderTime " +
+                "FROM DailyFood df " +
+                "LEFT JOIN df.group g " +
+                "LEFT JOIN df.food f " +
+                "LEFT JOIN Makers m ON m = f.makers " +
+                "LEFT JOIN MakersCapacity mc ON mc.makers = m " +
+                "WHERE mc.lastOrderTime IS NOT NULL " +
+                "  and (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
 
-            List<LocalDateTime> lastOrderDateTime = new ArrayList<>();
+        TypedQuery<Object[]> queryForMakers = entityManager.createQuery(queryStringForMakers, Object[].class);
+        List<Object[]> resultsForMakers = queryForMakers.getResultList();
 
-            DayAndTime lastOrderDayAndTimeByGroup = (DayAndTime) result[2];
-            LocalDate lastOrderDateByGroup = serviceDate.minusDays(lastOrderDayAndTimeByGroup.getDay());
-            lastOrderDateTime.add(lastOrderDateByGroup.atTime(lastOrderDayAndTimeByGroup.getTime()).minusHours(1));
+        String queryStringForFood = "SELECT g.id, df.serviceDate, fc.lastOrderTime " +
+                "FROM DailyFood df " +
+                "LEFT JOIN df.group g " +
+                "LEFT JOIN df.food f " +
+                "LEFT JOIN FoodCapacity fc ON f = df.food AND fc.diningType = df.diningType " +
+                "WHERE fc.lastOrderTime IS NOT NULL " +
+                "  and (df.dailyFoodStatus = 1 or df.dailyFoodStatus = 2)";
 
-            DayAndTime lastOrderDayAndTimeByFood = (DayAndTime) result[3];
-            LocalDate lastOrderDateByFood = serviceDate.minusDays(lastOrderDayAndTimeByFood.getDay());
-            lastOrderDateTime.add(lastOrderDateByFood.atTime(lastOrderDayAndTimeByFood.getTime()).minusHours(1));
+        TypedQuery<Object[]> queryForFood = entityManager.createQuery(queryStringForFood, Object[].class);
+        List<Object[]> resultsForFood = queryForFood.getResultList();
 
-            DayAndTime lastOrderDayAndTimeByMakers = (DayAndTime) result[4];
-            LocalDate lastOrderDateByMakers = serviceDate.minusDays(lastOrderDayAndTimeByMakers.getDay());
-            lastOrderDateTime.add(lastOrderDateByMakers.atTime(lastOrderDayAndTimeByMakers.getTime()).minusHours(1));
+        List<Object[]> combinedResults = new ArrayList<>();
+        combinedResults.addAll(resultsForGroup);
+        combinedResults.addAll(resultsForMakers);
+        combinedResults.addAll(resultsForFood);
 
-            Collections.sort(lastOrderDateTime);
+        for (Object[] combinedResult : combinedResults) {
+            BigInteger groupId = (BigInteger) combinedResult[0];
+            LocalDate serviceDate = (LocalDate) combinedResult[1];
+            DayAndTime lastOrderDayAndTime = (DayAndTime) combinedResult[2];
 
-            if (currentTime.equals(lastOrderDateTime.get(0))) {
-                groupIds.add(groupId);
-            }
+            LocalDateTime deadlineDate = serviceDate.minusDays(lastOrderDayAndTime.getDay()).atTime(lastOrderDayAndTime.getTime());
+
+            if (deadlineDate.minusHours(1).equals(currentTime)) groupIds.add(groupId);
+        }
+
+        String logQueryString = "select g.id, bpal.pushDateTime " +
+                "from BatchPushAlarmLog bpal " +
+                "inner join User u on bpal.userId = u.id " +
+                "inner join UserGroup ug on u = ug.user " +
+                "inner join Group g on ug.group = g " +
+                "where bpal.pushCondition = 2";
+
+        TypedQuery<Object[]> logQuery = entityManager.createQuery(logQueryString, Object[].class);
+        List<Object[]> logResults = logQuery.getResultList();
+
+        for (Object[] logResult : logResults) {
+            BigInteger groupId = (BigInteger) logResult[0];
+            LocalDateTime pushDateTime = (LocalDateTime) logResult[1];
+
+            if(pushDateTime.toLocalDate().equals(currentTime.toLocalDate())) groupIds.remove(groupId);
         }
 
         return groupIds;

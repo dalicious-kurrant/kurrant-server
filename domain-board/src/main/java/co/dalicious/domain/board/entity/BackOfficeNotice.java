@@ -74,4 +74,8 @@ public class BackOfficeNotice {
         this.boardType = boardType;
         this.isAlarmTalk = isAlarmTalk;
     }
+
+    public void updateAlarmTalk(Boolean alarmTalk) {
+        isAlarmTalk = alarmTalk;
+    }
 }

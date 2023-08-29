@@ -39,6 +39,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
 import co.dalicious.system.util.PeriodDto;
+import co.kurrant.app.public_api.dto.food.DailyFoodByDateDto;
 import co.kurrant.app.public_api.dto.food.DailyFoodResDto;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.mapper.food.PublicDailyFoodMapper;
@@ -197,6 +198,37 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
+    public DailyFoodByDateDto getDailyFoodByPeriodAndServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate) {
+        // 유저가 그룹에 속해있는지 확인
+        User user = userUtil.getUser(securityUser);
+
+        Spot spot = qSpotRepository.findByIdFetchGroup(spotId).orElseThrow(
+                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
+        );
+        Group group = spot.getGroup();
+
+        List<UserGroup> userGroups = user.getActiveUserGroups();
+        userGroups.stream().filter(v -> v.getGroup().equals(group))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+
+        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
+        List<DailyFood> dailyFoodList = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
+        List<DailyFoodSupportPrice> dailyFoodSupportPriceList = group instanceof Corporation
+                ? qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBySpotBetweenServiceDate(user, group, startDate, endDate)
+                : new ArrayList<>();
+        Map<DailyFood, Integer> dailyFoodCountMap = orderDailyFoodUtil.getRemainFoodsCount(dailyFoodList);
+
+        Set<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toSet());
+        List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
+                new UserRecommendByPeriodWhereData(user.getId(), group.getId(), foodIds, new PeriodDto(startDate, endDate)));
+
+        Map<BigInteger, Pair<Double, Long>> reviewMap = qReviewRepository.getStarAverage(foodIds);
+        return publicDailyFoodMapper.toDailyFoodByDateDto(startDate, endDate, dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewMap, user);
+    }
+
+    @Override
+    @Transactional
     public FoodDetailDto getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser) {
         // 유저 정보 가져오기
         User user = userUtil.getUser(securityUser);
@@ -264,12 +296,7 @@ public class FoodServiceImpl implements FoodService {
         Page<Reviews> pageReviews = null;
         //Total 리뷰 조회 (사장님에게만보이기는 제외)
         List<Reviews> totalReviewsList = qReviewRepository.findAllByfoodIdsAndForMakers(dailyFood.getFood().getId());
-        if (totalReviewsList.size() == 0) {
-            GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
-                    BigInteger.valueOf(0), keywords, stars);
-            return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(0)
-                    .total(0).limit(pageable.getPageSize()).isLast(true).build();
-        }
+
 
         pageReviews = qReviewRepository.findAllByFoodIdSort(dailyFood.getFood().getId(), photo, starFilter, keywordFilter, pageable, sort);
 
@@ -278,6 +305,7 @@ public class FoodServiceImpl implements FoodService {
         int isReview = 0;
         int sumStar = 0;    //별점 계산을 위한 총 별점
         if (totalReviewsList.stream().anyMatch(v -> v.getUser().getId().equals(user.getId()))) isReview = 1;
+
         for (Reviews reviews : pageReviews) {
             Optional<User> optionalUser = userRepository.findById(reviews.getUser().getId());
             List<Comments> commentsList = commentsRepository.findAllByReviewsId(reviews.getId());
@@ -309,6 +337,14 @@ public class FoodServiceImpl implements FoodService {
         }
 
         keywords = qKeywordRepository.findAllByFoodId(dailyFood.getFood().getId());
+
+        //리뷰 수가 0이면 0값 반환
+        if (totalReviewsList.size() == 0) {
+            GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(sortedFoodReviewListDtoList, (double) 0, 0, dailyFood.getFood().getId(), sort,
+                    reviewWrite, keywords, stars);
+            return ItemPageableResponseDto.<GetFoodReviewResponseDto>builder().items(getFoodReviewResponseDto).count(0)
+                    .total(0).limit(pageable.getPageSize()).isLast(true).build();
+        }
 
         GetFoodReviewResponseDto getFoodReviewResponseDto = reviewMapper.toGetFoodReviewResponseDto(foodReviewListDtoList, starAverage, totalReviewSize, dailyFood.getFood().getId(), sort, reviewWrite, keywords, getStarRate(totalReviewsList));
 

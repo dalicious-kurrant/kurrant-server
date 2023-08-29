@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigInteger;
 import java.util.List;
 
+import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QCartDailyFood.cartDailyFood;
@@ -24,6 +25,14 @@ public class QCartDailyFoodRepository {
                 .where(cartDailyFood.id.in(cartDailyFoodIds))
                 .fetch();
     }
+
+     public List<CartDailyFood> findAllByUserFetchGroupAndSpot(User user) {
+        return queryFactory.selectFrom(cartDailyFood)
+                .innerJoin(cartDailyFood.spot, spot).fetchJoin()
+                .innerJoin(spot.group, group).fetchJoin()
+                .where(cartDailyFood.user.eq(user))
+                .fetch();
+     }
 
     public void deleteByCartDailyFoodList(List<CartDailyFood> cartDailyFoodList) {
         queryFactory.delete(cartDailyFood)

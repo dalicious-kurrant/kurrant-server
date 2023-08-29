@@ -156,7 +156,7 @@ public class OrderItemJob {
                 Group group = item.getDailyFood().getGroup();
                 LocalDate serviceDate = item.getDailyFood().getServiceDate();
                 LocalDate now = LocalDate.now();
-                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isMembership(user, group) && !user.getIsMembership() && serviceDate.getMonth().equals(now.getMonth())) {
+                if (user.getRole().equals(Role.USER) && group instanceof Corporation corporation && OrderUtil.isCorporationMembership(user, group) && !user.getIsMembership() && serviceDate.getMonth().equals(now.getMonth())) {
                     orderMembershipUtil.joinCorporationMembership(user, corporation);
                 }
                 item.updateOrderStatus(OrderStatus.DELIVERED);

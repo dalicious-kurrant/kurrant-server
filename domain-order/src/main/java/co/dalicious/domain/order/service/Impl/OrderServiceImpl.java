@@ -1,6 +1,7 @@
 package co.dalicious.domain.order.service.Impl;
 
 import co.dalicious.domain.client.entity.Corporation;
+import co.dalicious.domain.client.entity.enums.SupportType;
 import co.dalicious.domain.event.MembershipDiscountEvent;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
 import co.dalicious.domain.order.dto.OrderUserInfoDto;
@@ -197,7 +198,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public void cancelOrderItemDailyFoodNice(OrderItemDailyFood orderItemDailyFood, User user) throws IOException, ParseException {
         Order order = orderItemDailyFood.getOrder();
-        User orderUser = (User) Hibernate.unproxy(order.getUser());
+        User orderUser = order.getUser();
 
         synchronized (niceItemsLocks.computeIfAbsent(user, u -> new Object())) {
 
@@ -221,13 +222,12 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
-                    ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+            if (supportType.equals(SupportType.PARTIAL)) {
+                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
-
 
             if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
                 List<DailyFoodSupportPrice> userSupportPriceHistories = orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories();
@@ -299,11 +299,11 @@ public class OrderServiceImpl implements OrderService {
 
             RefundPriceDto refundPriceDto = null;
 
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
-                ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+            if (supportType.equals(SupportType.PARTIAL)) {
+                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
-                refundPriceDto = OrderUtil.getRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
 
             if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
@@ -641,10 +641,9 @@ public class OrderServiceImpl implements OrderService {
             BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
 
             RefundPriceDto refundPriceDto = null;
-
-            if (((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("메드트로닉") ||
-                ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot().getGroup().getName().equals("밀당PT")) {
-                refundPriceDto = OrderUtil.getMedtronicRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+            SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+            if (supportType.equals(SupportType.PARTIAL)) {
+                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
                 refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }

@@ -15,7 +15,7 @@ import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
+import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.entity.OrderDailyFood;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -100,20 +100,20 @@ public interface DeliveryInstanceMapper {
 
     default List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> toDeliveryGroupsByDate(List<DeliveryInstance> deliveryInstances, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.DeliveryGroupsByDate> deliveryGroupsByDates = new ArrayList<>();
-        MultiValueMap<ServiceDiningDto, DeliveryInstance> deliveryGroupsByDatesMap = new LinkedMultiValueMap<>();
+        MultiValueMap<ServiceDiningVo, DeliveryInstance> deliveryGroupsByDatesMap = new LinkedMultiValueMap<>();
         for (DeliveryInstance deliveryInstance : deliveryInstances) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(deliveryInstance.getServiceDate(), deliveryInstance.getDiningType());
-            deliveryGroupsByDatesMap.add(serviceDiningDto, deliveryInstance);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(deliveryInstance.getServiceDate(), deliveryInstance.getDiningType());
+            deliveryGroupsByDatesMap.add(serviceDiningVo, deliveryInstance);
         }
 
-        for (ServiceDiningDto serviceDiningDto : deliveryGroupsByDatesMap.keySet()) {
+        for (ServiceDiningVo serviceDiningVo : deliveryGroupsByDatesMap.keySet()) {
             OrderDailyFoodByMakersDto.DeliveryGroupsByDate deliveryGroupsByDate = new OrderDailyFoodByMakersDto.DeliveryGroupsByDate();
-            deliveryGroupsByDate.setServiceDate(DateUtils.format(serviceDiningDto.getServiceDate()));
-            deliveryGroupsByDate.setDiningType(serviceDiningDto.getDiningType().getDiningType());
-            deliveryGroupsByDate.setSpotCount(deliveryGroupsByDatesMap.get(serviceDiningDto).stream().map(DeliveryInstance::getSpot).collect(Collectors.toSet()).size());
+            deliveryGroupsByDate.setServiceDate(DateUtils.format(serviceDiningVo.getServiceDate()));
+            deliveryGroupsByDate.setDiningType(serviceDiningVo.getDiningType().getDiningType());
+            deliveryGroupsByDate.setSpotCount(deliveryGroupsByDatesMap.get(serviceDiningVo).stream().map(DeliveryInstance::getSpot).collect(Collectors.toSet()).size());
             deliveryGroupsByDate.setDeliveryGroups(toDeliveryGroups(deliveryInstances));
 
-            LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(deliveryGroupsByDatesMap.get(serviceDiningDto).get(0).getMakers(), serviceDiningDto.getDiningType(), serviceDiningDto.getServiceDate(), foodCapacities);
+            LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(deliveryGroupsByDatesMap.get(serviceDiningVo).get(0).getMakers(), serviceDiningVo.getDiningType(), serviceDiningVo.getServiceDate(), foodCapacities);
             deliveryGroupsByDate.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
             if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) deliveryGroupsByDate.setBeforeLastOrderTime(false);
             deliveryGroupsByDate.setBeforeLastOrderTime(true);

@@ -4,6 +4,7 @@ import co.dalicious.domain.board.dto.AppBoardRequestDto;
 import co.dalicious.domain.board.dto.AppBoardResponseDto;
 import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.Notice;
+import co.dalicious.domain.board.entity.enums.BoardOption;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.system.util.DateUtils;
 import org.mapstruct.Mapper;
@@ -15,13 +16,15 @@ import org.springframework.data.domain.Page;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-@Mapper(componentModel = "spring", imports = {DateUtils.class, BoardType.class})
+@Mapper(componentModel = "spring", imports = {DateUtils.class, BoardType.class, BoardOption.class, Collections.class})
 public interface NoticeMapper {
 
     @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
+    @Mapping(target = "boardOption", expression = "java(requestDto.getBoardOption() == null || requestDto.getBoardOption().isEmpty() ? Collections.singletonList(BoardOption.NOTICE) : requestDto.getBoardOption().stream().map(BoardOption::ofCode).toList())")
     @Mapping(target = "isPushAlarm", defaultValue = "false")
     Notice toNotice(AppBoardRequestDto requestDto);
 
@@ -39,6 +42,7 @@ public interface NoticeMapper {
             appBoardResponseDto.setIsStatus(notice.getIsStatus() != null && notice.getIsStatus());
             appBoardResponseDto.setIsPushAlarm(notice.getIsPushAlarm());
             appBoardResponseDto.setCreateDate(DateUtils.toISOLocalDate(notice.getCreatedDateTime()));
+            appBoardResponseDto.setBoardOption(notice.getBoardOption().stream().map(BoardOption::getCode).toList());
 
             appBoardResponseDtos.add(appBoardResponseDto);
         }
@@ -51,12 +55,14 @@ public interface NoticeMapper {
     @Mapping(target = "updatedDateTime", ignore = true)
     @Mapping(target = "createdDateTime", ignore = true)
     @Mapping(target = "boardType", expression = "java(BoardType.ofCode(requestDto.getBoardType()))")
+    @Mapping(target = "boardOption", expression = "java(requestDto.getBoardOption() == null || requestDto.getBoardOption().isEmpty() ? Collections.singletonList(BoardOption.NOTICE) : requestDto.getBoardOption().stream().map(BoardOption::ofCode).toList())")
     void updateNotice(AppBoardRequestDto requestDto, @MappingTarget Notice notice);
 
     @Mapping(source = "notice.createdDateTime", target = "created", qualifiedByName = "timeFormat")
     @Mapping(source = "notice.updatedDateTime", target = "updated", qualifiedByName = "timeFormat")
     @Mapping(source = "notice.isStatus", target = "status")
     @Mapping(target = "boardType", expression = "java(notice.getBoardType().getCode())")
+    @Mapping(target = "boardOption", expression = "java(notice.getBoardOption().stream().map(BoardOption::getCode).toList())")
     NoticeDto toDto(Notice notice);
 
     @Named("timeFormat")

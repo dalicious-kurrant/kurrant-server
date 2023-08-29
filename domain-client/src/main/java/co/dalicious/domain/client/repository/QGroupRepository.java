@@ -102,15 +102,19 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public List<Group> findAllOpenGroup() {
-        return queryFactory.selectFrom(group)
-                .where(group.instanceOf(OpenGroup.class), group.isActive)
+    public List<OpenGroup> findAllOpenGroup() {
+        return queryFactory.selectFrom(openGroup)
+                .where(openGroup.isActive.isTrue())
                 .fetch();
     }
 
     public List<Group> findAllByIds(List<BigInteger> ids) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(ids != null && !ids.isEmpty()) {
+            whereCause.and(group.id.in(ids));
+        }
         return queryFactory.selectFrom(group)
-                .where(group.id.in(ids))
+                .where(whereCause)
                 .fetch();
     }
 
@@ -214,21 +218,6 @@ public class QGroupRepository {
         Map<BigInteger, String> nameMap = new HashMap<>();
         for (Tuple tuple : result) {
             nameMap.put(tuple.get(group.id), tuple.get(group.name));
-        }
-
-        return nameMap;
-    }
-
-    public Map<String, BigInteger> findGroupNameListByIds(List<BigInteger> groupIds) {
-        List<Tuple> result = queryFactory.select(group.name, corporation.managerId)
-                .from(group)
-                .leftJoin(corporation).on(group.id.eq(corporation.id))
-                .where(group.id.in(groupIds))
-                .fetch();
-
-        Map<String, BigInteger> nameMap = new HashMap<>();
-        for (Tuple tuple : result) {
-            nameMap.put(tuple.get(group.name), tuple.get(corporation.managerId));
         }
 
         return nameMap;

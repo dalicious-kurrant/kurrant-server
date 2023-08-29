@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.security.core.Authentication;
 
+import javax.servlet.http.HttpServletResponse;
 import java.math.BigInteger;
 
 @Tag(name = "SSE")
@@ -29,7 +30,11 @@ public class SseController {
     @Description(value = "sse 구독")
     @GetMapping(value = "/v1/notification/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(Authentication authentication,
-                                @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
+                                @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId,
+                                HttpServletResponse response) {
+        response.setHeader("X-Accel-Buffering", "no");
+        response.setHeader("Cache-Control", "no-cache");
+        response.setHeader("Connection", "keep-alive");
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
         return sseService.subscribe(userId, lastEventId);

@@ -25,6 +25,8 @@ public class DailyFoodResDto {
         private Integer diningType;
         private List<String> serviceDays;
         private List<String> times;
+
+        // TODO: SupportPrice가 필요한 이유?
         private List<SupportPriceByDay> supportPriceByDays;
 
         public ServiceInfo(Integer diningType, List<String> serviceDays, List<String> times) {
@@ -42,7 +44,6 @@ public class DailyFoodResDto {
         private BigDecimal supportPrice;
         private List<DailyFoodDto> dailyFoodDtos;
     }
-
     @Getter
     @Setter
     public static class SupportPriceByDay {
