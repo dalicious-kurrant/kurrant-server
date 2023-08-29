@@ -8,9 +8,7 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.client.sse.SseService;
-import co.dalicious.data.redis.entity.NotificationHash;
-import co.dalicious.data.redis.repository.NotificationHashRepository;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.address.repository.QRegionRepository;
@@ -22,6 +20,7 @@ import co.dalicious.domain.application_form.dto.mySpotZone.UpdateStatusDto;
 import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.domain.client.dto.GroupListDto;
+import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.filter.FilterDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -50,14 +49,13 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -80,7 +78,7 @@ public class GroupServiceImpl implements GroupService {
     private final PushService pushService;
     private final QUserGroupRepository qUserGroupRepository;
     private final UserSpotRepository userSpotRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -237,7 +235,7 @@ public class GroupServiceImpl implements GroupService {
     @Override
     @Transactional
     // TODO: 스팟으로 설정되어 있지만 그룹으로 변경
-    public void updateGroupDetail(GroupListDto.GroupInfoList groupInfoList) throws ParseException {
+    public void updateGroupDetail(UpdateGroupListDto.GroupInfoList groupInfoList) throws ParseException {
         // 그룹 찾기.
         Group group = groupRepository.findById(groupInfoList.getId()).orElseThrow(() -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND));
         List<DiningType> diningTypeList = DiningTypesUtils.codesToDiningTypes(groupInfoList.getDiningTypes());
@@ -251,6 +249,7 @@ public class GroupServiceImpl implements GroupService {
         if (group instanceof Corporation corporation) {
             groupMapper.updateCorporation(groupInfoList, corporation);
             corporation.updateAddress(address);
+            corporation.updatePrepaidCategories(groupMapper.toPrepaidCategories(groupInfoList.getPrepaidCategoryList()));
         } else if (group instanceof OpenGroup openGroup) {
             openGroup.updateOpenSpot(address, diningTypeList, groupInfoList.getName(), true);
         }
@@ -407,9 +406,9 @@ public class GroupServiceImpl implements GroupService {
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
-                    sseService.send(user.getId(), 6, null, null, null);
+                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
                 }
-                sseService.send(user.getId(), 7, null, mySpotZone.getId(), null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null));
             });
         }
     }

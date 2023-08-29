@@ -9,6 +9,7 @@ import co.dalicious.domain.client.dto.ClientUserWaitingListSaveRequestDtoList;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.kurrant.app.client_api.dto.DeleteWaitingMemberRequestDto;
 import co.kurrant.app.client_api.dto.MemberIdListDto;
+import co.kurrant.app.client_api.dto.MemberMemoSaveRequestDto;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.MemberService;
 import co.kurrant.app.client_api.util.UserUtil;
@@ -40,6 +41,17 @@ public class MemberController {
         return ResponseMessage.builder()
                 .data(memberService.getUserList(securityUser))
                 .message("유저 목록 조회")
+                .build();
+    }
+
+    @Operation(summary = "유저 메모 수정", description = "유저 메모를 수정한다.")
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping("/memo")
+    public ResponseMessage saveUserMemo(Authentication authentication, @RequestBody MemberMemoSaveRequestDto memberMemoSaveRequestDto){
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        memberService.saveUserMemo(securityUser, memberMemoSaveRequestDto);
+        return ResponseMessage.builder()
+                .message("유저 메모 수정 성공")
                 .build();
     }
 

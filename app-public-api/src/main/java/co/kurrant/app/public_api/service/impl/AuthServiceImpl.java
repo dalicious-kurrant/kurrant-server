@@ -558,7 +558,7 @@ public class AuthServiceImpl implements AuthService {
     public void logout(TokenDto tokenDto) {
         // 1. Refresh Token 검증
         if (!jwtTokenProvider.validateRefreshToken(tokenDto.getRefreshToken())) {
-            throw new ApiException(ExceptionEnum.REFRESH_TOKEN_ERROR);
+            return;
         }
         // 2. Access Token 에서 UserId 를 가져오기.
         String userId = jwtTokenProvider.getUserPk(tokenDto.getAccessToken());

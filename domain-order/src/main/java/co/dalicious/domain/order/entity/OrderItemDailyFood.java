@@ -2,7 +2,6 @@ package co.dalicious.domain.order.entity;
 
 import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.food.entity.DailyFood;
-import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.NumberUtils;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -137,7 +136,18 @@ public class OrderItemDailyFood extends OrderItem {
     }
 
     public String getLastOrderTime(){
-        return FoodUtils.getEarliestLastOrderTime(this.dailyFood);
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
+
+        List<DayAndTime> lastOrderTimes = Stream.of(makersLastOrderTime, mealInfoLastOrderTime, foodLastOrderTime)
+                .filter(Objects::nonNull) // Exclude null values
+                .toList();
+        DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
+                .orElse(null);
+
+        return DayAndTime.dayAndTimeToString(lastOrderTime);
+
     }
 
 }

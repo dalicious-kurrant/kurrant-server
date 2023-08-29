@@ -183,5 +183,15 @@ public class QDailyFoodRepository {
                 ))
                 .toList();
     }
+
+    public BigInteger findOneByFoodId(BigInteger foodId) {
+        return queryFactory.select(dailyFood.id)
+                .from(dailyFood)
+                .where(dailyFood.food.id.eq(foodId))
+                .orderBy(dailyFood.serviceDate.desc())
+                .limit(1)
+                .fetchOne();
+
+    }
 }
 

@@ -3,6 +3,7 @@ package co.kurrant.app.public_api.service;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.domain.food.dto.*;
+import co.kurrant.app.public_api.dto.food.DailyFoodByDateDto;
 import co.kurrant.app.public_api.dto.food.DailyFoodResDto;
 import co.kurrant.app.public_api.dto.food.FoodReviewLikeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
@@ -14,6 +15,7 @@ import java.util.List;
 public interface FoodService {
     RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate, Integer diningType);
     DailyFoodResDto getDailyFoodByPeriod(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate);
+    DailyFoodByDateDto getDailyFoodByPeriodAndServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate);
     FoodDetailDto getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser);
     RetrieveDiscountDto getFoodDiscount(BigInteger dailyFoodId);
 
