@@ -274,7 +274,7 @@ public class CartServiceImpl implements CartService {
         DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
                 .orElse(null);
 
-        return DayAndTime.dayAndTimeToString(lastOrderTime);
+        return (lastOrderTime == null) ? null : lastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
     }
 
 //    @Transactional
