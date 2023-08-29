@@ -81,6 +81,8 @@ public class BoardServiceImpl implements BoardService {
     public void createAppBoard(AppBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (BoardType.ofCode(requestDto.getBoardType()).equals(BoardType.SPOT) && requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.MUST_GROUP_ID);
+        else if (BoardType.ofCode(requestDto.getBoardType()).equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeMapper.toNotice(requestDto);
         if(requestDto.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
@@ -113,6 +115,8 @@ public class BoardServiceImpl implements BoardService {
     public void updateAppBoard(BigInteger noticeId, AppBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (BoardType.ofCode(requestDto.getBoardType()).equals(BoardType.SPOT) && requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.MUST_GROUP_ID);
+        else if (BoardType.ofCode(requestDto.getBoardType()).equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         if(requestDto.getIsStatus() && !notice.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
