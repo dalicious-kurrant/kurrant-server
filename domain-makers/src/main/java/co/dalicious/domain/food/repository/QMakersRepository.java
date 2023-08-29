@@ -10,6 +10,7 @@ import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.entity.enums.ServiceType;
 import co.dalicious.domain.food.mapper.MakersCapacityMapper;
 import co.dalicious.system.enums.DiningType;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -250,9 +251,13 @@ public class QMakersRepository {
     }
 
     public Tuple findNameById(BigInteger makersId) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        if(makersId != null) {
+            whereCause.and(makers.id.eq(makersId));
+        }
         return queryFactory.select(makers.name, makers.managerPhone)
                 .from(makers)
-                .where(makers.id.eq(makersId))
+                .where(whereCause)
                 .fetchOne();
     }
 }
