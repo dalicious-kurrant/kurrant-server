@@ -4,6 +4,7 @@ import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.CorporationRepository;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QCorporationRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
@@ -35,7 +36,8 @@ public class GroupServiceImpl implements GroupService {
     public final QGroupRepository qGroupRepository;
     public final GroupRepository groupRepository;
     private final GroupMapper groupMapper;
-    public final UserUtil userUtil;
+    private final CorporationRepository corporationRepository;
+    private final UserUtil userUtil;
 
 
     @Override
@@ -63,6 +65,18 @@ public class GroupServiceImpl implements GroupService {
 
         List<Spot> spots = group.getSpots();
         return groupMapper.spotsToDtos(spots);
+    }
+
+    @Override
+    @Transactional
+    public void postManagerInformation(SecurityUser securityUser, String information, String value) {
+        BigInteger groupId = userUtil.getGroupId(securityUser);
+        Corporation corporation = corporationRepository.findById(groupId).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
+        switch (information) {
+            case "name" -> corporation.updateManagerName(value);
+            case "phone" -> corporation.updateManagerPhone(value);
+            default -> throw new ApiException(ExceptionEnum.WRONG_PARAMETER);
+        }
     }
 
 }

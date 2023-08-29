@@ -39,6 +39,10 @@ public class MakersPaycheck {
     @Convert(converter = PaycheckStatusConverter.class)
     private PaycheckStatus paycheckStatus;
 
+    @Column(columnDefinition="Decimal(15,2) default '0.00'")
+    @Comment("물류 수수료")
+    private Double fee;
+
     @Embedded
     @Comment("엑셀 파일")
     @AttributeOverrides({
@@ -96,6 +100,7 @@ public class MakersPaycheck {
         this.pdfFile = pdfFile;
         this.makers = makers;
         this.paycheckDailyFoods = paycheckDailyFoods;
+        this.fee = Double.valueOf(this.makers.getFee());
     }
 
     public void updatePaycheckStatus(PaycheckStatus paycheckStatus) {
@@ -144,7 +149,7 @@ public class MakersPaycheck {
 
     // TODO: 수정 필요
     public Double getCommission() {
-        return Double.valueOf(this.makers.getFee());
+        return this.fee;
     }
 
     public BigDecimal getCommissionPrice() {

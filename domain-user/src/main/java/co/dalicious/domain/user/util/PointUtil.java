@@ -146,9 +146,9 @@ public class PointUtil {
     public BigDecimal findFoundersPoint(User user) {
         List<PointHistory> pointHistoryList = qPointHistoryRepository.findPointHistoryByPointStatusAndUser(user, PointStatus.FOUNDERS_REWARD);
 
-        if(!pointHistoryList.isEmpty()) {
-            return BigDecimal.ZERO;
-        }
+//        if(!pointHistoryList.isEmpty()) {
+//            return BigDecimal.ZERO;
+//        }
 
         List<FoundersPointPolicyDto> foundersPointPolicyDtos = findFoundersPointPolicyDto();
 

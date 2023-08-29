@@ -1,6 +1,7 @@
 package co.dalicious.domain.user.repository;
 
 
+import co.dalicious.domain.user.dto.UserInfoDto;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.dalicious.domain.user.entity.enums.PointStatus;
@@ -9,6 +10,7 @@ import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -226,14 +228,6 @@ public class QUserRepository {
         return userIdMap;
     }
 
-    public List<String> findUserFirebaseToken(List<BigInteger> userIds) {
-
-        return queryFactory.select(user.firebaseToken)
-                .from(user)
-                .where(user.id.in(userIds), user.firebaseToken.isNotNull())
-                .fetch();
-    }
-
     public List<User> findUserFirebaseToken(Set<BigInteger> userIds) {
 
         return queryFactory.selectFrom(user)
@@ -247,5 +241,37 @@ public class QUserRepository {
                 .where(user.phone.eq(to))
                 .limit(1)
                 .fetchOne());
+    }
+
+    public List<User> findAllByNotNullFirebaseToken() {
+        return queryFactory.selectFrom(user)
+                .where(user.firebaseToken.isNotNull())
+                .fetch();
+    }
+
+    public Optional<User> findOneByEmail(String email) {
+        return Optional.ofNullable(queryFactory.selectFrom(user)
+                .where(user.email.eq(email))
+                .limit(1)
+                .fetchOne());
+
+    }
+
+    public Map<BigInteger, String> findUserIdAndPhoneByUserId(List<BigInteger> userIds) {
+        List<Tuple> userResult = queryFactory.select(user.id, user.phone)
+                .from(user)
+                .where(user.id.in(userIds))
+                .fetch();
+
+        Map<BigInteger, String> userIdMap = new HashMap<>();
+        userResult.forEach(v -> userIdMap.put(v.get(user.id), v.get(user.phone)));
+        return userIdMap;
+    }
+
+    public List<UserInfoDto> findAllUserIdAndName() {
+        return queryFactory.select(Projections.fields(UserInfoDto.class, user.id, user.name))
+                .from(user)
+                .where(user.userStatus.ne(UserStatus.INACTIVE))
+                .fetch();
     }
 }

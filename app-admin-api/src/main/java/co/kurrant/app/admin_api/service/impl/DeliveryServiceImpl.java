@@ -3,13 +3,12 @@ package co.kurrant.app.admin_api.service.impl;
 import co.dalicious.client.alarm.dto.PushRequestDtoByUser;
 import co.dalicious.client.alarm.entity.PushAlarms;
 import co.dalicious.client.alarm.entity.enums.AlarmType;
-import co.dalicious.client.alarm.repository.PushAlarmRepository;
 import co.dalicious.client.alarm.repository.QPushAlarmsRepository;
 import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.LoginTokenDto;
 import co.dalicious.client.core.filter.provider.SimpleJwtTokenProvider;
-import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
 import co.dalicious.domain.client.entity.Group;
@@ -51,10 +50,9 @@ import co.kurrant.app.admin_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
@@ -84,7 +82,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final DeliveryInstanceRepository deliveryInstanceRepository;
     private final OrderItemDailyFoodRepository orderItemDailyFoodRepository;
     private final QPushAlarmsRepository qPushAlarmsRepository;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PushService pushService;
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final PushUtil pushUtil;
@@ -212,7 +210,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                         .type(AlarmType.ORDER_STATUS.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
-                sseService.send(user.getId(), 6, null, null, null);
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
             }
             orderItemDailyFoodRepository.saveAll(orderItemDailyFoods);
             pushService.sendToPush(pushRequestDtoByUsers);

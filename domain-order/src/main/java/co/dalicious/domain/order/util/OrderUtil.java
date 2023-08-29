@@ -87,8 +87,16 @@ public class OrderUtil {
 
     public static Boolean isMembership(User user, Group group) {
         if (group instanceof Corporation corporation) {
-            return corporation.getIsMembershipSupport() &&
-                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now()));
+            return user.getIsMembership() || (corporation.getIsMembershipSupport() &&
+                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now())));
+        }
+        return user.getIsMembership();
+    }
+
+    public static Boolean isCorporationMembership(User user, Group group) {
+        if (group instanceof Corporation corporation) {
+            return (corporation.getIsMembershipSupport() &&
+                    (corporation.getMembershipEndDate() == null || !corporation.getMembershipEndDate().isBefore(LocalDate.now())));
         }
         return user.getIsMembership();
     }
@@ -210,7 +218,7 @@ public class OrderUtil {
     public static RefundPriceDto getRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
+        BigDecimal refundablePrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         if (refundablePrice.compareTo(orderItemDailyFood.getOrder().getTotalPrice()) > 0) {
             refundablePrice = orderItemDailyFood.getOrder().getTotalPrice();
         }
@@ -353,25 +361,24 @@ public class OrderUtil {
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
     }
 
-    public static RefundPriceDto getMedtronicRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
+    public static RefundPriceDto getPartialRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
         BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         // 식사 일정에 따른 총 결제 금액
         BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         // 사용한 지원금
-        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
+        BigDecimal supportPercent = UserSupportPriceUtil.getGroupSupportPriceByDiningType(((OrderDailyFood) orderItemDailyFood.getOrder()).getSpot(), orderItemDailyFood.getDailyFood().getDiningType(), orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
         // 환불 요청 금액
-        BigDecimal requestRefundPrice = NumberUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
+        BigDecimal requestRefundPrice = NumberUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(supportPercent));
         // 배송비
         BigDecimal deliveryFee = BigDecimal.ZERO;
-        // 업데이트 되어야할 지원금
-        BigDecimal renewSupportPrice = usedSupportPrice;
+        // 마지막 상품인지 확인
         Boolean isLastOrderItemOfGroup = isLastOrderItemOfGroup(orderItemDailyFood);
 
 
-        // 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
-        renewSupportPrice = itemsPrice.multiply(BigDecimal.valueOf(0.5)).subtract(requestRefundPrice).add(deliveryFee);
+        // 업데이트 되어야할 지원금, 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
+        BigDecimal renewSupportPrice = itemsPrice.multiply(supportPercent).subtract(requestRefundPrice).add(deliveryFee);
 
         // 3. 환불 가능 금액 > 환불 요청 금액
         if (refundablePrice.compareTo(requestRefundPrice) >= 0) {
@@ -403,25 +410,24 @@ public class OrderUtil {
         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
     }
 
-    public static RefundPriceDto getMedtronicRefundPriceAdmin(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
+    public static RefundPriceDto getPartialRefundPriceAdmin(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
         BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
         // 식사 일정에 따른 총 결제 금액
         BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
         // 사용한 지원금
-        BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFoodGroup.getUserSupportPriceHistories());
+        BigDecimal supportPercent = UserSupportPriceUtil.getGroupSupportPriceByDiningType(((OrderDailyFood) orderItemDailyFood.getOrder()).getSpot(), orderItemDailyFood.getDailyFood().getDiningType(), orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
         // 환불 요청 금액
-        BigDecimal requestRefundPrice = NumberUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(BigDecimal.valueOf(0.5)));
+        BigDecimal requestRefundPrice = NumberUtils.floorToOneDigit(orderItemDailyFood.getOrderItemTotalPrice().multiply(supportPercent));
         // 배송비
         BigDecimal deliveryFee = BigDecimal.ZERO;
-        // 업데이트 되어야할 지원금
-        BigDecimal renewSupportPrice = usedSupportPrice;
+        // 마지막 상품인지 확인
         Boolean isLastOrderItemOfGroup = isLastOrderItemOfGroup(orderItemDailyFood);
 
 
-        // 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
-        renewSupportPrice = itemsPrice.multiply(BigDecimal.valueOf(0.5)).subtract(requestRefundPrice).add(deliveryFee);
+        // 업데이트 되어야할 지원금, 배송비 환불이 필요할 경우에는, 지원금만 계산하기 위해 요청환불 금액에서 배송비는 제외하기
+        BigDecimal renewSupportPrice = itemsPrice.multiply(supportPercent).subtract(requestRefundPrice).add(deliveryFee);
 
         // 3. 환불 가능 금액 > 환불 요청 금액
         if (refundablePrice.compareTo(requestRefundPrice) >= 0) {

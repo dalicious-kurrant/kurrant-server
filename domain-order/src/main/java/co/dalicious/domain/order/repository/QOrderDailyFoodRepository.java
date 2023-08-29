@@ -4,12 +4,10 @@ import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.food.entity.DailyFood;
 import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.order.dto.CapacityDto;
-import co.dalicious.domain.order.dto.OrderDto;
-import co.dalicious.domain.order.dto.ServiceDiningDto;
-import co.dalicious.domain.order.dto.ServiceDateBy;
+import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.dto.point.FoundersPointDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
@@ -20,8 +18,9 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import exception.ApiException;
 import exception.ExceptionEnum;
@@ -32,6 +31,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import javax.persistence.EntityManager;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Timestamp;
@@ -46,6 +46,7 @@ import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.food.entity.QFood.food;
 import static co.dalicious.domain.food.entity.QMakers.makers;
+import static co.dalicious.domain.order.entity.QDailyFoodSupportPrice.dailyFoodSupportPrice;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.order.entity.QOrderDailyFood.orderDailyFood;
 import static co.dalicious.domain.order.entity.QOrderItem.orderItem;
@@ -126,7 +127,7 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
-    public List<OrderItemDailyFood> findAllByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group group, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
+    public List<SelectOrderDailyFoodDto> findSelectDtoByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group selectGroup, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (startDate != null) {
@@ -149,41 +150,113 @@ public class QOrderDailyFoodRepository {
         }
 
         if (selectedMakers != null) {
-            whereClause.and(makers.eq(selectedMakers));
+            whereClause.and(orderItemDailyFood.dailyFood.food.makers.eq(selectedMakers));
         }
 
-        if (group != null) {
-            whereClause.and(orderItemDailyFood.dailyFood.group.eq(group));
+        if (selectGroup != null) {
+            whereClause.and(orderItemDailyFood.dailyFood.group.eq(selectGroup));
         }
 
         if (orderStatus != null) {
             whereClause.and(orderItemDailyFood.orderStatus.eq(orderStatus));
         }
 
-        List<OrderItemDailyFood> results = queryFactory.selectFrom(orderItemDailyFood)
+        if (spotType != null) {
+            switch (GroupDataType.ofCode(spotType)) {
+                case CORPORATION -> whereClause.and(group.instanceOf(Corporation.class));
+                case MY_SPOT -> whereClause.and(group.instanceOf(MySpotZone.class));
+                case OPEN_GROUP -> whereClause.and(group.instanceOf(OpenGroup.class));
+            }
+        }
+
+        List<SelectOrderDailyFoodDto> result = queryFactory.select(
+                        Projections.fields(SelectOrderDailyFoodDto.class,
+                                orderItemDailyFood.orderItemDailyFoodGroup.id.as("orderItemGroupId"),
+                                orderItemDailyFood.dailyFood.serviceDate,
+                                orderItemDailyFood.dailyFood.diningType,
+                                orderDailyFood.groupName,
+                                orderDailyFood.spotName,
+                                orderDailyFood.user.name.as("userName"),
+                                orderDailyFood.user.nickname.as("userNickname"),
+                                orderDailyFood.user.email.as("userEmail"),
+                                orderDailyFood.phone.coalesce(orderDailyFood.user.phone).as("phone"),
+                                orderDailyFood.code.as("orderCode"),
+                                orderDailyFood.createdDateTime.as("orderDateTime"),
+                                orderDailyFood.totalPrice.as("orderTotalPrice"),
+                                orderDailyFood.point,
+                                orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee.as("deliveryPrice"),
+                                orderItemDailyFood.membershipDiscountRate.coalesce(0).as("isMembership"),
+                                orderDailyFood.user.id.as("userId")
+                        )
+                )
+                .from(orderItemDailyFood)
                 .innerJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .leftJoin(dailyFoodSupportPrice).on(orderItemDailyFood.orderItemDailyFoodGroup.eq(dailyFoodSupportPrice.orderItemDailyFoodGroup).and(dailyFoodSupportPrice.monetaryStatus.eq(MonetaryStatus.DEDUCTION)))
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .innerJoin(dailyFood.food, food)
-                .innerJoin(food.makers, makers)
+                .innerJoin(dailyFood.group, group)
                 .where(whereClause)
+                .groupBy(orderItemDailyFood.orderItemDailyFoodGroup)
                 .orderBy(orderItemDailyFood.dailyFood.serviceDate.desc())
                 .fetch();
 
-        if (spotType != null) {
-            Class<? extends Group> groupClass = null;
-            switch (GroupDataType.ofCode(spotType)) {
-                case CORPORATION -> groupClass = Corporation.class;
-                case MY_SPOT -> groupClass = MySpotZone.class;
-                case OPEN_GROUP -> groupClass = OpenGroup.class;
-            }
-            Class<? extends Group> finalGroupClass = groupClass;
-            results = results.stream()
-                    .filter(orderItem -> finalGroupClass.isInstance(Hibernate.unproxy(orderItem.getDailyFood().getGroup())))
-                    .collect(Collectors.toList());
+        Set<BigInteger> orderItemDailyFoodGroupIdSet = result.stream().map(SelectOrderDailyFoodDto::getOrderItemGroupId).collect(Collectors.toSet());
+        List<Tuple> totalDiscountPriceList = getTotalDiscountPrice(orderItemDailyFoodGroupIdSet);
+        List<Tuple> supportPriceList = getSupportPrice(orderItemDailyFoodGroupIdSet);
+        List<Tuple> orderItemDailyFoodsDetails = fetchOrderItemDailyFoodsDetails(orderItemDailyFoodGroupIdSet);
+
+        for (SelectOrderDailyFoodDto dto : result) {
+            Tuple totalDiscountPrice = totalDiscountPriceList.stream().filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId())).findFirst().orElse(null);
+            Tuple supportPrice = supportPriceList.stream().filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId())).findFirst().orElse(null);
+            List<SelectOrderItemDailyFoodsDto> selectOrderItemDailyFoodsDtos = orderItemDailyFoodsDetails.stream()
+                    .filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId()))
+                    .map(v -> v.get(1, SelectOrderItemDailyFoodsDto.class))
+                    .toList();
+
+            dto.setTotalPrice(totalDiscountPrice == null ? BigDecimal.ZERO : totalDiscountPrice.get(1, BigDecimal.class));
+            dto.setSupportPrice(supportPrice == null ? BigDecimal.ZERO : supportPrice.get(1, BigDecimal.class));
+            dto.setSelectOrderItemDailyFoodsDtos(selectOrderItemDailyFoodsDtos);
         }
 
+        return result;
+    }
 
-        return results;
+    private List<Tuple> getTotalDiscountPrice(Set<BigInteger> orderItemDailyFoodGroupId) {
+        return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
+                        Expressions.cases().when(orderItemDailyFood.orderStatus.eq(OrderStatus.CANCELED)).then(BigDecimal.ZERO)
+                                .otherwise(orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).sum().add(orderItemDailyFood.orderItemDailyFoodGroup.deliveryFee).coalesce(BigDecimal.ZERO)))
+                .from(orderItemDailyFood)
+                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId))
+                .groupBy(orderItemDailyFood.orderItemDailyFoodGroup)
+                .fetch();
+    }
+
+    private List<Tuple> getSupportPrice(Set<BigInteger> orderItemDailyFoodGroupId) {
+        return queryFactory.select(dailyFoodSupportPrice.orderItemDailyFoodGroup.id, dailyFoodSupportPrice.usingSupportPrice.sum().coalesce(BigDecimal.ZERO))
+                .from(dailyFoodSupportPrice)
+                .where(dailyFoodSupportPrice.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId), dailyFoodSupportPrice.monetaryStatus.eq(MonetaryStatus.DEDUCTION))
+                .groupBy(dailyFoodSupportPrice.orderItemDailyFoodGroup)
+                .fetch();
+    }
+
+    private List<Tuple> fetchOrderItemDailyFoodsDetails(Set<BigInteger> orderItemDailyFoodGroupId) {
+        // 주요 DTO 정보를 기반으로 서브 쿼리를 구성하고 실행
+        // 이 예제에서는 주요 DTO의 정보를 사용하지 않았지만 필요에 따라 조건을 추가하여 사용 가능
+        return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
+                        Projections.bean(SelectOrderItemDailyFoodsDto.class,
+                                orderItemDailyFood.id.as("orderItemDailyFoodId"),
+                                orderItemDailyFood.deliveryTime,
+                                makers.name.as("makers"),
+                                food.name.as("foodName"),
+                                orderItemDailyFood.count,
+                                orderItemDailyFood.discountedPrice.multiply(orderItemDailyFood.count).as("price"),
+                                orderItemDailyFood.dailyFood.supplyPrice.multiply(orderItemDailyFood.count).coalesce(orderItemDailyFood.dailyFood.food.supplyPrice.multiply(orderItemDailyFood.count)).as("supplyPrice"),
+                                orderItemDailyFood.orderStatus
+                        ))
+                .from(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood.food, food)
+                .innerJoin(food.makers, makers)
+                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId)) // 필요한 조건을 추가
+                .fetch();
     }
 
     public List<OrderItemDailyFood> findAllGroupOrderByFilter(Group group, LocalDate startDate, LocalDate endDate, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId) {
@@ -284,60 +357,53 @@ public class QOrderDailyFoodRepository {
     public ServiceDateBy.MakersAndFood getMakersCounts(List<DailyFood> dailyFoods) {
         Map<ServiceDateBy.Makers, Integer> makersIntegerMap = new HashMap<>();
         Map<ServiceDateBy.Food, Integer> foodIntegerMap = new HashMap<>();
-        Set<ServiceDiningDto> serviceDiningDtos = new HashSet<>();
+        Set<ServiceDiningVo> serviceDiningVos = new HashSet<>();
         Set<Makers> makersSet = new HashSet<>();
 
         for (DailyFood dailyFood : dailyFoods) {
-            ServiceDiningDto serviceDiningDto = new ServiceDiningDto(dailyFood);
-            serviceDiningDtos.add(serviceDiningDto);
+            ServiceDiningVo serviceDiningVo = new ServiceDiningVo(dailyFood);
+            serviceDiningVos.add(serviceDiningVo);
             makersSet.add(dailyFood.getFood().getMakers());
         }
 
         // 기간 구하기
-        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningDtos);
+        PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningVos);
 
-        List<OrderItemDailyFood> orderItemDailyFoods = queryFactory.selectFrom(orderItemDailyFood)
+        List<Tuple> aggregatedResults = queryFactory.select(
+                        dailyFood.serviceDate,
+                        dailyFood.diningType,
+                        dailyFood.food,
+                        food.makers,
+                        orderItemDailyFood.count.sum())
+                .from(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .innerJoin(dailyFood.food, food)
                 .innerJoin(food.makers, makers)
-                .where(makers.in(makersSet),
+                .where(
+                        makers.in(makersSet),
                         dailyFood.serviceDate.goe(periodDto.getStartDate()),
                         dailyFood.serviceDate.loe(periodDto.getEndDate()),
-                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment())
+                )
+                .groupBy(dailyFood.serviceDate, dailyFood.diningType, dailyFood.food, food.makers)
                 .fetch();
 
-        MultiValueMap<ServiceDateBy.Makers, OrderItemDailyFood> makersOrderMap = new LinkedMultiValueMap<>();
-        MultiValueMap<ServiceDateBy.Food, OrderItemDailyFood> foodOrderMap = new LinkedMultiValueMap<>();
-        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            ServiceDateBy.Makers makersDto = new ServiceDateBy.Makers();
-            makersDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
-            makersDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
-            makersDto.setMakers(orderItemDailyFood.getDailyFood().getFood().getMakers());
-            makersOrderMap.add(makersDto, orderItemDailyFood);
-
+// Process the aggregated results
+        for (Tuple result : aggregatedResults) {
             ServiceDateBy.Food foodDto = new ServiceDateBy.Food();
-            foodDto.setDiningType(orderItemDailyFood.getDailyFood().getDiningType());
-            foodDto.setServiceDate(orderItemDailyFood.getOrderItemDailyFoodGroup().getServiceDate());
-            foodDto.setFood(orderItemDailyFood.getDailyFood().getFood());
-            foodOrderMap.add(foodDto, orderItemDailyFood);
-        }
+            foodDto.setDiningType(result.get(dailyFood.diningType));
+            foodDto.setServiceDate(result.get(dailyFood.serviceDate));
+            foodDto.setFood(result.get(dailyFood.food));
 
-        for (ServiceDateBy.Makers makers1 : makersOrderMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = makersOrderMap.get(makers1);
-            Integer count = 0;
-            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
-                count += orderItemDailyFood.getCount();
-            }
-            makersIntegerMap.put(makers1, count);
-        }
+            ServiceDateBy.Makers makersDto = new ServiceDateBy.Makers();
+            makersDto.setDiningType(result.get(dailyFood.diningType));
+            makersDto.setServiceDate(result.get(dailyFood.serviceDate));
+            makersDto.setMakers(result.get(food.makers));
 
-        for (ServiceDateBy.Food food1 : foodOrderMap.keySet()) {
-            List<OrderItemDailyFood> orderItemDailyFoodList = foodOrderMap.get(food1);
-            Integer count = 0;
-            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodList) {
-                count += orderItemDailyFood.getCount();
-            }
-            foodIntegerMap.put(food1, count);
+            int count = result.get(orderItemDailyFood.count.sum());
+
+            foodIntegerMap.put(foodDto, count);
+            makersIntegerMap.merge(makersDto, count, Integer::sum);
         }
         ServiceDateBy.MakersAndFood makersAndFood = new ServiceDateBy.MakersAndFood();
         makersAndFood.setMakersCountMap(makersIntegerMap);
@@ -532,4 +598,13 @@ public class QOrderDailyFoodRepository {
                 .fetch();
     }
 
+    public Optional<OrderItemDailyFood> findByIdFetchOrderDailyFood(BigInteger id) {
+        return Optional.ofNullable(
+                queryFactory.selectFrom(orderItemDailyFood)
+                        .innerJoin(orderItemDailyFood.order, order).fetchJoin()
+                        .innerJoin(order.user, user).fetchJoin()
+                        .where(orderItemDailyFood.id.eq(id))
+                        .fetchOne()
+        );
+    }
 }

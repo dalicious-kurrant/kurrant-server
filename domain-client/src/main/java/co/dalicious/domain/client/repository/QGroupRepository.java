@@ -19,9 +19,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static co.dalicious.domain.client.entity.QCorporation.corporation;
 import static co.dalicious.domain.client.entity.QGroup.group;
@@ -103,9 +102,9 @@ public class QGroupRepository {
                 .fetch();
     }
 
-    public List<Group> findAllOpenGroup() {
-        return queryFactory.selectFrom(group)
-                .where(group.instanceOf(OpenGroup.class), group.isActive)
+    public List<OpenGroup> findAllOpenGroup() {
+        return queryFactory.selectFrom(openGroup)
+                .where(openGroup.isActive.isTrue())
                 .fetch();
     }
 
@@ -204,5 +203,19 @@ public class QGroupRepository {
         return queryFactory.selectFrom(group)
                 .where(whereCause, group.id.eq(id))
                 .fetchOne();
+    }
+
+    public Map<BigInteger,String> findGroupNameByIds(Set<BigInteger> groupIds) {
+        List<Tuple> result = queryFactory.select(group.id, group.name)
+                .from(group)
+                .where(group.id.in(groupIds))
+                .fetch();
+
+        Map<BigInteger, String> nameMap = new HashMap<>();
+        for (Tuple tuple : result) {
+            nameMap.put(tuple.get(group.id), tuple.get(group.name));
+        }
+
+        return nameMap;
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -120,22 +121,22 @@ public interface GroupMapper {
 
     default GroupListDto.GroupInfoList toGroupListDto(Group group, User managerUser) {
         GroupListDto.GroupInfoList groupInfoList = null;
-        if(group instanceof Corporation corporation) {
+        if (group instanceof Corporation corporation) {
             groupInfoList = toCorporationDto(corporation);
             groupInfoList.setGroupType(GroupDataType.CORPORATION.getCode());
-            if((corporation.getIsPrepaid() != null && corporation.getIsPrepaid()) && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
+            if ((corporation.getIsPrepaid() != null && corporation.getIsPrepaid()) && (corporation.getPrepaidCategories() != null || !corporation.getPrepaidCategories().isEmpty())) {
                 groupInfoList.setPrepaidCategoryList(toPrepaidCategoryDtos(corporation.getPrepaidCategories()));
             }
+
+            if (managerUser != null) groupInfoList.setManagerId(managerUser.getId());
+            groupInfoList.setManagerName(corporation.getManagerName());
+            groupInfoList.setManagerPhone(corporation.getManagerPhone());
         }
-        if(group instanceof OpenGroup openGroup) {
+        if (group instanceof OpenGroup openGroup) {
             groupInfoList = toOpenSpotDto(openGroup);
             groupInfoList.setGroupType(GroupDataType.OPEN_GROUP.getCode());
         }
-        if(managerUser != null) {
-            groupInfoList.setManagerId(managerUser.getId());
-            groupInfoList.setManagerName(managerUser.getName());
-            groupInfoList.setManagerPhone(managerUser.getPhone());
-        }
+
 
         Set<Days> serviceDays = new HashSet<>();
 
@@ -150,7 +151,7 @@ public interface GroupMapper {
             }
             mealInfoDtos.add(mealInfoDto);
         }
-        if(groupInfoList != null) {
+        if (groupInfoList != null) {
             groupInfoList.setServiceDays(DaysUtil.serviceDaysToDaysString(serviceDays));
             groupInfoList.setMealInfos(mealInfoDtos);
         }
@@ -160,12 +161,12 @@ public interface GroupMapper {
 
     default Group toEntity(GroupListDto.GroupInfoList groupDto, Address address) throws ParseException {
         Group group;
-        if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.CORPORATION)) {
+        if (GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.CORPORATION)) {
             group = toCorporation(groupDto);
             group.setAddress(address);
             return group;
         }
-        if(GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.OPEN_GROUP)) {
+        if (GroupDataType.ofCode(groupDto.getGroupType()).equals(GroupDataType.OPEN_GROUP)) {
             group = toOpenGroup(groupDto);
             group.setAddress(address);
             return group;
@@ -201,21 +202,22 @@ public interface GroupMapper {
     }
 
     default List<ServiceDaysAndSupportPrice> toServiceDaysAndSupportPrice(List<GroupListDto.SupportPriceByDay> supportPriceByDays) {
-        if(supportPriceByDays == null) return null;
-        MultiValueMap<Integer, Days> supportPriceByDayMap = new LinkedMultiValueMap<>();
+        if (supportPriceByDays == null) return null;
+        MultiValueMap<BigDecimal, Days> supportPriceByDayMap = new LinkedMultiValueMap<>();
         for (GroupListDto.SupportPriceByDay supportPriceByDay : supportPriceByDays) {
-            supportPriceByDayMap.add(supportPriceByDay.getSupportPrice().intValue(), Days.ofString(supportPriceByDay.getServiceDay()));
+            BigDecimal supportPriceHalfUp = supportPriceByDay.getSupportPrice().setScale(2, RoundingMode.HALF_UP);
+            supportPriceByDayMap.add(supportPriceHalfUp, Days.ofString(supportPriceByDay.getServiceDay()));
         }
 
         List<ServiceDaysAndSupportPrice> serviceDaysAndSupportPriceList = new ArrayList<>();
-        for (Integer integer : supportPriceByDayMap.keySet()) {
-            if (integer != null && integer != 0) {
-                List<Days> days = supportPriceByDayMap.get(integer);
+        for (BigDecimal bigDecimal : supportPriceByDayMap.keySet()) {
+            if (bigDecimal != null && bigDecimal.compareTo(BigDecimal.ZERO) != 0) {
+                List<Days> days = supportPriceByDayMap.get(bigDecimal);
                 days = days.stream().sorted(Comparator.comparing(Days::getCode))
                         .toList();
                 serviceDaysAndSupportPriceList.add(ServiceDaysAndSupportPrice.builder()
                         .supportDays(days)
-                        .supportPrice(BigDecimal.valueOf(integer))
+                        .supportPrice(bigDecimal)
                         .build());
             }
         }
@@ -283,10 +285,9 @@ public interface GroupMapper {
     void updateCorporation(UpdateGroupListDto.GroupInfoList groupDto, @MappingTarget Corporation corporation) throws ParseException;
 
     default void updateMealInfo(GroupListDto.MealInfo mealInfoDto, Group group, @MappingTarget MealInfo mealInfo) {
-        if(mealInfo instanceof CorporationMealInfo corporationMealInfo) {
+        if (mealInfo instanceof CorporationMealInfo corporationMealInfo) {
             updateCorporationMealInfo(mealInfoDto, group, corporationMealInfo);
-        }
-        else {
+        } else {
             DiningType diningType = DiningType.ofCode(mealInfoDto.getDiningType());
             List<LocalTime> deliveryTimes = DateUtils.stringToLocalTimes(mealInfoDto.getDeliveryTimes());
             DayAndTime membershipBenefitTime = DayAndTime.stringToDayAndTime(mealInfoDto.getMembershipBenefitTime());
@@ -304,7 +305,9 @@ public interface GroupMapper {
         DayAndTime lastOrderTime = DayAndTime.stringToDayAndTime(mealInfoDto.getLastOrderTime());
         List<Days> serviceDays = DaysUtil.serviceDaysToDaysList(mealInfoDto.getServiceDays()).stream().sorted().toList();
         mealInfo.updateCorporationMealInfo(diningType, deliveryTimes, membershipBenefitTime, lastOrderTime, serviceDays, group, serviceDaysAndSupportPriceList);
-    };
+    }
+
+    ;
 
     default List<GroupListDto.PrepaidCategory> toPrepaidCategoryDtos(List<PrepaidCategory> prepaidCategoryList) {
         return prepaidCategoryList.stream()
@@ -327,6 +330,7 @@ public interface GroupMapper {
     }
 
     default List<PrepaidCategory> toPrepaidCategories(List<GroupListDto.PrepaidCategory> prepaidCategoryDtos) {
+        if (prepaidCategoryDtos == null || prepaidCategoryDtos.isEmpty()) return null;
         return prepaidCategoryDtos.stream()
                 .map(this::toPrepaidCategory)
                 .toList();

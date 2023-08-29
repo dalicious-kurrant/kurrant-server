@@ -6,7 +6,7 @@ import co.dalicious.client.alarm.service.PushService;
 import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
-import co.dalicious.client.sse.SseService;
+import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.OpenGroup;
@@ -18,6 +18,7 @@ import co.dalicious.domain.order.repository.QOrderRepository;
 import co.dalicious.domain.user.dto.DeleteMemberRequestDto;
 import co.dalicious.domain.user.dto.TestDataResponseDto;
 import co.dalicious.domain.user.dto.UserDto;
+import co.dalicious.domain.user.dto.UserInfoDto;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserHistoryMapper;
@@ -33,6 +34,7 @@ import exception.CustomException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -72,7 +74,7 @@ public class UserServiceImpl implements UserService {
     private final PointUtil pointUtil;
     private final PushUtil pushUtil;
     private final PushService pushService;
-    private final SseService sseService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final UserTasteTestDataMapper userTasteTestDataMapper;
 
 
@@ -238,7 +240,7 @@ public class UserServiceImpl implements UserService {
                         .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
                         .forEach(g -> g.updateOpenGroupUserCount(1, true));
 
-                userGroups.forEach(v -> sseService.send(user.getId(), 7, null, v.getGroup().getId(), null));
+                userGroups.forEach(v -> applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, v.getGroup().getId(), null)));
 
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
@@ -260,7 +262,7 @@ public class UserServiceImpl implements UserService {
                         if(defaultStatus.equals(ClientStatus.WITHDRAWAL)) {
                             if (userGroup.getGroup() instanceof Corporation) pushAlarmForCorporationUser.add(user);
                             if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
-                            sseService.send(user.getId(), 7, null, userGroup.getGroup().getId(), null);
+                            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, userGroup.getGroup().getId(), null));
                         }
 
                     } else {
@@ -289,7 +291,7 @@ public class UserServiceImpl implements UserService {
                     pushAlarmForCorporationUser.add(user);
                 }
 
-                userGroups.forEach(v -> sseService.send(user.getId(), 7, null, v.getGroup().getId(), null));
+                userGroups.forEach(v -> applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, v.getGroup().getId(), null)));
 
                 // open group의 경우 count 넣기
                 userGroups.stream()
@@ -525,5 +527,10 @@ public class UserServiceImpl implements UserService {
             resultList.add(dto);
         }
         return resultList;
+    }
+
+    @Override
+    public List<UserInfoDto> getUserInfos() {
+        return qUserRepository.findAllUserIdAndName();
     }
 }

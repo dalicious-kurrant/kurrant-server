@@ -8,4 +8,5 @@ import java.math.BigInteger;
 
 @Repository
 public interface NoticeRepository extends JpaRepository<Notice, BigInteger> {
+    Notice findByIdAndIsStatus(BigInteger id, Boolean isStatus);
 }

@@ -1,28 +1,32 @@
 package co.kurrant.app.public_api.service.impl;
 
-import co.dalicious.client.sse.SseService;
+import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
+import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.board.dto.NoticeDto;
 import co.dalicious.domain.board.entity.CustomerService;
 import co.dalicious.domain.board.entity.Notice;
+import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.board.mapper.NoticeMapper;
+import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
-import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.user.entity.User;
-import co.kurrant.app.public_api.dto.board.PushResponseDto;
-import co.kurrant.app.public_api.service.BoardService;
+import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
-import co.kurrant.app.public_api.dto.board.NoticeDto;
+import co.kurrant.app.public_api.dto.board.PushResponseDto;
 import co.kurrant.app.public_api.mapper.board.CustomerServiceMapper;
-import co.kurrant.app.public_api.mapper.board.NoticeMapper;
 import co.kurrant.app.public_api.model.SecurityUser;
+import co.kurrant.app.public_api.service.BoardService;
 import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,32 +42,13 @@ public class BoardServiceImpl implements BoardService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final CustomerServiceMapper customerServiceMapper;
     private final UserUtil userUtil;
-    private final QGroupRepository qGroupRepository;
-    private final SseService sseService;
+    private final NoticeRepository noticeRepository;
 
     @Override
-    @Transactional
-    public List<NoticeDto>  noticeList(Integer status, BigInteger groupId, SecurityUser securityUser) {
+    @Transactional(readOnly = true)
+    public List<NoticeDto>  popupNoticeList(SecurityUser securityUser) {
         List<NoticeDto> result = new ArrayList<>();
-        List<Notice> noticeList = qNoticeRepository.findAllByType(status);
-
-
-        //status가 3이고 스팟ID가 NULL이 아니면 스팟공지만 리턴
-        if (status == 3 && groupId != null){
-
-            //스팟 검증
-            BigInteger findGroupId = qGroupRepository.findById(groupId);
-            if (findGroupId != null){
-                List<Notice> spotNoticeList = qNoticeRepository.findAllSpotNotice(findGroupId);
-                for (Notice notice:spotNoticeList){
-                    result.add(noticeMapper.toDto(notice));
-                }
-                return result;
-            } else{
-                throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
-            }
-        }
-
+        List<Notice> noticeList = qNoticeRepository.findPopupNotice();
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
@@ -105,13 +90,46 @@ public class BoardServiceImpl implements BoardService {
     @Transactional
     public void readAllAlarm(SecurityUser securityUser, List<String> ids) {
         List<PushAlarmHash> pushAlarmHashes = pushAlarmHashRepository.findAllByUserIdOrderByCreatedDateTimeDesc(securityUser.getId());
-        if (!pushAlarmHashes.isEmpty()) pushAlarmHashes.stream()
-                .filter(v -> ids.contains(v.getId()) && !v.getIsRead())
-                .findAny()
-                .ifPresent(v -> {
-                    v.setRead(true);
-                    pushAlarmHashRepository.save(v);
-                });
+        if (pushAlarmHashes.isEmpty()) return;
+        for (PushAlarmHash pushAlarmHash : pushAlarmHashes) {
+            if (ids.contains(pushAlarmHash.getId())) {
+                pushAlarmHash.setRead(true);
+                pushAlarmHashRepository.save(pushAlarmHash);
+            }
+        }
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<NoticeDto> noticeList(SecurityUser securityUser, Integer type, OffsetBasedPageRequest pageable) {
+        // 유저가 속한 그룹이 맞는지 확인
+        User user = userUtil.getUser(securityUser);
+        List<BigInteger> uesrGroupList = null;
+        if(type != null && type.equals(BoardType.SPOT.getCode())) {
+            uesrGroupList = user.getGroups().stream().filter(v -> v.getClientStatus().equals(ClientStatus.BELONG)).map(v -> v.getGroup().getId()).toList();
+        }
+
+        Page<Notice> noticeList = qNoticeRepository.findAllNoticeBySpotFilter(uesrGroupList, pageable);
+        List<NoticeDto> noticeDtos = new ArrayList<>();
+        if(noticeList.isEmpty()) {
+            return ListItemResponseDto.<NoticeDto>builder().items(noticeDtos).count(0).limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(true).build();
+        }
+
+        for (Notice notice : noticeList){
+            noticeDtos.add(noticeMapper.toDto(notice));
+        }
+
+        return ListItemResponseDto.<NoticeDto>builder().items(noticeDtos).count(noticeList.getNumberOfElements()).limit(pageable.getPageSize())
+                .offset(pageable.getOffset()).total((long) noticeList.getTotalPages()).isLast(noticeList.isLast()).build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public NoticeDto getNoticeDetail(SecurityUser securityUser, BigInteger noticeId) {
+        Notice notice = noticeRepository.findByIdAndIsStatus(noticeId, true);
+        if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
+
+        return noticeMapper.toDto(notice);
     }
 }

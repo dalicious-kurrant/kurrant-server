@@ -1,0 +1,44 @@
+version: "3"
+services:
+  makers_kurrant_v1_green:
+    container_name: makers_kurrant_v1_green
+    image: dalicious77/makers_kurrant_v1:${IMAGE_TAG}
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev,dev-green,mail,sms,redis,jwt,s3,payment
+    ports:
+      - "8884:8884"
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "kurrant/dev"
+        awslogs-stream: "makers"
+
+    networks:
+      - redis_redis_cluster
+
+  makers_kurrant_v1_blue:
+    container_name: makers_kurrant_v1_blue
+    image: dalicious77/makers_kurrant_v1:${IMAGE_TAG}
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev,dev-blue,mail,sms,redis,jwt,s3,payment
+    ports:
+      - "8883:8883"
+    logging:
+      driver: "awslogs"
+      options:
+        awslogs-region: "ap-northeast-2"
+        awslogs-group: "kurrant/dev"
+        awslogs-stream: "makers"
+
+    networks:
+      - redis_redis_cluster
+
+networks:
+  redis_redis_cluster:
+    external: true
+
+
+
+
+

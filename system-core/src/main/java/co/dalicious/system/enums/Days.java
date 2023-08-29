@@ -2,6 +2,7 @@ package co.dalicious.system.enums;
 
 import lombok.Getter;
 
+import java.time.DayOfWeek;
 import java.util.Arrays;
 
 @Getter
@@ -34,5 +35,18 @@ public enum Days {
                 .filter(v -> v.getDays().equals(dbData))
                 .findAny()
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 요일입니다."));
+    }
+
+    public static Days toDaysEnum(DayOfWeek dayOfWeek) {
+        return switch (dayOfWeek) {
+            case MONDAY -> Days.MON;
+            case TUESDAY -> Days.TUE;
+            case WEDNESDAY -> Days.WED;
+            case THURSDAY -> Days.THR;
+            case FRIDAY -> Days.FRI;
+            case SATURDAY -> Days.SAT;
+            case SUNDAY -> Days.SUN;
+            default -> throw new IllegalArgumentException("Unknown DayOfWeek: " + dayOfWeek);
+        };
     }
 }

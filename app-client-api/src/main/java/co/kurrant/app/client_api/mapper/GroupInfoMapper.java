@@ -26,11 +26,19 @@ public interface GroupInfoMapper {
 
         Integer groupType = null;
         Integer employeeCount = null;
+        if(managerUser != null) {
+            groupInfoList.setManagerId(managerUser.getId());
+            groupInfoList.setManagerName(managerUser.getName());
+            groupInfoList.setManagerPhone(managerUser.getPhone());
+        }
+
         if(group instanceof Corporation corporation) {
             groupType = GroupDataType.CORPORATION.getCode();
             employeeCount = corporation.getEmployeeCount();
             groupInfoList.setMinimumSpend(corporation.getMinimumSpend());
             groupInfoList.setMaximumSpend(corporation.getMaximumSpend());
+            groupInfoList.setManagerName(corporation.getManagerName() == null ? groupInfoList.getManagerName() : corporation.getManagerName());
+            groupInfoList.setManagerPhone(corporation.getManagerPhone() == null ? groupInfoList.getManagerPhone() : corporation.getManagerPhone());
         }
         else if(group instanceof OpenGroup openGroup) {
             groupType = GroupDataType.OPEN_GROUP.getCode();
@@ -49,11 +57,6 @@ public interface GroupInfoMapper {
 
         List<DiningType> diningTypeList = group.getDiningTypes();
         groupInfoList.setDiningTypes(diningTypeList.stream().map(DiningType::getCode).toList());
-        if(managerUser != null) {
-            groupInfoList.setManagerId(managerUser.getId());
-            groupInfoList.setManagerName(managerUser.getName());
-            groupInfoList.setManagerPhone(managerUser.getPhone());
-        }
         groupInfoList.setIsMembershipSupport((isCorporation) ? ((Corporation) group).getIsMembershipSupport() : null);
         groupInfoList.setIsGarbage((isCorporation) ? ((Corporation) group).getIsGarbage() : null);
         groupInfoList.setIsHotStorage((isCorporation) ? ((Corporation) group).getIsHotStorage() : null);

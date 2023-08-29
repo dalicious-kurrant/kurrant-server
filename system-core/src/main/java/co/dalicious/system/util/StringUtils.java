@@ -3,10 +3,7 @@ package co.dalicious.system.util;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class StringUtils {
@@ -58,7 +55,7 @@ public class StringUtils {
                 .collect(Collectors.joining(","));
     }
 
-    public static String BigIntegerListToString(List<BigInteger> integers) {
+    public static String BigIntegerListToString(Collection<BigInteger> integers) {
         return integers == null ? null : integers.stream()
                 .map(Object::toString)
                 .collect(Collectors.joining(","));

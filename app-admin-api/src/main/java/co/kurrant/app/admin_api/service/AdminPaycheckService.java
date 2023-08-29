@@ -16,7 +16,6 @@ import java.util.Map;
 public interface AdminPaycheckService {
     List<MakersDto.Makers> getMakers();
     List<GroupDto.Group> getCorporations();
-
     void postMakersPaycheck(MultipartFile makersXlsx, MultipartFile makersPdf, PaycheckDto.MakersRequest paycheckDto) throws IOException;
     PaycheckDto.MakersResponse getMakersPaychecks(Map<String, Object> parameters);
     PaycheckDto.MakersDetail getMakersPaycheckDetail(BigInteger makersPaycheckId);
