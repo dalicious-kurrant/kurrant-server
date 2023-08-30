@@ -4,6 +4,7 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
@@ -146,6 +147,17 @@ public class ApplicationFormController {
         applicationFormService.renewalMySpotRequest(ids);
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 갱신했습니다.")
+                .build();
+    }
+
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "고객사 신청 생성 - 홈페이지", description = "홈페이지에서 고객사 신청을 추가합니다.")
+    @PostMapping("/homepage/corporation")
+    public ResponseMessage createCorporationRequestAtHomepage(@RequestBody CorporationRequestAtHomepageDto request) throws ParseException {
+//        applicationFormService.createCorporationRequestAtHomepage(request);
+        return ResponseMessage.builder()
+                .message("공유 스팟 신청을 성공했습니다.")
                 .build();
     }
 }
