@@ -5,6 +5,7 @@ import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.data.redis.pubsub.SseEventService;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.order.dto.OrderDto;
+import co.kurrant.app.public_api.dto.SseTypeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -61,10 +62,10 @@ public class SseController {
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
     @PutMapping("/v1/notification/read")
-    public ResponseMessage readNotification(Authentication authentication, @RequestBody Integer type) {
+    public ResponseMessage readNotification(Authentication authentication, @RequestBody SseTypeDto type) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
-        sseService.readNotification(userId, type);
+        sseService.readNotification(userId, type.getType());
         return ResponseMessage.builder()
                 .message("알림 읽기에 성공했습니다.")
                 .build();
