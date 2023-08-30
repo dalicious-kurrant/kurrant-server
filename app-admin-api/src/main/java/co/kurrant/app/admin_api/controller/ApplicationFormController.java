@@ -150,14 +150,4 @@ public class ApplicationFormController {
                 .build();
     }
 
-
-    @ControllerMarker(ControllerType.APPLICATION_FORM)
-    @Operation(summary = "고객사 신청 생성 - 홈페이지", description = "홈페이지에서 고객사 신청을 추가합니다.")
-    @PostMapping("/homepage/corporation")
-    public ResponseMessage createCorporationRequestAtHomepage(@RequestBody CorporationRequestAtHomepageDto request) throws ParseException {
-//        applicationFormService.createCorporationRequestAtHomepage(request);
-        return ResponseMessage.builder()
-                .message("공유 스팟 신청을 성공했습니다.")
-                .build();
-    }
 }
