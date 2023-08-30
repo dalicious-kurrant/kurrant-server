@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static co.dalicious.domain.client.entity.QGroup.group;
+import static co.dalicious.domain.client.entity.QSpot.spot;
 import static co.dalicious.domain.delivery.entity.QDailyFoodDelivery.dailyFoodDelivery;
 import static co.dalicious.domain.delivery.entity.QDeliveryInstance.deliveryInstance;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
@@ -83,6 +84,11 @@ public class QDeliveryInstanceRepository {
             whereClause.and(deliveryInstance.diningType.in(diningTypes));
         }
         return queryFactory.selectFrom(deliveryInstance)
+                .distinct()
+                .innerJoin(deliveryInstance.spot, spot).fetchJoin()
+                .innerJoin(deliveryInstance.dailyFoodDeliveries, dailyFoodDelivery).fetchJoin()
+                .innerJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood).fetchJoin()
+                .innerJoin(orderItemDailyFood.order, order).fetchJoin()
                 .where(deliveryInstance.makers.eq(makers),
                         whereClause)
                 .fetch();
