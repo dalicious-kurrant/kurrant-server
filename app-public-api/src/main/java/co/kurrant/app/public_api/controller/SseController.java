@@ -12,10 +12,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Description;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.security.core.Authentication;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigInteger;
 
@@ -61,8 +63,9 @@ public class SseController {
     }
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
-    @PutMapping("/v1/notification/read")
-    public ResponseMessage readNotification(Authentication authentication, @RequestBody SseTypeDto type) {
+    @PutMapping(value = "/v1/notification/read", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseMessage readNotification(Authentication authentication, @RequestBody SseTypeDto type, HttpServletRequest request) {
+        System.out.println("request.getContentType() = " + request.getContentType());
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         BigInteger userId = userUtil.getUserId(securityUser);
         sseService.readNotification(userId, type.getType());
