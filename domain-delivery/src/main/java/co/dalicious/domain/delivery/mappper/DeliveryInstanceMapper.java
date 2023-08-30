@@ -194,21 +194,24 @@ public interface DeliveryInstanceMapper {
         for (LocalTime deliveryTime : deliveryMap.keySet()) {
             List<DeliveryInstance> deliveryInstanceList = deliveryMap.get(deliveryTime);
             for (DeliveryInstance deliveryInstance : deliveryInstanceList) {
-                OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
-                Spot spot = deliveryInstance.getSpot();
+                List<OrderDailyFoodByMakersDto.Food> foods = toFood(Collections.singletonList(deliveryInstance));
+                if(!foods.isEmpty()) {
+                    OrderDailyFoodByMakersDto.FoodBySpot foodBySpot = new OrderDailyFoodByMakersDto.FoodBySpot();
+                    Spot spot = deliveryInstance.getSpot();
 
-                foodBySpot.setDeliveryId(deliveryInstance.getDeliveryCode());
-                foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
-                foodBySpot.setDeliveryTime(DateUtils.timeToString(deliveryInstance.getDeliveryTime()));
-                foodBySpot.setAddress1(spot.getAddress().addressToString());
-                foodBySpot.setAddress2(spot.getAddress().getAddress3());
-                foodBySpot.setSpotName(spot.getName());
-                foodBySpot.setGroupName(getGroupName(spot));
-                foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : deliveryInstance.getOrderItemDailyFoods().get(0).getOrder().getUser().getName());
-                foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : ((OrderDailyFood) Hibernate.unproxy(deliveryInstance.getOrderItemDailyFoods().get(0).getOrder())).getPhone());
-                foodBySpot.setFoods(toFood(Collections.singletonList(deliveryInstance)));
-                foodBySpot.setFoodCount(foodBySpot.getFoodCount());
-                foodBySpots.add(foodBySpot);
+                    foodBySpot.setDeliveryId(deliveryInstance.getDeliveryCode());
+                    foodBySpot.setSpotType(GroupDataType.ofClass(Hibernate.getClass(spot)).getCode());
+                    foodBySpot.setDeliveryTime(DateUtils.timeToString(deliveryInstance.getDeliveryTime()));
+                    foodBySpot.setAddress1(spot.getAddress().addressToString());
+                    foodBySpot.setAddress2(spot.getAddress().getAddress3());
+                    foodBySpot.setSpotName(spot.getName());
+                    foodBySpot.setGroupName(getGroupName(spot));
+                    foodBySpot.setUserName(Hibernate.getClass(spot) == CorporationSpot.class ? null : deliveryInstance.getOrderItemDailyFoods().get(0).getOrder().getUser().getName());
+                    foodBySpot.setPhone(Hibernate.getClass(spot) == CorporationSpot.class ? null : ((OrderDailyFood) Hibernate.unproxy(deliveryInstance.getOrderItemDailyFoods().get(0).getOrder())).getPhone());
+                    foodBySpot.setFoods(foods);
+                    foodBySpot.setFoodCount(foodBySpot.getFoodCount());
+                    foodBySpots.add(foodBySpot);
+                }
             }
         }
         foodBySpots = foodBySpots.stream()
