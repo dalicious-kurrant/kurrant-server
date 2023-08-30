@@ -301,9 +301,9 @@ public class OrderServiceImpl implements OrderService {
 
             SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
             if (supportType.equals(SupportType.PARTIAL)) {
-                refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                refundPriceDto = OrderUtil.getPartialRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             } else {
-                refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                refundPriceDto = OrderUtil.getRefundPriceAdmin(orderItemDailyFood, paymentCancelHistories, order.getPoint());
             }
 
             if (!refundPriceDto.isSameSupportPrice(usedSupportPrice)) {
