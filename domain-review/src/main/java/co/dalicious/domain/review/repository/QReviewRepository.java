@@ -40,6 +40,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static co.dalicious.domain.file.entity.embeddable.QImage.image;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.food.entity.QMakers.makers;
@@ -172,11 +173,18 @@ public class QReviewRepository {
 
         Set<BigInteger> getReviewIdSet = results.stream().map(SelectAppReviewByUserDto::getReviewId).collect(Collectors.toSet());
         List<Tuple> getCommentByReview = findAllCommentByReview(getReviewIdSet);
+        List<Tuple> getImageByReview = findAllImageByReview(getReviewIdSet);
 
         for (SelectAppReviewByUserDto result : results) {
             result.setCommentList(getCommentByReview.stream()
                     .filter(v -> Objects.requireNonNull(v.get(0, BigInteger.class)).equals(result.getReviewId()))
                     .map(v -> v.get(1, SelectCommentByReviewDto.class))
+                    .toList()
+            );
+
+            result.setImageLocation(getImageByReview.stream()
+                    .filter(v -> Objects.equals(v.get(0, BigInteger.class), result.getReviewId()) && v.get(1, String.class) != null)
+                    .map(v -> v.get(1, String.class))
                     .toList()
             );
         }
@@ -195,6 +203,13 @@ public class QReviewRepository {
                 .fetch();
     }
 
+    private List<Tuple> findAllImageByReview(Set<BigInteger> reviewIds) {
+        return queryFactory.select(reviews.id, image.location)
+                .from(reviews)
+                .leftJoin(reviews.images, image)
+                .where(reviews.id.in(reviewIds))
+                .fetch();
+    }
     public Reviews findById(BigInteger id) {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.id.eq(id))

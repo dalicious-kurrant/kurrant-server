@@ -52,7 +52,7 @@ public class QuartzService {
             addJob(QuartzBatchJob.class, "refreshTokenJob1", "Refresh Token 삭제 Job", jobParameters, "0 0 4 * * ?");
             addJob(QuartzBatchJob.class, "membershipPayJob1", "Membership 결제 Job", jobParameters, "0 0 6 * * ?");
             addJob(QuartzBatchJob.class, "reviewJob1", "review 마감시간 푸시알림 Job", jobParameters, quartzSchedule.getDeliveryTimeCron());
-            addJob(QuartzBatchJob.class, "pushAlarmJob1", "상품 주문 마감 푸시알림 Job", jobParameters, quartzSchedule.getGroupAndMakersAndFoodLastOrderTimeCron());
+//            addJob(QuartzBatchJob.class, "pushAlarmJob1", "상품 주문 마감 푸시알림 Job", jobParameters, quartzSchedule.getGroupAndMakersAndFoodLastOrderTimeCron());
             addJob(QuartzBatchJob.class, "pushAlarmJob2", "my spot zone 오픈 푸시알림 Job", jobParameters, "0 5 0 * * ?");
             addJob(QuartzBatchJob.class, "pushAlarmJob3", "my spot zone 중지 푸시알림 Job", jobParameters, "0 0 0 * * ?");
 
