@@ -42,7 +42,7 @@ public interface DeliveryInstanceMapper {
         Group group = groups.stream().filter(v -> v.getName().equals(deliveryInstanceDto.getGroupName())).findAny().orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
         for (String makersName : deliveryInstanceDto.getMakersNames()) {
             Makers maker = makers.stream().filter(v -> v.getName().equals(makersName)).findAny().orElseThrow(() -> new ApiException(ExceptionEnum.NOT_MATCHED_MAKERS));
-            if(group.getSpots().size() > 1) {
+            if (group.getSpots().size() > 1) {
                 for (Spot spot : group.getSpots()) {
                     deliveryInstances.add(DeliveryInstance.builder()
                             .serviceDate(DateUtils.stringToDate(deliveryInstanceDto.getDeliveryDate()))
@@ -53,7 +53,7 @@ public interface DeliveryInstanceMapper {
                             .spot(spot)
                             .build());
                 }
-            } else  {
+            } else {
                 deliveryInstances.add(DeliveryInstance.builder()
                         .serviceDate(DateUtils.stringToDate(deliveryInstanceDto.getDeliveryDate()))
                         .deliveryTime(DateUtils.stringToLocalTime(deliveryInstanceDto.getDeliveryTime()))
@@ -115,7 +115,8 @@ public interface DeliveryInstanceMapper {
 
             LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(deliveryGroupsByDatesMap.get(serviceDiningVo).get(0).getMakers(), serviceDiningVo.getDiningType(), serviceDiningVo.getServiceDate(), foodCapacities);
             deliveryGroupsByDate.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
-            if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) deliveryGroupsByDate.setBeforeLastOrderTime(false);
+            if (lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul"))))
+                deliveryGroupsByDate.setBeforeLastOrderTime(false);
             deliveryGroupsByDate.setBeforeLastOrderTime(true);
 
             deliveryGroupsByDates.add(deliveryGroupsByDate);
@@ -160,7 +161,7 @@ public interface DeliveryInstanceMapper {
                 .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
                 .toList();
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            if(OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
+            if (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus())) {
                 foodMap.add(orderItemDailyFood.getDailyFood().getFood(), orderItemDailyFood);
             }
         }
@@ -211,7 +212,8 @@ public interface DeliveryInstanceMapper {
             }
         }
         foodBySpots = foodBySpots.stream()
-                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime))
+                .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime)
+                        .thenComparing(v -> (v != null) ? Integer.parseInt(v.getDeliveryId()) : 0))
                 .toList();
         return foodBySpots;
     }
@@ -236,7 +238,8 @@ public interface DeliveryInstanceMapper {
                             .reduce(0, Integer::sum));
                     LocalDateTime lastOrderTime = FoodUtils.getLastOrderTime(entry.getValue().get(0).getMakers(), entry.getKey().getValue(), entry.getKey().getKey(), foodCapacities);
                     foodByDateDiningType.setLastOrderTime(DateUtils.localDateTimeToString(lastOrderTime));
-                    if(lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul")))) foodByDateDiningType.setBeforeLastOrderTime(false);
+                    if (lastOrderTime.isAfter(LocalDateTime.now(ZoneId.of("Asia/Seoul"))))
+                        foodByDateDiningType.setBeforeLastOrderTime(false);
                     foodByDateDiningType.setBeforeLastOrderTime(true);
 
                     return foodByDateDiningType;
@@ -250,6 +253,7 @@ public interface DeliveryInstanceMapper {
                 .collect(Collectors.toList());
         return foodByDateDiningTypes;
     }
+
     default List<OrderDailyFoodByMakersDto.Foods> toFoods(List<DeliveryInstance> deliveryInstances) {
         MultiValueMap<Food, OrderItemDailyFood> foodMap = new LinkedMultiValueMap<>();
         List<OrderItemDailyFood> orderItemDailyFoodList = deliveryInstances.stream()
@@ -304,7 +308,7 @@ public interface DeliveryInstanceMapper {
             for (DeliveryInstance selectedDeliveryInstance : selectedDeliveryInstances) {
                 deliveryInfoDtoList.removeIf(v -> v.hasSameValue(selectedDeliveryInstance.getServiceDate(), selectedDeliveryInstance.getDiningType(), selectedDeliveryInstance.getSpot().getGroup(), selectedDeliveryInstance.getMakers(), selectedDeliveryInstance.getDeliveryTime()));
             }
-            if(!deliveryInfoDtoList.isEmpty()) {
+            if (!deliveryInfoDtoList.isEmpty()) {
                 deliveryInstanceDtos.add(toScheduleDtoByDailyFood(Objects.requireNonNull(deliveryInfoDtoList)));
             }
             deliveryInstanceDtos.addAll(toScheduleDtoByDeliveryInstance(selectedDeliveryInstances));
@@ -315,7 +319,8 @@ public interface DeliveryInstanceMapper {
     default DeliveryInstanceDto toScheduleDtoByDailyFood(List<DeliveryInfoDto> deliveryInfoDto) {
         Set<String> makersNames = deliveryInfoDto.stream()
                 .map(v -> v.getMakers().getName())
-                .collect(Collectors.toSet());;
+                .collect(Collectors.toSet());
+        ;
 
         return DeliveryInstanceDto.builder()
                 .id(generateTempId(deliveryInfoDto.get(0)))
@@ -362,10 +367,10 @@ public interface DeliveryInstanceMapper {
     }
 
     default String getGroupName(Spot spot) {
-        if(spot instanceof CorporationSpot corporationSpot) {
+        if (spot instanceof CorporationSpot corporationSpot) {
             return "(" + corporationSpot.getGroup().getId() + ") " + spot.getGroup().getName();
         }
-        if(spot instanceof OpenGroupSpot openGroupSpot) {
+        if (spot instanceof OpenGroupSpot openGroupSpot) {
             return spot.getGroup().getName();
         }
         return null;
