@@ -1,6 +1,6 @@
 #!/bin/bash
 
-IS_GREEN=$(docker ps | grep kurrant_v1_green) # 현재 실행중인 App이 blue인지 확인합니다.
+IS_GREEN=$(docker ps | grep -w 'kurrant_v1_green') # 현재 실행중인 App이 blue인지 확인합니다.
 IMAGE_TAG=$1
 DOCKER_USERNAME=$2
 DEFAULT_CONF=" /etc/nginx/nginx.conf"

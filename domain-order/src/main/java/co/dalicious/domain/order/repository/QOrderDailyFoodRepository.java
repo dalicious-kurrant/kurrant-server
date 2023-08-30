@@ -150,7 +150,7 @@ public class QOrderDailyFoodRepository {
         }
 
         if (selectedMakers != null) {
-            whereClause.and(orderItemDailyFood.dailyFood.food.makers.eq(selectedMakers));
+            whereClause.and(dailyFood.food.makers.eq(selectedMakers));
         }
 
         if (selectGroup != null) {

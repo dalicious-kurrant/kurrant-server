@@ -82,6 +82,8 @@ public class RedisConfig {
     }
 }
 
+
+
 //@Configuration
 //@EnableRedisRepositories
 //@PropertySource("classpath:application-redis.properties")
