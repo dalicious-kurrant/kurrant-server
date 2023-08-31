@@ -85,7 +85,25 @@ public class BoardServiceImpl implements BoardService {
         else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeMapper.toNotice(requestDto);
-        if(requestDto.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+
+        if(requestDto.getIsStatus()) {
+            notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+            int sseType = 0;
+            List<BigInteger> users = null;
+            if(notice.getBoardType().equals(BoardType.ALL)) {
+                users = qUserRepository.findAllUserId();
+                sseType = 1;
+            } else if (notice.getBoardType().equals(BoardType.SPOT)) {
+                users = qUserGroupRepository.findAllUserIdByGroupId(notice.getGroupIds());
+                sseType = 2;
+            }
+
+            for (BigInteger user : users) {
+                applicationEventPublisher.publishEvent(new SseReceiverDto(user, sseType, null, null, null));
+            }
+        }
         noticeRepository.save(notice);
     }
 
@@ -130,14 +148,11 @@ public class BoardServiceImpl implements BoardService {
         if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
-        int sseType = 0;
         List<User> users = null;
         if(notice.getBoardType().equals(BoardType.ALL)) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
-            sseType = 1;
         } else if (notice.getBoardType().equals(BoardType.SPOT)) {
             users = qUserGroupRepository.findAllUserByGroupIdsAadFirebaseTokenNotNull(notice.getGroupIds());
-            sseType = 2;
         }
 
         String customMessage = pushUtil.getContextAppNotice(notice.getTitle(), PushCondition.NEW_NOTICE);
@@ -150,7 +165,6 @@ public class BoardServiceImpl implements BoardService {
 
             pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), notice.getBoardOption().contains(BoardOption.EVENT) ? AlarmType.EVENT : AlarmType.NOTICE, notice.getId());
             applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), sseType, null, null, null));
         }
 
         pushService.sendToPush(pushRequestDtoByUserList);
