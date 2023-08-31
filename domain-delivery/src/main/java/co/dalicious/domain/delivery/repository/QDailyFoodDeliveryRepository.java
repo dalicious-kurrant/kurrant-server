@@ -126,9 +126,11 @@ public class QDailyFoodDeliveryRepository {
             whereClause.and(dailyFoodDelivery.deliveryInstance.driver.code.eq(driverCode));
         }
         return queryFactory.selectFrom(dailyFoodDelivery)
-                .leftJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood)
-                .leftJoin(orderItemDailyFood.dailyFood, dailyFood)
-                .leftJoin(orderDailyFood).on(orderItemDailyFood.order.id.eq(orderDailyFood.id))
+                .innerJoin(dailyFoodDelivery.deliveryInstance, deliveryInstance).fetchJoin()
+                .innerJoin(deliveryInstance.spot, spot).fetchJoin()
+                .innerJoin(dailyFoodDelivery.orderItemDailyFood, orderItemDailyFood).fetchJoin()
+                .innerJoin(orderItemDailyFood.order, order).fetchJoin()
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
                 .where(whereClause, orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
                 .fetch();
     }
