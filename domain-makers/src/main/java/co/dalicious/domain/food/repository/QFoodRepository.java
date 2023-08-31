@@ -26,6 +26,18 @@ public class QFoodRepository {
 
     private final JPAQueryFactory queryFactory;
 
+    public List<Food> findByMakersIdAndStatus(Makers makers, Integer statusCode) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        if(statusCode != null) {
+            whereClause.and(food.foodStatus.eq(FoodStatus.ofCode(statusCode)));
+        }
+
+        return queryFactory.selectFrom(food)
+                .where(food.makers.eq(makers), whereClause, food.foodStatus.in(FoodStatus.SALES, FoodStatus.NOT_ON_SALES))
+                .fetch();
+    }
+
     public Food findByIdAndMakers(BigInteger foodId, Makers makers) {
         return queryFactory
                 .selectFrom(food)
