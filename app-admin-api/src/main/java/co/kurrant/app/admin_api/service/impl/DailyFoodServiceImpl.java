@@ -147,7 +147,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .build();
             pushAlarmHashes.add(pushAlarmHash);
 
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
         }
         pushService.sendToPush(pushRequestDtoByUsers);
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
@@ -410,7 +410,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .type(AlarmType.MEAL.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
-                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
             }
         }
         pushService.sendToPush(pushRequestDtoByUsers);

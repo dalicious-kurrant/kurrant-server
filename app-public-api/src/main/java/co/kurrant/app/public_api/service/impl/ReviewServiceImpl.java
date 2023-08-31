@@ -206,7 +206,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         List<NotificationHash> notificationHashList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 3, false);
         if(!notificationHashList.isEmpty()) {
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 3, null, null, null));
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(3).build());
         }
 
         return ReviewableItemResDto.create(orderFoodList, redeemablePoints, size);
