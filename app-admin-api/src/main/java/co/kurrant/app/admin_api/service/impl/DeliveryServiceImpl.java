@@ -210,7 +210,7 @@ public class DeliveryServiceImpl implements DeliveryService {
                         .type(AlarmType.ORDER_STATUS.getAlarmType())
                         .build();
                 pushAlarmHashes.add(pushAlarmHash);
-                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
             }
             orderItemDailyFoodRepository.saveAll(orderItemDailyFoods);
             pushService.sendToPush(pushRequestDtoByUsers);
