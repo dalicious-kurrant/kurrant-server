@@ -4,8 +4,9 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
-import co.dalicious.domain.application_form.dto.corporation.CorporationRequestAtHomepageDto;
-import co.dalicious.domain.application_form.dto.makers.MakersRequestAtHomepageDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedStatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
@@ -154,11 +156,11 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "메이커스 신청 조회", description = "메이커스 신청 현황를 조회합니다.")
     @GetMapping("/makers")
-    public ResponseMessage getAllMakersRequestList(@RequestParam(required = false) Integer type,
-                                                      @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+    public ResponseMessage getAllMakersRequestList(@RequestParam Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest offsetBasedPageRequest = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
         return ResponseMessage.builder()
                 .message("메이커스 신청 현황 조회를 성공했습니다.")
-                .data(applicationFormService.getAllMakersRequestList(type, limit, page, pageable))
+                .data(applicationFormService.getAllMakersRequestList(offsetBasedPageRequest))
                 .build();
     }
 
@@ -166,7 +168,7 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "메이커스 신청 생성", description = "메이커스 신청을 추가합니다.")
     @PostMapping("/makers")
-    public ResponseMessage createMakersRequest(@RequestBody MakersRequestAtHomepageDto request) throws ParseException {
+    public ResponseMessage createMakersRequest(@RequestBody MakersRequestedReqDto request) throws ParseException {
         applicationFormService.createMakersRequest(request);
         return ResponseMessage.builder()
                 .message("메이커스 신청을 성공했습니다.")
@@ -176,8 +178,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "메이커스 신청 수정", description = "메이커스 신청 내역을 수정합니다.")
     @PatchMapping("/makers/{applicationId}")
-    public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody MakersRequestAtHomepageDto request) throws ParseException {
-        applicationFormService.updateMakerRequest(applicationId, request);
+    public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody MakersRequestedStatusUpdateDto request) throws ParseException {
+        applicationFormService.updateMakerRequestStatus(applicationId, request);
         return ResponseMessage.builder()
                 .message("메이커스 신청 내역 수정을 성공했습니다.")
                 .build();

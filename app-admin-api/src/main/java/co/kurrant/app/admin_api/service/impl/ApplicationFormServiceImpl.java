@@ -4,6 +4,9 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedStatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
@@ -274,6 +277,30 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         requestedMySpotRepository.deleteAll(deleteRequestedMySpot);
         requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable) {
+        return null;
+    }
+
+    @Override
+    @Transactional
+    public void createMakersRequest(MakersRequestedReqDto request) {
+
+    }
+
+    @Override
+    @Transactional
+    public void updateMakerRequestStatus(BigInteger id, MakersRequestedStatusUpdateDto request) {
+
+    }
+
+    @Override
+    @Transactional
+    public void deleteMakersRequest(List<BigInteger> ids) {
+
     }
 
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {
