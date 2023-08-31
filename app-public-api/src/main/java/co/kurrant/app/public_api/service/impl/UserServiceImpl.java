@@ -455,7 +455,7 @@ public class UserServiceImpl implements UserService {
             if (selectedGroup.get().getClientStatus() == ClientStatus.WITHDRAWAL) {
                 selectedGroup.get().updateStatus(ClientStatus.BELONG);
                 openGroup.updateOpenGroupUserCount(1, true);
-                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, selectedGroup.get().getId(), null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(selectedGroup.get().getGroup().getId()).build());
                 return;
             }
             return;
@@ -464,7 +464,7 @@ public class UserServiceImpl implements UserService {
         UserGroup userCorporation = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
         userGroupRepository.save(userCorporation);
         openGroup.updateOpenGroupUserCount(1, true);
-        applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, userCorporation.getId(), null));
+        applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(userCorporation.getGroup().getId()).build());
     }
 
     @Override

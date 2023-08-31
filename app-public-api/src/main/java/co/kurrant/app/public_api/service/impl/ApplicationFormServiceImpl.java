@@ -345,7 +345,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         if (userGroup != null) {
             if (zoneStatus) {
                 userGroup.updateStatus(ClientStatus.BELONG);
-                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(mySpotZone.getId()).build());
             }
             else userGroup.updateStatus(ClientStatus.WAITING);
         } else {

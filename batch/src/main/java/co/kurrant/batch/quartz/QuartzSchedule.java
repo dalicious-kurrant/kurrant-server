@@ -76,4 +76,14 @@ public class QuartzSchedule {
         }
         return crons;
     }
+
+    public List<String> getDeliveryTimeCronForReview() {
+        List<String> crons = new ArrayList<>();
+        List<LocalTime> deliveryTimes = getDeliveryTimes();
+        for (LocalTime deliveryTime : deliveryTimes) {
+            int minute = deliveryTime.getMinute() > 55 ? deliveryTime.getMinute() - 5 : deliveryTime.getMinute() + 5;
+            crons.add(String.format("0 %d %d * * ?", minute, deliveryTime.getHour()));
+        }
+        return crons;
+    }
 }
