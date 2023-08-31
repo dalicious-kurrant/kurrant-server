@@ -85,26 +85,13 @@ public class BoardServiceImpl implements BoardService {
         else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeMapper.toNotice(requestDto);
-
+        noticeRepository.save(notice);
 
         if(requestDto.getIsStatus()) {
             notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
 
-            int sseType = 0;
-            List<BigInteger> users = null;
-            if(notice.getBoardType().equals(BoardType.ALL)) {
-                users = qUserRepository.findAllUserId();
-                sseType = 1;
-            } else if (notice.getBoardType().equals(BoardType.SPOT)) {
-                users = qUserGroupRepository.findAllUserIdByGroupId(notice.getGroupIds());
-                sseType = 2;
-            }
-
-            for (BigInteger user : users) {
-                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user).type(sseType).noticeId(notice.getId()).build());
-            }
+            sendSseNotification(notice);
         }
-        noticeRepository.save(notice);
     }
 
     @Override
@@ -137,7 +124,11 @@ public class BoardServiceImpl implements BoardService {
         else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
-        if(requestDto.getIsStatus() && !notice.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+        if(requestDto.getIsStatus() && !notice.getIsStatus()) {
+            notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+            sendSseNotification(notice);
+        }
         noticeMapper.updateNotice(requestDto, notice);
     }
 
@@ -319,4 +310,19 @@ public class BoardServiceImpl implements BoardService {
         return templateMap.get(boardCategory).get(noticeType);
     }
 
+    private void sendSseNotification(Notice notice) {
+        int sseType = 0;
+        List<BigInteger> users = null;
+        if(notice.getBoardType().equals(BoardType.ALL)) {
+            users = qUserRepository.findAllUserId();
+            sseType = 1;
+        } else if (notice.getBoardType().equals(BoardType.SPOT)) {
+            users = qUserGroupRepository.findAllUserIdByGroupId(notice.getGroupIds());
+            sseType = 2;
+        }
+
+        for (BigInteger user : users) {
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user).type(sseType).noticeId(notice.getId()).build());
+        }
+    }
 }
