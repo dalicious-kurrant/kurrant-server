@@ -5,7 +5,6 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
-import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedStatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
@@ -177,7 +176,7 @@ public class ApplicationFormController {
 
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "메이커스 신청 수정", description = "메이커스 신청 내역을 수정합니다.")
-    @PatchMapping("/makers/{applicationId}")
+    @PatchMapping("/makers/status/{applicationId}")
     public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody MakersRequestedStatusUpdateDto request) throws ParseException {
         applicationFormService.updateMakerRequestStatus(applicationId, request);
         return ResponseMessage.builder()

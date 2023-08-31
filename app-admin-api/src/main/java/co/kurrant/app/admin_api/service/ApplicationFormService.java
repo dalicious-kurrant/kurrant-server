@@ -38,7 +38,7 @@ public interface ApplicationFormService {
     void renewalMySpotRequest(List<BigInteger> ids);
 
     // 메이커스 신청
-    List<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable);
+    ListItemResponseDto<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable);
     void createMakersRequest(MakersRequestedReqDto request);
     void updateMakerRequestStatus(BigInteger id, MakersRequestedStatusUpdateDto request);
     void deleteMakersRequest(List<BigInteger> ids);
