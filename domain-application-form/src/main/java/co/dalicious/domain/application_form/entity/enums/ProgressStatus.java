@@ -9,7 +9,9 @@ public enum ProgressStatus {
     APPLY("스팟 개설 신청", 0),
     DISCUSSING("운영 사항 협의", 1),
     APPROVED("스팟 개설 완료", 2),
-    REJECTED("미승인", 3);
+    REJECTED("미승인", 3),
+    HOLD("보류", 4),
+    ;
 
     private final String progressStatus;
     private final Integer code;
