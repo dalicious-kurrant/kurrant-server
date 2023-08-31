@@ -41,11 +41,11 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser) {
+    public List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser, Integer status) {
         Makers makers = userUtil.getMakers(securityUser);
 
         // makersId로 상품 조회
-        List<Food> foodListByMakers = foodRepository.findByMakersOrderById(makers);
+        List<Food> foodListByMakers = qFoodRepository.findByMakersIdAndStatus(makers, status);
         if (foodListByMakers.isEmpty()) { return null; }
 
         // 상품 dto에 담기

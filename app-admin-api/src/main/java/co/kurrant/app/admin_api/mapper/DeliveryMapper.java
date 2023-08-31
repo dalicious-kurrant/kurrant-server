@@ -15,7 +15,6 @@ import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.system.util.DateUtils;
 import co.kurrant.app.admin_api.dto.delivery.DeliveryVo;
 import co.kurrant.app.admin_api.dto.delivery.ServiceDateVo;
-import org.hibernate.Hibernate;
 import org.mapstruct.Mapper;
 import org.mapstruct.Named;
 import org.springframework.util.LinkedMultiValueMap;
@@ -144,7 +143,7 @@ public interface DeliveryMapper {
 
     default DeliveryVo.DeliveryManifest toDeliveryManifest(DailyFoodDelivery dailyFoodDelivery) {
         return DeliveryVo.DeliveryManifest.builder()
-                .spotType(GroupDataType.ofClass(Hibernate.getClass(dailyFoodDelivery.getDeliveryInstance().getSpot())).getType())
+                .spotType(GroupDataType.ofClass(dailyFoodDelivery.getDeliveryInstance().getSpot().getClass()).getType())
                 .serviceDate(DateUtils.format(dailyFoodDelivery.getDeliveryInstance().getServiceDate()))
                 .diningType(dailyFoodDelivery.getDeliveryInstance().getDiningType().getCode())
                 .deliveryTime(DateUtils.timeToString(dailyFoodDelivery.getDeliveryInstance().getDeliveryTime()))
@@ -156,8 +155,8 @@ public interface DeliveryMapper {
                 .count(dailyFoodDelivery.getOrderItemDailyFood().getCount())
                 .userName(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getUser().getName())
                 .userAddress(dailyFoodDelivery.getOrderItemDailyFood().getOrder().getAddress().addressToString())
-                .userPhone(((OrderDailyFood) Hibernate.unproxy(dailyFoodDelivery.getOrderItemDailyFood().getOrder())).getPhone())
-                .memo(((OrderDailyFood) Hibernate.unproxy(dailyFoodDelivery.getOrderItemDailyFood().getOrder())).getMemo()) // 추후수정
+                .userPhone(((OrderDailyFood) dailyFoodDelivery.getOrderItemDailyFood().getOrder()).getPhone())
+                .memo(((OrderDailyFood) dailyFoodDelivery.getOrderItemDailyFood().getOrder()).getMemo()) // 추후수정
                 .build();
     }
 
@@ -191,8 +190,8 @@ public interface DeliveryMapper {
     default List<DeliveryVo.DeliveryGroup> toDeliveryGroupByOrderItemDailyFood(List<OrderItemDailyFood> orderItemDailyFoods) {
         List<DeliveryVo.DeliveryGroup> deliveryGroupList = new ArrayList<>();
         Map<Spot, List<OrderItemDailyFood>> spotMap = orderItemDailyFoods.stream()
-                .filter(orderItemDailyFood -> Hibernate.unproxy(orderItemDailyFood.getOrder()) instanceof OrderDailyFood)
-                .collect(Collectors.groupingBy(orderItemDailyFood -> ((OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder())).getSpot()));
+                .filter(orderItemDailyFood -> orderItemDailyFood.getOrder() instanceof OrderDailyFood)
+                .collect(Collectors.groupingBy(orderItemDailyFood -> ((OrderDailyFood) orderItemDailyFood.getOrder()).getSpot()));
 
         for (Spot spot : spotMap.keySet()) {
             DeliveryVo.DeliveryGroup deliveryGroup = new DeliveryVo.DeliveryGroup();

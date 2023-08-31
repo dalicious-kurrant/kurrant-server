@@ -161,12 +161,19 @@ public class QUserGroupRepository {
 
     }
 
-
     public void updateUserGroupMemo(BigInteger groupId, String memo, BigInteger userId) {
         queryFactory.update(userGroup)
                 .set(userGroup.memo, memo)
                 .where(userGroup.user.id.eq(userId),
                         userGroup.group.id.eq(groupId))
                 .execute();
+    }
+
+    public List<BigInteger> findAllUserIdByGroupId(List<BigInteger> groupIds) {
+        return queryFactory.select(user.id)
+                .from(userGroup)
+                .leftJoin(userGroup.user, user)
+                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG))
+                .fetch();
     }
 }

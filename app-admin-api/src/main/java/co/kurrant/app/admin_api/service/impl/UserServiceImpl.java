@@ -55,13 +55,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final UserHistoryMapper userHistoryMapper;
     private final QGroupRepository qGroupRepository;
     private final PasswordEncoder passwordEncoder;
-
-    private final UserHistoryRepository userHistoryRepository;
     private final QUserRepository qUserRepository;
-    private final QUserGroupRepository qUserGroupRepository;
     private final QOrderRepository qOrderRepository;
     private final QProviderEmailRepository qProviderEmailRepository;
     private final UserGroupRepository userGroupRepository;
@@ -84,6 +80,12 @@ public class UserServiceImpl implements UserService {
 
         return ListItemResponseDto.<UserInfoResponseDto>builder().items(users.stream().map(userMapper::toDto).toList()).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(users.getNumberOfElements()).total((long) users.getTotalPages()).isLast(users.isLast()).build();
+    }
+
+    @Override
+    public List<UserInfoResponseDto> getUserListAll() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(userMapper::toDto).toList();
     }
 
     @Override
