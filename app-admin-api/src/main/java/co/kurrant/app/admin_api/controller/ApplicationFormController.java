@@ -4,6 +4,7 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
@@ -148,4 +149,5 @@ public class ApplicationFormController {
                 .message("마이 스팟 신청을 갱신했습니다.")
                 .build();
     }
+
 }
