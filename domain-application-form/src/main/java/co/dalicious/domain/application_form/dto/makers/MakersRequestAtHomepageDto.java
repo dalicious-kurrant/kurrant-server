@@ -12,4 +12,5 @@ public class MakersRequestAtHomepageDto {
     private String phone;
     private String memo;
     private String mainProduct;
+    private String progressStatus;
 }

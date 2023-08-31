@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.domain.application_form.dto.corporation.CorporationRequestAtHomepageDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
@@ -147,6 +148,48 @@ public class ApplicationFormController {
         applicationFormService.renewalMySpotRequest(ids);
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 갱신했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 조회", description = "메이커스 신청 현황를 조회합니다.")
+    @GetMapping("/makers")
+    public ResponseMessage getAllMakersRequestList(@RequestParam(required = false) Integer type,
+                                                      @RequestParam Integer limit, @RequestParam Integer page, OffsetBasedPageRequest pageable) {
+        return ResponseMessage.builder()
+                .message("메이커스 신청 현황 조회를 성공했습니다.")
+                .data(applicationFormService.getAllMakersRequestList(type, limit, page, pageable))
+                .build();
+    }
+
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 생성", description = "메이커스 신청을 추가합니다.")
+    @PostMapping("/makers")
+    public ResponseMessage createMakersRequest(@RequestBody MakersRequestAtHomepageDto request) throws ParseException {
+        applicationFormService.createMakersRequest(request);
+        return ResponseMessage.builder()
+                .message("메이커스 신청을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 수정", description = "메이커스 신청 내역을 수정합니다.")
+    @PatchMapping("/makers/{applicationId}")
+    public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody MakersRequestAtHomepageDto request) throws ParseException {
+        applicationFormService.updateMakerRequest(applicationId, request);
+        return ResponseMessage.builder()
+                .message("메이커스 신청 내역 수정을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 삭제", description = "메이커스 신청을 삭제합니다.")
+    @DeleteMapping("/makers")
+    public ResponseMessage deleteMakersRequest(@RequestBody List<BigInteger> ids) {
+        applicationFormService.deleteMakersRequest(ids);
+        return ResponseMessage.builder()
+                .message("메이커스 신청을 삭제했습니다.")
                 .build();
     }
 
