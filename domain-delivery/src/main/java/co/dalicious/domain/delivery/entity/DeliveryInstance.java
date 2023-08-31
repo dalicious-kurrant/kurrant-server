@@ -103,7 +103,7 @@ public class DeliveryInstance {
     public LocalTime getPickupTime(LocalTime deliveryTime) {
         return this.getOrderItemDailyFoods().stream()
                 .map(v -> v.getDailyFood().getDailyFoodGroup())
-                .map(v -> v.getPickUpTime(deliveryTime))
+                .map(v -> v.getPickUpTime(deliveryTime) != null ? v.getPickUpTime(deliveryTime) : dailyFoodDeliveries.get(0).getOrderItemDailyFood().getDailyFood().getDailyFoodGroup().getExistPickUpTime())
                 .findAny()
                 .orElse(null);
     }
