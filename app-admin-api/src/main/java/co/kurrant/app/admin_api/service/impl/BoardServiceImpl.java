@@ -101,7 +101,7 @@ public class BoardServiceImpl implements BoardService {
             }
 
             for (BigInteger user : users) {
-                applicationEventPublisher.publishEvent(new SseReceiverDto(user, sseType, null, null, null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user).type(sseType).noticeId(notice.getId()).build());
             }
         }
         noticeRepository.save(notice);
@@ -164,7 +164,7 @@ public class BoardServiceImpl implements BoardService {
             pushRequestDtoByUserList.add(pushRequestDtoByUser);
 
             pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), notice.getBoardOption().contains(BoardOption.EVENT) ? AlarmType.EVENT : AlarmType.NOTICE, notice.getId());
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
         }
 
         pushService.sendToPush(pushRequestDtoByUserList);

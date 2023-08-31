@@ -240,7 +240,7 @@ public class UserServiceImpl implements UserService {
                         .map(userGroup -> ((OpenGroup) userGroup.getGroup()))
                         .forEach(g -> g.updateOpenGroupUserCount(1, true));
 
-                userGroups.forEach(v -> applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, v.getGroup().getId(), null)));
+                userGroups.forEach(v -> applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(v.getGroup().getId()).build()));
 
                 if(userGroups.stream().anyMatch(v -> v.getGroup() instanceof Corporation)) {
                     pushAlarmForCorporationUser.add(user);
@@ -262,7 +262,7 @@ public class UserServiceImpl implements UserService {
                         if(defaultStatus.equals(ClientStatus.WITHDRAWAL)) {
                             if (userGroup.getGroup() instanceof Corporation) pushAlarmForCorporationUser.add(user);
                             if (userGroup.getGroup() instanceof OpenGroup openGroup) openGroup.updateOpenGroupUserCount(1, true);
-                            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, userGroup.getGroup().getId(), null));
+                            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(userGroup.getGroup().getId()).build());
                         }
 
                     } else {
@@ -291,7 +291,7 @@ public class UserServiceImpl implements UserService {
                     pushAlarmForCorporationUser.add(user);
                 }
 
-                userGroups.forEach(v -> applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, v.getGroup().getId(), null)));
+                userGroups.forEach(v -> applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(v.getGroup().getId()).build()));
 
                 // open group의 경우 count 넣기
                 userGroups.stream()

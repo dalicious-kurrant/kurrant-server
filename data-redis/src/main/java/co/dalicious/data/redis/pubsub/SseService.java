@@ -103,6 +103,7 @@ public class SseService {
                 .createDate(today)
                 .groupId(sseReceiverDto.getGroupId())
                 .commentId(sseReceiverDto.getCommentId())
+                .noticeId(sseReceiverDto.getNoticeId())
                 .build();
     }
 

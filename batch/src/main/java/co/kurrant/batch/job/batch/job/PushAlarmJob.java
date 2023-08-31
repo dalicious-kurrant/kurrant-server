@@ -270,7 +270,7 @@ public class PushAlarmJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, PushCondition.LAST_ORDER_BY_DAILYFOOD, null);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, PushCondition.LAST_ORDER_BY_DAILYFOOD);
-                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+                    applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.MEAL, null);
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {
@@ -295,7 +295,7 @@ public class PushAlarmJob {
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, customMessage);
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
-                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+                    applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
