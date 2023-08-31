@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,11 +33,7 @@ public class FoodServiceImpl implements FoodService {
     private final MakersFoodMapper makersFoodMapper;
     private final UserUtil userUtil;
     private final FoodMapper foodMapper;
-    private final MakersRepository makersRepository;
-    private final FoodDiscountPolicyMapper foodDiscountPolicyMapper;
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
-    private final CapacityMapper capacityMapper;
-    private final FoodCapacityRepository foodCapacityRepository;
     private final QFoodRepository qFoodRepository;
 
     @Override
@@ -57,7 +54,7 @@ public class FoodServiceImpl implements FoodService {
             FoodListDto.FoodList dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
-
+        dtoList = dtoList.stream().sorted(Comparator.comparing(FoodListDto.FoodList::getFoodStatus).thenComparing(FoodListDto.FoodList::getFoodId)).toList();
         return dtoList;
     }
 

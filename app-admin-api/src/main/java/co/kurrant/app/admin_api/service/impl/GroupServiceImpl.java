@@ -406,9 +406,9 @@ public class GroupServiceImpl implements GroupService {
                     BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
                     pushService.sendToPush(batchAlarmDto, pushCondition);
                     pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.SPOT_NOTICE, null);
-                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
+                    applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
                 }
-                applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 7, null, mySpotZone.getId(), null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(7).groupId(mySpotZone.getId()).build());
             });
         }
     }

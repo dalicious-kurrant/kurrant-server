@@ -64,13 +64,13 @@ public class ReviewServiceImpl implements ReviewService {
 
         MakersComments comments = reviewMapper.toMakersComment(reqDto, reviews);
         commentsRepository.save(comments);
-        applicationEventPublisher.publishEvent(new SseReceiverDto(reviews.getUser().getId(), 8, null, null, comments.getId()));
+        applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(reviews.getUser().getId()).type(8).commentId(comments.getId()).build());
 
         // 댓글 생성 푸시알림
         PushRequestDtoByUser pushRequestDtoByUser = pushUtil.getPushRequest(reviews.getUser(), PushCondition.REVIEW_GET_COMMENT, null);
         if(pushRequestDtoByUser != null) {
             pushService.sendToPushByKey(List.of(pushRequestDtoByUser), Collections.singletonMap("reviewId", String.valueOf(reviews.getId())));
-            applicationEventPublisher.publishEvent(new SseReceiverDto(reviews.getUser().getId(), 6, null, null, null));
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(reviews.getUser().getId()).type(6).build());
             pushUtil.savePushAlarmHash(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), reviews.getUser().getId(), AlarmType.REVIEW, reviews.getId());
         }
     }

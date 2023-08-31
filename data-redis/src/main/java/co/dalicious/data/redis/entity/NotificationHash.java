@@ -31,9 +31,10 @@ public class NotificationHash {
     LocalDate createDate;
     BigInteger groupId;
     BigInteger commentId;
+    BigInteger noticeId;
 
     @Builder
-    public NotificationHash(String id, Integer type, BigInteger userId, boolean isRead, String content, LocalDate createDate, BigInteger groupId, BigInteger commentId) {
+    public NotificationHash(String id, Integer type, BigInteger userId, boolean isRead, String content, LocalDate createDate, BigInteger groupId, BigInteger commentId, BigInteger noticeId) {
         this.id = id;
         this.type = type;
         this.userId = userId;
@@ -42,6 +43,7 @@ public class NotificationHash {
         this.createDate = createDate;
         this.groupId = groupId;
         this.commentId = commentId;
+        this.noticeId = noticeId;
     }
 
     private void checkNotificationContent(String content){

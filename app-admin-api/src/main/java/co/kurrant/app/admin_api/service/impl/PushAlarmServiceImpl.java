@@ -170,7 +170,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
 
             userWithFcmToken.keySet().forEach(v -> {
                 pushAlarmHashList.add(pushUtil.createPushAlarmHash(null, reqDto.getMessage(), v, AlarmType.NOTICE, null));
-                applicationEventPublisher.publishEvent(new SseReceiverDto(v, 6, null, null, null));
+                applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(v).type(6).build());
             });
         }
 
