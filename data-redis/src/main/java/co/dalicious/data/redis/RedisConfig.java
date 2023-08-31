@@ -82,6 +82,8 @@ public class RedisConfig {
     }
 }
 
+
+
 //@Configuration
 //@EnableRedisRepositories
 //@PropertySource("classpath:application-redis.properties")
@@ -103,10 +105,18 @@ public class RedisConfig {
 //        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 //        redisTemplate.setConnectionFactory(redisConnectionFactory());
 //        redisTemplate.setKeySerializer(new StringRedisSerializer());
-//        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(CertificationHash.class));
+//
+//        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(Object.class);
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//        // Java 8 date/time 타입을 지원하기 위해 모듈을 등록
+//        mapper.registerModule(new JavaTimeModule());
+//        serializer.setObjectMapper(mapper);
+//
+//        redisTemplate.setValueSerializer(serializer);
+//
 //        return redisTemplate;
 //    }
-//
 //    @Bean
 //    public StringRedisTemplate stringRedisTemplate() {
 //        StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
@@ -125,7 +135,5 @@ public class RedisConfig {
 //    public ChannelTopic topic() {
 //        return new ChannelTopic("makers_reload");
 //    }
-//
-//
 //
 //}
