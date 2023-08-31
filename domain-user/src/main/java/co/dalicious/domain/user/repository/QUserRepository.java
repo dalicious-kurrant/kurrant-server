@@ -274,4 +274,8 @@ public class QUserRepository {
                 .where(user.userStatus.ne(UserStatus.INACTIVE))
                 .fetch();
     }
+
+    public List<BigInteger> findAllUserId() {
+        return queryFactory.select(user.id).from(user).where(user.userStatus.eq(UserStatus.ACTIVE)).fetch();
+    }
 }
