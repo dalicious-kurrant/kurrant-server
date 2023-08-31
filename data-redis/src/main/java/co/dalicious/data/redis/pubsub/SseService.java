@@ -157,6 +157,7 @@ public class SseService {
             sseResponseDto.setIsRead(false);
             sseResponseDto.setGroupId(v.getGroupId());
             sseResponseDto.setCommentId(v.getCommentId());
+            sseResponseDto.setNoticeId(v.getNoticeId());
 
             return sseResponseDto;
 
