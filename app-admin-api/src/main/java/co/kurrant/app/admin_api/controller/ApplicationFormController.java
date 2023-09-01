@@ -4,8 +4,9 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestReqDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
-import co.dalicious.domain.application_form.dto.makers.MakersRequestedStatusUpdateDto;
+import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
@@ -177,7 +178,7 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "메이커스 신청 수정", description = "메이커스 신청 내역을 수정합니다.")
     @PatchMapping("/makers/status/{applicationId}")
-    public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody MakersRequestedStatusUpdateDto request) throws ParseException {
+    public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody StatusUpdateDto request) throws ParseException {
         applicationFormService.updateMakerRequestStatus(applicationId, request);
         return ResponseMessage.builder()
                 .message("메이커스 신청 내역 수정을 성공했습니다.")
@@ -191,6 +192,48 @@ public class ApplicationFormController {
         applicationFormService.deleteMakersRequest(ids);
         return ResponseMessage.builder()
                 .message("메이커스 신청을 삭제했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 조회", description = "프라이빗 스팟 신청 현황를 조회합니다.")
+    @GetMapping("/corporation")
+    public ResponseMessage getAllCorporationRequestList(@RequestParam Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest offsetBasedPageRequest = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청 현황 조회를 성공했습니다.")
+                .data(applicationFormService.getAllCorporationRequestList(offsetBasedPageRequest))
+                .build();
+    }
+
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 생성", description = "프라이빗 스팟 신청을 추가합니다.")
+    @PostMapping("/corporation")
+    public ResponseMessage createCorporationRequest(@RequestBody CorporationRequestReqDto request) throws ParseException {
+        applicationFormService.createCorporationRequest(request);
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 수정", description = "프라이빗 스팟 신청 내역을 수정합니다.")
+    @PatchMapping("/corporation/status/{applicationId}")
+    public ResponseMessage updateCorporationRequest(@PathVariable BigInteger applicationId, @RequestBody StatusUpdateDto request) throws ParseException {
+        applicationFormService.updateCorporationRequestStatus(applicationId, request);
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청 내역 수정을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 삭제", description = "프라이빗 스팟 신청을 삭제합니다.")
+    @DeleteMapping("/corporation")
+    public ResponseMessage deleteCorporationRequest(@RequestBody List<BigInteger> ids) {
+        applicationFormService.deleteCorporationRequest(ids);
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청을 삭제했습니다.")
                 .build();
     }
 
