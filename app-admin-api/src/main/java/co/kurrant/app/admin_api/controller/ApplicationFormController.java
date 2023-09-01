@@ -10,6 +10,7 @@ import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
+import co.kurrant.app.admin_api.dto.IdListDto;
 import co.kurrant.app.admin_api.service.ApplicationFormService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -74,8 +75,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 신청 삭제", description = "마이 스팟 신청을 삭제합니다.")
     @DeleteMapping("/spots/my")
-    public ResponseMessage deleteMySpotRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.deleteMySpotRequest(ids);
+    public ResponseMessage deleteMySpotRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteMySpotRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 삭제했습니다.")
                 .build();
@@ -84,8 +85,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 생성", description = "마이 스팟을 추가합니다.")
     @PostMapping("/create/zone")
-    public ResponseMessage createMySpotZonesFromRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.createMySpotZonesFromRequest(ids);
+    public ResponseMessage createMySpotZonesFromRequest(@RequestBody IdListDto ids) {
+        applicationFormService.createMySpotZonesFromRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("마이 스팟 생성을 성공했습니다.")
                 .build();
@@ -126,8 +127,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "공유 스팟 신청 삭제", description = "공유 스팟 신청을 삭제합니다.")
     @DeleteMapping("/spots/share")
-    public ResponseMessage deleteShareSpotRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.deleteShareSpotRequest(ids);
+    public ResponseMessage deleteShareSpotRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteShareSpotRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("공유 스팟 신청을 삭제했습니다.")
                 .build();
@@ -146,8 +147,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 신청 갱신", description = "이미 개설된 마이 스팟을 삭제합니다.")
     @PostMapping("/spots/my/renew")
-    public ResponseMessage renewalMySpotRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.renewalMySpotRequest(ids);
+    public ResponseMessage renewalMySpotRequest(@RequestBody IdListDto ids) {
+        applicationFormService.renewalMySpotRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 갱신했습니다.")
                 .build();
@@ -188,8 +189,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "메이커스 신청 삭제", description = "메이커스 신청을 삭제합니다.")
     @DeleteMapping("/makers")
-    public ResponseMessage deleteMakersRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.deleteMakersRequest(ids);
+    public ResponseMessage deleteMakersRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteMakersRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("메이커스 신청을 삭제했습니다.")
                 .build();
@@ -230,8 +231,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "프라이빗 스팟 신청 삭제", description = "프라이빗 스팟 신청을 삭제합니다.")
     @DeleteMapping("/corporation")
-    public ResponseMessage deleteCorporationRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.deleteCorporationRequest(ids);
+    public ResponseMessage deleteCorporationRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteCorporationRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("프라이빗 스팟 신청을 삭제했습니다.")
                 .build();
