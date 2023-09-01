@@ -3,16 +3,16 @@ package co.dalicious.domain.application_form.dto.corporation;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotNull;
+import java.math.BigInteger;
 
 @Getter
 @Setter
-public class CorporationRequestAtHomepageDto {
-    @NotNull
+public class CorporationRequestResDto {
+    private BigInteger id;
+    private String createDate;
     private String name;
-    @NotNull
     private String address;
-    @NotNull
     private String phone;
     private String memo;
+    private Integer progressStatus;
 }

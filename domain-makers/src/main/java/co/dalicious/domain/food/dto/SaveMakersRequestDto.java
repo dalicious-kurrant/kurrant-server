@@ -42,4 +42,5 @@ public class SaveMakersRequestDto {
     private String accountNumber;
     private Boolean isActive;
     private String serviceDays;
+    private List<String> introImages;
 }
