@@ -2,9 +2,11 @@ package co.kurrant.app.admin_api.service;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestReqDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestResDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
-import co.dalicious.domain.application_form.dto.makers.MakersRequestedStatusUpdateDto;
+import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
@@ -40,8 +42,13 @@ public interface ApplicationFormService {
     // 메이커스 신청
     ListItemResponseDto<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable);
     void createMakersRequest(MakersRequestedReqDto request);
-    void updateMakerRequestStatus(BigInteger id, MakersRequestedStatusUpdateDto request);
+    void updateMakerRequestStatus(BigInteger id, StatusUpdateDto request);
     void deleteMakersRequest(List<BigInteger> ids);
 
+    // 고객사 신청
+    ListItemResponseDto<CorporationRequestResDto> getAllCorporationRequestList(OffsetBasedPageRequest pageable);
+    void createCorporationRequest(CorporationRequestReqDto request);
+    void updateCorporationRequestStatus(BigInteger id, StatusUpdateDto request);
+    void deleteCorporationRequest(List<BigInteger> ids);
 
 }

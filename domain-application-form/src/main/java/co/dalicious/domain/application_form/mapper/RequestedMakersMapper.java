@@ -3,7 +3,7 @@ package co.dalicious.domain.application_form.mapper;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
-import co.dalicious.domain.application_form.dto.makers.MakersRequestedStatusUpdateDto;
+import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.entity.RequestedMakers;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import co.dalicious.system.util.DateUtils;
@@ -17,7 +17,7 @@ import java.util.List;
 @Mapper(componentModel = "spring" , imports = DateUtils.class)
 public interface RequestedMakersMapper {
 
-    default RequestedMakers toRequestedCorporationEntity(MakersRequestAtHomepageDto request) {
+    default RequestedMakers toRequestedMakersEntity(MakersRequestAtHomepageDto request) {
         return RequestedMakers.builder()
                 .username(request.getName())
                 .address(request.getAddress())
@@ -29,7 +29,7 @@ public interface RequestedMakersMapper {
                 .build();
     }
 
-    default RequestedMakers toRequestedCorporationEntity(MakersRequestedReqDto request) {
+    default RequestedMakers toRequestedMakersEntity(MakersRequestedReqDto request) {
         return RequestedMakers.builder()
                 .username(request.getName())
                 .address(request.getAddress())
@@ -52,7 +52,7 @@ public interface RequestedMakersMapper {
     @Mapping(source = "progressStatus.code", target = "progressStatus")
     MakersRequestedResDto toMakersRequestedResDto(RequestedMakers requestedMakers);
 
-    default void updateRequestedMakersStatus(MakersRequestedStatusUpdateDto dto, @MappingTarget RequestedMakers requestedMakers) {
+    default void updateRequestedMakersStatus(StatusUpdateDto dto, @MappingTarget RequestedMakers requestedMakers) {
         requestedMakers.setProgressStatus(ProgressStatus.ofCode(dto.getStatus()));
     }
 }
