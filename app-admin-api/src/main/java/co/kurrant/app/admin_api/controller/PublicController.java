@@ -106,7 +106,7 @@ public class PublicController {
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "고객사 신청 생성 - 홈페이지", description = "홈페이지에서 고객사 신청을 추가합니다.")
     @PostMapping("/homepage/application-form/corporation")
-    public ResponseMessage createCorporationRequestAtHomepage(@RequestBody CorporationRequestAtHomepageDto request) {
+    public ResponseMessage createCorporationRequestAtHomepage(@Valid @RequestBody CorporationRequestAtHomepageDto request) {
         applicationFormAtHomepageService.createCorporationRequestAtHomepage(request);
         return ResponseMessage.builder()
                 .message("홈페이지에서 고객사 신청을 성공했습니다.")
