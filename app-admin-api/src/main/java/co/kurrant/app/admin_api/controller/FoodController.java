@@ -70,8 +70,10 @@ public class FoodController {
     @ControllerMarker(ControllerType.FOOD)
     @Operation(summary = "상품 수정", description = "상품을 수정합니다.")
     @PatchMapping("")
-    public ResponseMessage updateFood(@RequestPart(required = false) List<MultipartFile> files, @RequestPart MakersFoodDetailReqDto contents) throws IOException {
-        foodService.updateFood(files, contents);
+    public ResponseMessage updateFood(@RequestPart(required = false) List<MultipartFile> files,
+                                      @RequestPart(required = false) List<MultipartFile> introFiles,
+                                      @RequestPart MakersFoodDetailReqDto contents) throws IOException {
+        foodService.updateFood(files,introFiles, contents);
         return ResponseMessage.builder()
                 .message("상품을 수정했습니다.")
                 .build();

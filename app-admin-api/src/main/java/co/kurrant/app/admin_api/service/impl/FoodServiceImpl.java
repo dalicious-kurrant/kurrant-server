@@ -230,32 +230,25 @@ public class FoodServiceImpl implements FoodService {
 
     @Override
     @Transactional
-    public void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException {
+    public void updateFood(List<MultipartFile> files, List<MultipartFile> introFiles, MakersFoodDetailReqDto foodDetailDto) throws IOException {
         Food food = foodRepository.findById(foodDetailDto.getFoodId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_FOOD));
 
         FoodGroup foodGroup = (foodDetailDto.getFoodGroupId() == null) ? null : foodGroupRepository.findById(foodDetailDto.getFoodGroupId())
                 .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400006", "일치하는 식품 그룹이 없습니다"));
-        // 이미지가 삭제되었다면 S3에서도 삭제
-        List<Image> images = new ArrayList<>();
-        List<String> requestImage = foodDetailDto.getImages();
-        if (requestImage != null && requestImage.size() != food.getImages().size()) {
-            List<Image> deleteImages = food.getImages();
-            List<Image> selectedImages = food.getImages().stream().filter(v -> requestImage.contains(v.getLocation())).toList();
-            deleteImages.removeAll(selectedImages);
-            if (!deleteImages.isEmpty()) {
-                for (Image image : deleteImages) {
-                    imageService.delete(image.getPrefix());
-                }
-            }
-            images.addAll(selectedImages);
-        } else {
-            images.addAll(food.getImages());
-        }
 
-        if (files != null && !files.isEmpty()) {
-            List<ImageResponseDto> imageResponseDtos = imageService.upload(files, DirName.FOOD.getName());
-            images.addAll(Image.toImages(imageResponseDtos));
-        }
+        List<Image> images = imageService.processImages(
+                foodDetailDto.getImages(),
+                food.getImages(),
+                files,
+                DirName.FOOD.getName()
+        );
+
+        List<Image> introImages = imageService.processImages(
+                foodDetailDto.getIntroImages(),
+                food.getIntroImages(),
+                introFiles,
+                "food/" + food.getId() + "/intro"
+        );
 
         //기존 설명을 수정하지 않으면
         if (foodDetailDto.getDescription() == null || foodDetailDto.getDescription().isEmpty() || foodDetailDto.getDescription().isBlank()) {
@@ -264,6 +257,7 @@ public class FoodServiceImpl implements FoodService {
 
         // 이미지 및 음식 업데이트
         food.updateImages(images);
+        food.updateIntroImages(introImages);
         food.updateFood(foodDetailDto);
         food.updateFoodGroup(foodGroup);
 
