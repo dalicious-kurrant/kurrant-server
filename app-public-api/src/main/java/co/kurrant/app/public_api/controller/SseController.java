@@ -64,11 +64,9 @@ public class SseController {
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
     @PutMapping(value = "/v1/notification/read", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseMessage readNotification(Authentication authentication, @RequestBody SseTypeDto type, HttpServletRequest request) {
-        System.out.println("request.getContentType() = " + request.getContentType());
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        BigInteger userId = userUtil.getUserId(securityUser);
-        sseService.readNotification(userId, type.getType());
+    public ResponseMessage readNotification(Authentication authentication, @RequestBody SseTypeDto dto) {
+        BigInteger userId = userUtil.getUserId(UserUtil.securityUser(authentication));
+        sseService.readNotification(userId, dto.getType(), dto.getIds());
         return ResponseMessage.builder()
                 .message("알림 읽기에 성공했습니다.")
                 .build();
