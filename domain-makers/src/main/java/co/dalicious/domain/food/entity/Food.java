@@ -67,6 +67,12 @@ public class Food {
             name = "food__images")
     private List<Image> images = new ArrayList<>();
 
+    @ElementCollection
+    @Comment("상품 소개 이미지")
+    @CollectionTable(
+            name = "food__intro_images")
+    private List<Image> introImages = new ArrayList<>();
+
     @OneToMany(mappedBy = "food", orphanRemoval = true)
     @JsonBackReference(value = "food_fk")
     @Comment("식사 일정별 가능 수량")
@@ -177,6 +183,10 @@ public class Food {
 
     public void updateImages(List<Image> images) {
         this.images = images;
+    }
+
+    public void updateIntroImages(List<Image> introImages) {
+        this.introImages = introImages;
     }
 
     public FoodDiscountPolicy getFoodDiscountPolicy(DiscountType discountType) {

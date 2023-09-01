@@ -18,7 +18,7 @@ public interface FoodService {
     MakersFoodDetailDto getFoodDetail(BigInteger foodId, BigInteger makersId);
     void updateFoodStatus(List<FoodStatusUpdateDto> foodStatusUpdateDto);
     void updateFoodMass(List<FoodListDto.FoodList> foodListDto);
-    void updateFood(List<MultipartFile> files, MakersFoodDetailReqDto foodDetailDto) throws IOException;
+    void updateFood(List<MultipartFile> files, List<MultipartFile> introFiles, MakersFoodDetailReqDto foodDetailDto) throws IOException;
     List<FoodListDto.FoodList> getAllFoodForExcel();
     List<FoodGroupDto.NameList> getFoodGroupsByMakers(BigInteger makersId);
     List<FoodGroupDto.Response> getFoodGroups();

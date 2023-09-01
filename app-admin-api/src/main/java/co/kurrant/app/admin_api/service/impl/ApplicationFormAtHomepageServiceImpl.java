@@ -23,12 +23,13 @@ public class ApplicationFormAtHomepageServiceImpl implements ApplicationFormAtHo
     @Override
     @Transactional
     public void createCorporationRequestAtHomepage(CorporationRequestAtHomepageDto request) {
+
         requestedCorporationRepository.save(requestedCorporationMapper.toRequestedCorporationEntity(request));
     }
 
     @Override
     @Transactional
     public void createMakersRequestAtHomepage(MakersRequestAtHomepageDto request) {
-        requestedMakersRepository.save(requestedMakersMapper.toRequestedCorporationEntity(request));
+        requestedMakersRepository.save(requestedMakersMapper.toRequestedMakersEntity(request));
     }
 }
