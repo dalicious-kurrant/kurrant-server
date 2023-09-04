@@ -156,7 +156,7 @@ public class ImageServiceImpl implements ImageService {
             List<Image> selectedImages = currentImages.stream().filter(v -> requestImages.contains(v.getLocation())).toList();
 
             imagesToDelete.forEach(image -> delete(image.getPrefix()));
-            resultImages.addAll(selectedImages);
+            currentImages = selectedImages;
         }
         if (requestImages == null && !currentImages.isEmpty()) {
             currentImages.forEach(image -> delete(image.getPrefix()));

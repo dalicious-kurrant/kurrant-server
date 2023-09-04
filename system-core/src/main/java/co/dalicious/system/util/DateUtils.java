@@ -36,6 +36,11 @@ public class DateUtils {
         return date.format(formatter);
     }
 
+    public static String format(LocalDateTime dateTime, String formatString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatString);
+        return dateTime.format(formatter);
+    }
+
     public static String format(Timestamp timestamp, String formatString) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat(formatString);
