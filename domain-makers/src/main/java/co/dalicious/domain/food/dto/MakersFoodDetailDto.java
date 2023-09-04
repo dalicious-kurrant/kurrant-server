@@ -22,7 +22,7 @@ public class MakersFoodDetailDto {
     private String lunchLastOrderTime;
     private String dinnerLastOrderTime;
     private BigDecimal supplyPrice;
-    private BigDecimal foodPrice;
+    private BigDecimal defaultPrice;
     private List<String> foodImages;
     private List<String> introImages;
     private BigDecimal makersDiscountPrice;
@@ -39,7 +39,7 @@ public class MakersFoodDetailDto {
     private Integer fat;
     private Integer protein;
 
-    public MakersFoodDetailDto(String makersName, String foodGroup, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity, String morningLastOrderTime, String lunchLastOrderTime, String dinnerLastOrderTime, BigDecimal supplyPrice, BigDecimal foodPrice, List<String> foodImages, List<String> introImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal membershipDiscountPrice, Integer membershipDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description, BigDecimal customPrice, Integer calorie, Integer carbohydrate, Integer fat, Integer protein) {
+    public MakersFoodDetailDto(String makersName, String foodGroup, BigInteger foodId, String foodName, Integer morningCapacity, Integer lunchCapacity, Integer dinnerCapacity, String morningLastOrderTime, String lunchLastOrderTime, String dinnerLastOrderTime, BigDecimal supplyPrice, BigDecimal defaultPrice, List<String> foodImages, List<String> introImages, BigDecimal makersDiscountPrice, Integer makersDiscountRate, BigDecimal membershipDiscountPrice, Integer membershipDiscountRate, BigDecimal periodDiscountPrice, Integer periodDiscountRate, List<Integer> foodTags, String description, BigDecimal customPrice, Integer calorie, Integer carbohydrate, Integer fat, Integer protein) {
         this.makersName = makersName;
         this.foodGroup = foodGroup;
         this.foodId = foodId;
@@ -51,7 +51,7 @@ public class MakersFoodDetailDto {
         this.lunchLastOrderTime = lunchLastOrderTime;
         this.dinnerLastOrderTime = dinnerLastOrderTime;
         this.supplyPrice = supplyPrice;
-        this.foodPrice = foodPrice;
+        this.defaultPrice = defaultPrice;
         this.foodImages = foodImages;
         this.introImages = introImages;
         this.makersDiscountPrice = makersDiscountPrice;
