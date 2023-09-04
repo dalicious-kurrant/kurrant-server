@@ -3,6 +3,7 @@ package co.dalicious.domain.board.repository;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardOption;
 import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.domain.user.entity.UserGroup;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
@@ -17,6 +18,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static co.dalicious.domain.board.entity.QNotice.notice;
@@ -27,13 +29,19 @@ public class QNoticeRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<Notice> findPopupNotice() {
-        List<Tuple> popupNotice = queryFactory.select(notice.id, notice.boardOption).from(notice).fetch();
-        List<BigInteger> noticeIds = popupNotice.stream().filter(v -> v.get(notice.boardOption).contains(BoardOption.POPUP)).map(v -> v.get(notice.id)).toList();
+    public List<Notice> findPopupNotice(List<BigInteger> userGroups) {
+        List<Tuple> popupNotice = queryFactory.select(notice.id, notice.boardType, notice.boardOption, notice.groupIds).from(notice)
+                .where(notice.isStatus.isTrue(), notice.activeDate.goe(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7)))
+                .fetch();
+
+        popupNotice.removeAll(popupNotice.stream().filter(v -> !v.get(notice.boardOption).contains(BoardOption.POPUP)).toList());
+
+        List<BigInteger> noticeIds = popupNotice.stream().filter(
+                v -> Objects.equals(v.get(notice.boardType), BoardType.ALL) || (Objects.equals(v.get(notice.boardType), BoardType.SPOT))
+        )
+
         return queryFactory.selectFrom(notice)
-                .where(notice.isStatus.isTrue(),
-                        notice.id.in(noticeIds),
-                        notice.activeDate.goe(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7)))
+                .where(notice.id.in(noticeIds))
                 .orderBy(notice.createdDateTime.desc())
                 .fetch();
     }
