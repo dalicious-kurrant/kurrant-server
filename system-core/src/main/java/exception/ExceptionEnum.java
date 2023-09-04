@@ -70,6 +70,7 @@ public enum ExceptionEnum {
 	MUST_GROUP_ID(HttpStatus.BAD_REQUEST, "E4000114", "스팟 공지는 스팟 선택이 필수입니다."),
 	MUST_MAKERS_ID(HttpStatus.BAD_REQUEST, "E4000114", "메이커스 공지는 메이커스 선택이 필수입니다."),
 	NOT_NECESSARY_GROUP_ID(HttpStatus.BAD_REQUEST, "E4000115", "전체 공지는 스팟을 선택할 수 없습니다."),
+	NOT_EXIST_REQUEST(HttpStatus.BAD_REQUEST, "E4000116", "신청 내역이 존재하지 않습니다."),
 
 	/* E401 */
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "E4010000", "인증되지 않은 사용자입니다."),

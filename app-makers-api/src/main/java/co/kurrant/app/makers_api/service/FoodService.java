@@ -10,7 +10,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 public interface FoodService {
-    List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser);
+    List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser, Integer status);
     MakersFoodDetailDto getFoodDetail(BigInteger foodId, SecurityUser securityUser);
     void updateFoodStatus(FoodStatusUpdateDto foodStatusUpdateDto);
     void updateFood(MakersFoodDetailReqDto foodDetailDto);

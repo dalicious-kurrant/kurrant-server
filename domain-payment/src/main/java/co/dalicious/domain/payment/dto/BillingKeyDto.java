@@ -11,7 +11,9 @@ public class BillingKeyDto {
     private String payNumber;
     private String email;
     private String password;
+    private String corporationCode;
     private String cardNumber;
+    private String cardType;
     private String cardPassword;
     private String expirationYear;
     private String expirationMonth;

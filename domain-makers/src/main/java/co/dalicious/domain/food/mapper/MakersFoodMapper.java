@@ -72,6 +72,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "food.supplyPrice", target = "supplyPrice")
     @Mapping(source = "food.price", target = "foodPrice")
     @Mapping(target = "foodImages", expression = "java(Image.getImagesLocation(food.getImages()))")
+    @Mapping(target = "introImages", expression = "java(Image.getImagesLocation(food.getIntroImages()))")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
     @Mapping(source = "discountDto.membershipDiscountRate", target = "membershipDiscountRate")
     @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")

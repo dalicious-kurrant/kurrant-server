@@ -103,6 +103,7 @@ public class SseService {
                 .createDate(today)
                 .groupId(sseReceiverDto.getGroupId())
                 .commentId(sseReceiverDto.getCommentId())
+                .noticeId(sseReceiverDto.getNoticeId())
                 .build();
     }
 
@@ -121,8 +122,10 @@ public class SseService {
     }
 
     @Transactional
-    public void readNotification(BigInteger userId, Integer type) {
-        List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+    public void readNotification(BigInteger userId, Integer type, List<String> ids) {
+        List<NotificationHash> notificationList;
+        if(ids == null || ids.isEmpty()) notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+        else notificationList = (List<NotificationHash>) notificationHashRepository.findAllById(ids);
 
         //읽을 알림이 있는지 확인
         if(notificationList.size() == 0) {
@@ -156,6 +159,7 @@ public class SseService {
             sseResponseDto.setIsRead(false);
             sseResponseDto.setGroupId(v.getGroupId());
             sseResponseDto.setCommentId(v.getCommentId());
+            sseResponseDto.setNoticeId(v.getNoticeId());
 
             return sseResponseDto;
 

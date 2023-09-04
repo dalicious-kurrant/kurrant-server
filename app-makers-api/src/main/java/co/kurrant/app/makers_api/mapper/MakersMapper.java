@@ -52,6 +52,7 @@ public interface MakersMapper {
     @Mapping(source = "makers.code", target = "code")
     @Mapping(source = "makers.id", target = "id")
     @Mapping(target = "serviceDays", expression = "java(DaysUtil.serviceDaysToDaysString(makers.getServiceDays()))")
+    @Mapping(target = "introImages", ignore = true)
     MakersInfoResponseDto toDto(Makers makers, Integer dailyCapacity, List<String> diningTypes);
 
     OriginDto.WithId originToDto(Origin origin);

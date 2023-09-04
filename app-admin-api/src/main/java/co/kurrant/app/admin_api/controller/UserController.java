@@ -42,6 +42,17 @@ public class UserController {
     }
 
     @ControllerMarker(ControllerType.USER)
+    @Operation(summary = "유저 정보 엑셀 내보내기", description = "유저 전체 정보 엑셀 내보내기를 한다")
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/excel")
+    public ResponseMessage getUserListAll() {
+        return ResponseMessage.builder()
+                .data(userService.getUserListAll())
+                .message("유저 목록 조회")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.USER)
     @Operation(summary = "선택 유저 탈퇴처리", description = "선택한 유저를 탈퇴처리한다")
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping("")

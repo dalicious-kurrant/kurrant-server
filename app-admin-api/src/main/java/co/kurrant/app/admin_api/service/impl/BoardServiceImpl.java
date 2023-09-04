@@ -85,8 +85,13 @@ public class BoardServiceImpl implements BoardService {
         else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeMapper.toNotice(requestDto);
-        if(requestDto.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
         noticeRepository.save(notice);
+
+        if(requestDto.getIsStatus()) {
+            notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+            sendSseNotification(notice);
+        }
     }
 
     @Override
@@ -119,7 +124,11 @@ public class BoardServiceImpl implements BoardService {
         else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
-        if(requestDto.getIsStatus() && !notice.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+        if(requestDto.getIsStatus() && !notice.getIsStatus()) {
+            notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+            sendSseNotification(notice);
+        }
         noticeMapper.updateNotice(requestDto, notice);
     }
 
@@ -130,14 +139,11 @@ public class BoardServiceImpl implements BoardService {
         if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
-        int sseType = 0;
         List<User> users = null;
         if(notice.getBoardType().equals(BoardType.ALL)) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
-            sseType = 1;
         } else if (notice.getBoardType().equals(BoardType.SPOT)) {
             users = qUserGroupRepository.findAllUserByGroupIdsAadFirebaseTokenNotNull(notice.getGroupIds());
-            sseType = 2;
         }
 
         String customMessage = pushUtil.getContextAppNotice(notice.getTitle(), PushCondition.NEW_NOTICE);
@@ -149,8 +155,7 @@ public class BoardServiceImpl implements BoardService {
             pushRequestDtoByUserList.add(pushRequestDtoByUser);
 
             pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), notice.getBoardOption().contains(BoardOption.EVENT) ? AlarmType.EVENT : AlarmType.NOTICE, notice.getId());
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), sseType, null, null, null));
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
         }
 
         pushService.sendToPush(pushRequestDtoByUserList);
@@ -305,4 +310,19 @@ public class BoardServiceImpl implements BoardService {
         return templateMap.get(boardCategory).get(noticeType);
     }
 
+    private void sendSseNotification(Notice notice) {
+        int sseType = 0;
+        List<BigInteger> users = null;
+        if(notice.getBoardType().equals(BoardType.ALL)) {
+            users = qUserRepository.findAllUserId();
+            sseType = 1;
+        } else if (notice.getBoardType().equals(BoardType.SPOT)) {
+            users = qUserGroupRepository.findAllUserIdByGroupId(notice.getGroupIds());
+            sseType = 2;
+        }
+
+        for (BigInteger user : users) {
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user).type(sseType).noticeId(notice.getId()).build());
+        }
+    }
 }
