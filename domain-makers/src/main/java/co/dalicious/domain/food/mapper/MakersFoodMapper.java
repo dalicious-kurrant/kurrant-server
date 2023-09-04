@@ -70,7 +70,7 @@ public interface MakersFoodMapper {
     @Mapping(source = "food.name", target = "foodName")
     @Mapping(target = "foodGroup", expression = "java(food.getFoodGroup() == null ? null : food.getFoodGroup().getName())")
     @Mapping(source = "food.supplyPrice", target = "supplyPrice")
-    @Mapping(source = "food.price", target = "foodPrice")
+    @Mapping(source = "food.price", target = "defaultPrice")
     @Mapping(target = "foodImages", expression = "java(Image.getImagesLocation(food.getImages()))")
     @Mapping(target = "introImages", expression = "java(Image.getImagesLocation(food.getIntroImages()))")
     @Mapping(source = "discountDto.membershipDiscountPrice", target = "membershipDiscountPrice")
