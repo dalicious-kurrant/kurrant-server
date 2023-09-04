@@ -4,6 +4,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.payment.util.MingleUtil;
 import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
 import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final MingleUtil mingleUtil;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")
@@ -206,6 +209,28 @@ public class UserController {
         return ResponseMessage.builder()
                 .data(userService.isHideEmail(securityUser))
                 .message("이메일 가리기 유저 확인에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/billing/test")
+    public ResponseMessage createBillingKeyTest(Authentication authentication, @RequestBody BillingKeyDto billingKeyDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        JSONObject response = mingleUtil.generateBillingKey(billingKeyDto.getCorporationCode(), billingKeyDto.getCardType(), billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getIdentityNumber(), billingKeyDto.getCardPassword());
+        return ResponseMessage.builder()
+                .data(response)
+                .message("빌링키 발급에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/billing/test2")
+    public ResponseMessage deleteBillingKeyTest(Authentication authentication, @RequestBody String bid) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        JSONObject response = mingleUtil.deleteBillingKey(bid);
+        return ResponseMessage.builder()
+                .data(response)
+                .message("빌링키 발급에 성공하였습니다.")
                 .build();
     }
 
