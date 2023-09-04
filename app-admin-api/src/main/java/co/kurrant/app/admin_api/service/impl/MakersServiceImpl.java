@@ -103,7 +103,7 @@ public class MakersServiceImpl implements MakersService {
                 makers.getIntroImages(),
                 files,
                 "makers/" + makers.getId() + "/intro"
-        );
+        );;
         makers.updateIntroImages(introImages);
         makers.updateAddress(address);
         updateAllMakersCapacities(makers, updateMakersReqDto);

@@ -6,11 +6,13 @@ import co.dalicious.domain.payment.util.NiceUtil;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 
 @Service
+@Primary
 @RequiredArgsConstructor
 public class NicePaymentServiceImpl implements PaymentService {
     private final NiceUtil niceUtil;
