@@ -3,7 +3,6 @@ package co.dalicious.domain.board.repository;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardOption;
 import co.dalicious.domain.board.entity.enums.BoardType;
-import co.dalicious.domain.user.entity.UserGroup;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
@@ -34,11 +33,11 @@ public class QNoticeRepository {
                 .where(notice.isStatus.isTrue(), notice.activeDate.goe(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7)))
                 .fetch();
 
-        popupNotice.removeAll(popupNotice.stream().filter(v -> !v.get(notice.boardOption).contains(BoardOption.POPUP)).toList());
+        popupNotice = popupNotice.stream().filter(v -> v.get(notice.boardOption).contains(BoardOption.POPUP)).toList();
 
-        List<BigInteger> noticeIds = popupNotice.stream().filter(
-                v -> Objects.equals(v.get(notice.boardType), BoardType.ALL) || (Objects.equals(v.get(notice.boardType), BoardType.SPOT))
-        )
+        List<BigInteger> noticeIds = popupNotice.stream()
+                .filter(v -> Objects.equals(v.get(notice.boardType), BoardType.ALL) || (Objects.equals(v.get(notice.boardType), BoardType.SPOT) && userGroups.stream().anyMatch(i -> v.get(notice.groupIds).contains(i))))
+                .map(v -> v.get(notice.id)).toList();
 
         return queryFactory.selectFrom(notice)
                 .where(notice.id.in(noticeIds))
