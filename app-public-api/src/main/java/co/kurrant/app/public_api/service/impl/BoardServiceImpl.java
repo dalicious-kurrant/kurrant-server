@@ -12,7 +12,9 @@ import co.dalicious.domain.board.mapper.NoticeMapper;
 import co.dalicious.domain.board.repository.NoticeRepository;
 import co.dalicious.domain.board.repository.QCustomerBoardRepository;
 import co.dalicious.domain.board.repository.QNoticeRepository;
+import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.entity.User;
+import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
 import co.kurrant.app.public_api.dto.board.CustomerServiceDto;
 import co.kurrant.app.public_api.dto.board.PushResponseDto;
@@ -47,8 +49,13 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public List<NoticeDto>  popupNoticeList(SecurityUser securityUser) {
+        User user = userUtil.getUser(securityUser);
+        List<BigInteger> userGroups = user.getGroups().stream()
+                .filter(v -> v.getClientStatus().equals(ClientStatus.BELONG))
+                .map(v -> v.getGroup().getId()).toList();
+
         List<NoticeDto> result = new ArrayList<>();
-        List<Notice> noticeList = qNoticeRepository.findPopupNotice();
+        List<Notice> noticeList = qNoticeRepository.findPopupNotice(userGroups);
         for (Notice notice:noticeList){
            result.add(noticeMapper.toDto(notice));
         }
