@@ -438,7 +438,7 @@ public class UserServiceImpl implements UserService {
         Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
         if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
 
-        List<UserGroup> userGroups = user.getActiveUserGroups();
+        List<UserGroup> userGroups = user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
         // 오픈 스팟 그룹의 개수가 2개 이상일 떄
