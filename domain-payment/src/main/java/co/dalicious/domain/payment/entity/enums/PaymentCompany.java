@@ -71,6 +71,38 @@ public enum PaymentCompany {
     LGPAY("LG페이", "LGPAY", "간편결제"),
     SSG("SSG페이", "SSG", "간편결제"),
     NULL("없음", "NULL", "카드결제"),
+
+    MINGLE_BC("MINGLE_비씨", "MINGLE_01", "카드결제"),
+    MINGLE_KB("MINGLE_국민", "MINGLE_02", "카드결제"),
+    MINGLE_HANA("MINGLE_하나", "MINGLE_03", "카드결제"),
+    MINGLE_SAMSUNG("MINGLE_삼성", "MINGLE_04", "카드결제"),
+    MINGLE_SHINHAN("MINGLE_신한", "MINGLE_06", "카드결제"),
+    MINGLE_HYUNDAI("MINGLE_현대", "MINGLE_07", "카드결제"),
+    MINGLE_LOTTE("MINGLE_롯데", "MINGLE_08", "카드결제"),
+    MINGLE_CITY("MINGLE_시티", "MINGLE_11", "카드결제"),
+    MINGLE_NH("MINGLE_NH농협", "MINGLE_12", "카드결제"),
+    MINGLE_SUHYEOP("MINGLE_수협", "MINGLE_13", "카드결제"),
+    MINGLE_URI("MINGLE_우리", "MINGLE_15", "카드결제"),
+    MINGLE_GWANGJU("MINGLE_광주", "MINGLE_21", "카드결제"),
+    MINGLE_JEONBUK("MINGLE_전북", "MINGLE_22", "카드결제"),
+    MINGLE_JEJU("MINGLE_제주", "MINGLE_23", "카드결제"),
+    MINGLE_VISA("MINGLE_해외비자", "MINGLE_25", "카드결제"),
+    MINGLE_MASTER("MINGLE_해외마스터", "MINGLE_26", "카드결제"),
+    MINGLE_DINERS("MINGLE_해외다이너스", "MINGLE_27", "카드결제"),
+    MINGLE_AMAX("MINGLE_해외AMAX", "MINGLE_28", "카드결제"),
+    MINGLE_JCB("MINGLE_해외JCB", "MINGLE_29", "카드결제"),
+    MINGLE_OVERSEAS("MINGLE_해외", "MINGLE_30", "카드결제"),
+    MINGLE_POST("MINGLE_우체국", "MINGLE_32", "카드결제"),
+    MINGLE_MG("MINGLE_MG새마을카드", "MINGLE_33", "카드결제"),
+    MINGLE_CHINA("MINGLE_중국은행체크", "MINGLE_34", "카드결제"),
+    MINGLE_UNIONPAY("MINGLE_은련", "MINGLE_38", "카드결제"),
+    MINGLE_SHINHYEOP("MINGLE_신협", "MINGLE_41", "카드결제"),
+    MINGLE_SAVINGBANK("MINGLE_저축은행", "MINGLE_42", "카드결제"),
+    MINGLE_KDB("MINGLE_KDB산업", "MINGLE_43", "카드결제"),
+    MINGLE_KAKAOBANK("MINGLE_카카오뱅크", "MINGLE_44", "카드결제"),
+    MINGLE_KBANK("MINGLE_케이뱅크", "MINGLE_45", "카드결제"),
+    MINGLE_KAKAOMONEY("MINGLE_카카오머니", "MINGLE_46", "카드결제"),
+    MINGLE_SSGMONEY("MINGLE_SSG머니", "MINGLE_47", "카드결제"),
     ;
 
     private final String paymentCompany;
@@ -97,4 +129,14 @@ public enum PaymentCompany {
                 .orElse(NULL);
     }
 
+    public static PaymentCompany ofMingleCode(String code) {
+        return Arrays.stream(PaymentCompany.values())
+                .filter(v -> v.getCode().equals("MINGLE_" + code))
+                .findAny()
+                .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
+    public String getPaymentCompany() {
+        return paymentCompany.contains("MINGLE_") ? paymentCompany.replaceFirst("MINGLE_", "") : paymentCompany;
+    }
 }

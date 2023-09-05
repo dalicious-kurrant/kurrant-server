@@ -578,7 +578,7 @@ public class UserServiceImpl implements UserService {
             user.updatePaymentPassword(payPassword);
         }
 
-        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
+        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCorporationCode(), billingKeyDto.getCardType(), billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
 
         int defaultType = (billingKeyDto.getDefaultType() == null) ? 0 : billingKeyDto.getDefaultType();
 
@@ -597,7 +597,8 @@ public class UserServiceImpl implements UserService {
             // 기존에 삭제되었던 카드라면 빌링키 업데이트
             if (creditCardInfo.get().getStatus() == 0) {
                 creditCardInfo.get().updateStatus(1);
-                creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
+                creditCardInfo.get().updateMingleBillingKey(saveCardResponse.getBillingKey());
+//                creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
                 return saveCardResponse.getBillingKey();
             }
         }
@@ -610,7 +611,8 @@ public class UserServiceImpl implements UserService {
 
         creditCardInfoRepository.save(cardInfo);
 
-        return cardInfo.getNiceBillingKey();
+//        return cardInfo.getNiceBillingKey();
+        return cardInfo.getMingleBillingKey();
     }
 
     @Override
@@ -689,8 +691,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) {
-        qCreditCardInfoRepository.deleteCard(deleteCreditCardDto.getCardId());
+    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) throws IOException, ParseException {
+        CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(deleteCreditCardDto.getCardId())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+        creditCardInfo.updateStatus(0);
+        creditCardInfo.updateTossBillingKey("삭제된 카드입니다.");
+        paymentService.deleteBillingKey(creditCardInfo.getMingleBillingKey());
     }
 
     @Override

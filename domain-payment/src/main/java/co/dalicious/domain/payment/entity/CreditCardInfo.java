@@ -58,6 +58,9 @@ public class CreditCardInfo {
     @Column(name="nice_billing_key", columnDefinition = "VARCHAR(64)")
     private String niceBillingKey;
 
+    @Column(name="mingle_billing_key", columnDefinition = "VARCHAR(64)")
+    private String mingleBillingKey;
+
 
     @Builder
     CreditCardInfo(String cardNumber, User user, String ownerType,
@@ -91,7 +94,15 @@ public class CreditCardInfo {
         this.niceBillingKey = niceBillingKey;
     }
 
+    public void updateMingleBillingKey(String mingleBillingKey) {
+        this.mingleBillingKey = mingleBillingKey;
+    }
+
     public void updateStatus(Integer status) {
         this.status = status;
+    }
+
+    public void updateTossBillingKey(String tossBillingKey) {
+        this.tossBillingKey = tossBillingKey;
     }
 }

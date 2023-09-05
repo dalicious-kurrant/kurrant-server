@@ -23,9 +23,11 @@ import co.dalicious.domain.order.service.OrderService;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.order.util.UserSupportPriceUtil;
+import co.dalicious.domain.payment.dto.PaymentResponseDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
+import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.payment.util.NiceUtil;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.PointStatus;
@@ -102,6 +104,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final DeliveryUtils deliveryUtils;
     private final ConcurrentHashMap<User, Object> userLocks = new ConcurrentHashMap<>();
     private final QSpotRepository qSpotRepository;
+    private final PaymentService paymentService;
 
     @Override
     @Transactional
@@ -209,28 +212,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             // 결제 금액이 0이 아닐 경우, 나이스페이를 통해 결제
             if (orderItemDailyFoodReqDto.getAmount() != 0) {
                 CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(orderItemDailyFoodReqDto.getCardId()).orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
-                JSONObject jsonObject = orderService.payDailyFood(user, creditCardInfo, orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), orderItemDailyFoodReqDto.getOrderName());
+                if (!creditCardInfo.getUser().equals(user)) {
+                    throw new ApiException(ExceptionEnum.NOT_MATCH_USER_CARD);
+                }
+                PaymentResponseDto paymentResponseDto = paymentService.pay(user, creditCardInfo.getNiceBillingKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), orderItemDailyFoodReqDto.getOrderName());
                 // 결제 성공시 orderMembership의 상태값을 결제 성공 상태(1)로 변경
-                Long code = (Long) jsonObject.get("code");
-                JSONObject response = (JSONObject) jsonObject.get("response");
-                String status = response.get("status").toString();
 
-                if (code == 0 && !status.equals("failed")) {
-                    // 주문서 내용 업데이트 및 사용 포인트 차감
-                    updateOrderDailyFood(orderDailyFood, orderItemDailyFoods, defaultPrice, orderItemDailyFoodReqDto.getOrderItems().getUserPoint(), payPrice, totalDeliveryFee);
-                    pointUtil.updateUserPoint(user, orderDailyFood.getId(), orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
+                // 주문서 내용 업데이트 및 사용 포인트 차감
+                updateOrderDailyFood(orderDailyFood, orderItemDailyFoods, defaultPrice, orderItemDailyFoodReqDto.getOrderItems().getUserPoint(), payPrice, totalDeliveryFee);
+                pointUtil.updateUserPoint(user, orderDailyFood.getId(), orderItemDailyFoodReqDto.getOrderItems().getUserPoint());
 
-                    //Order 테이블에 paymentKey와 receiptUrl 업데이트
-                    String receiptUrl = response.get("receipt_url").toString();
-                    String impUid = (String) response.get("imp_uid");
-                    String paymentCompanyCode = response.get("card_name").toString();
-                    PaymentCompany paymentCompany = PaymentCompany.ofValue(paymentCompanyCode);
-                    orderDailyFood.updateOrderDailyFoodAfterPayment(receiptUrl, impUid, orderItemDailyFoodReqDto.getOrderId(), paymentCompany);
-                }
-                // 결제 실패시 orderMembership의 상태값을 결제 실패 상태(4)로 변경
-                else {
-                    throw new ApiException(ExceptionEnum.PAYMENT_FAILED);
-                }
+                //Order 테이블에 paymentKey와 receiptUrl 업데이트
+                orderDailyFood.updateOrderDailyFoodAfterPayment(paymentResponseDto.getReceipt(), paymentResponseDto.getReceipt(), orderItemDailyFoodReqDto.getOrderId(), paymentResponseDto.getPaymentCompany());
 
             } else {
                 // 주문서 내용 업데이트 및 사용 포인트 차감
@@ -300,7 +293,8 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             List<OrderItemDto> orderItemDtoList = new ArrayList<>();
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 OrderItemDto orderItemDto = orderItemDailyFoodListMapper.toDto(orderItemDailyFood);
-                if (orderItemDailyFood.getDailyFood().getFood().getCalorie() != null ) totalCalorie += orderItemDailyFood.getDailyFood().getFood().getCalorie();
+                if (orderItemDailyFood.getDailyFood().getFood().getCalorie() != null)
+                    totalCalorie += orderItemDailyFood.getDailyFood().getFood().getCalorie();
                 orderItemDtoList.add(orderItemDto);
             }
 
@@ -427,7 +421,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         // 다음주 주문이 없을 때
         // 하루에 한 번만 알림 보내기 - 알림을 읽었으면 그날 하루는 더 이상 보내지 않음.
         List<NotificationHash> todayAlreadySendNotys = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(user.getId(), 5, true);
-        if(todayAlreadySendNotys.stream().anyMatch(v -> v.getCreateDate().equals(now))) return;
+        if (todayAlreadySendNotys.stream().anyMatch(v -> v.getCreateDate().equals(now))) return;
 
         // 알림을 보낸적 없으면
         LocalDate startDate = endDate.minusDays(7);
@@ -457,7 +451,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
             }
             // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
-            if(mealInfo.getLastOrderTime() != null && mealInfo.getLastOrderTime().isValidDayAndTime(2, null)) {
+            if (mealInfo.getLastOrderTime() != null && mealInfo.getLastOrderTime().isValidDayAndTime(2, null)) {
                 String content = "내일 " + mealInfo.getDiningType().getDiningType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(mealInfo.getLastOrderTime().getTime()) + "에 마감이예요!";
                 applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(4).content(content).build());
                 return;
