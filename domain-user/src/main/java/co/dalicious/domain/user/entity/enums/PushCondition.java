@@ -68,8 +68,7 @@ public enum PushCondition {
                 REVIEW_DEADLINE,
                 LAST_ORDER_BY_DAILYFOOD,
                 NEW_SPOT,
-                NEW_SPOT_2,
-                LAST_ORDER_BY_DAILYFOOD
+                NEW_SPOT_2
         );
     }
 
