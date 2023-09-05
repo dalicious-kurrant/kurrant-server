@@ -149,6 +149,10 @@ public class User {
     @ColumnDefault("false")
     private Boolean isMembership;
 
+    @Comment("로그인한 유저의 버전")
+    @Column(name = "version")
+    private String version;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonBackReference(value = "user-fk")
     List<ProviderEmail> providerEmails;
@@ -447,5 +451,9 @@ public class User {
                 .filter(v -> v.getGroup().equals(group))
                 .findAny()
                 .orElse(null);
+    }
+
+    public void updateVersion(String version) {
+        this.version = version;
     }
 }
