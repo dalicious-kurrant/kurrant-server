@@ -215,10 +215,19 @@ public interface DeliveryInstanceMapper {
         }
         foodBySpots = foodBySpots.stream()
                 .sorted(Comparator.comparing(OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime)
-                        .thenComparing(v -> (v != null) ? Integer.parseInt(v.getDeliveryId()) : 0))
+                        .thenComparing(v -> (v != null && canBeConvertedToInt(v.getDeliveryId())) ? Integer.parseInt(v.getDeliveryId()) : 0))
                 .toList();
         return foodBySpots;
     }
+    public static boolean canBeConvertedToInt(String input) {
+        try {
+            Integer.parseInt(input);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
 
     default List<OrderDailyFoodByMakersDto.FoodByDateDiningType> toFoodByDateDiningType(List<DeliveryInstance> deliveryInstances, List<FoodCapacity> foodCapacities) {
         List<OrderDailyFoodByMakersDto.FoodByDateDiningType> foodByDateDiningTypes = deliveryInstances.stream()
