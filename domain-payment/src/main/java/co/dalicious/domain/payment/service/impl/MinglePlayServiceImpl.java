@@ -3,6 +3,7 @@ package co.dalicious.domain.payment.service.impl;
 import co.dalicious.domain.payment.dto.CreditCardDto;
 import co.dalicious.domain.payment.dto.PaymentCancelResponseDto;
 import co.dalicious.domain.payment.dto.PaymentResponseDto;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.payment.util.MingleUtil;
@@ -53,8 +54,8 @@ public class MinglePlayServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponseDto pay(User user, String billingKey, Integer totalPrice, String orderCode, String orderName) throws IOException, ParseException {
-        JSONObject jsonObject = mingleUtil.requestPayment(billingKey, orderCode, orderName, totalPrice, user.getName(), user.getPhone() == null ? "010" : user.getPhone(), user.getEmail());
+    public PaymentResponseDto pay(User user, CreditCardInfo creditCardInfo, Integer totalPrice, String orderCode, String orderName) throws IOException, ParseException {
+        JSONObject jsonObject = mingleUtil.requestPayment(creditCardInfo.getMingleBillingKey(), orderCode, orderName, totalPrice, user.getName(), user.getPhone() == null ? "010" : user.getPhone(), user.getEmail());
 
         String code = (String) jsonObject.get("resultCd");
         if (!code.equals("3001")) {

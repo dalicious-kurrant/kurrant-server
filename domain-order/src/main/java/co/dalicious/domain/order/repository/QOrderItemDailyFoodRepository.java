@@ -7,6 +7,7 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.order.dto.*;
 import co.dalicious.domain.order.dto.point.FoundersPointDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
@@ -634,5 +635,39 @@ public class QOrderItemDailyFoodRepository {
                         dailyFood.serviceDate.loe(endDate))
                 .fetch();
     }
+    public List<OrderItemDailyFoodGroup> findAllOrderItemDailyFoodGroupByGroup(Corporation corporation, LocalDate startDate, LocalDate endDate) {
+        return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup)
+                .from(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood)
+                .innerJoin(dailyFood.group, group)
+                .where(orderItemDailyFood.dailyFood.group.eq(corporation),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
+                        orderItemDailyFood.dailyFood.serviceDate.between(startDate,endDate))
+                .groupBy(orderItemDailyFood.orderItemDailyFoodGroup)
+                .fetch();
+    }
 
+    public MultiValueMap<Group, OrderItemDailyFoodGroup> findAllGroupIdsAndPeriod(List<BigInteger> groupIds, YearMonth yearMonth) {
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if(groupIds != null && !groupIds.isEmpty()) {
+            whereClause.and(orderItemDailyFood.dailyFood.group.id.in(groupIds));
+        }
+
+        List<Tuple> results = queryFactory.select(orderItemDailyFood.dailyFood.group, orderItemDailyFood.orderItemDailyFoodGroup)
+                .from(orderItemDailyFood)
+                .where(orderItemDailyFood.dailyFood.serviceDate.between(startDate, endDate),
+                        whereClause,
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()))
+                .groupBy(orderItemDailyFood.dailyFood.group, orderItemDailyFood.orderItemDailyFoodGroup)
+                .fetch();
+
+        MultiValueMap<Group, OrderItemDailyFoodGroup> orderItemDailyFoodGroupMultiValueMap = new LinkedMultiValueMap<>();
+        for (Tuple result : results) {
+            orderItemDailyFoodGroupMultiValueMap.add(result.get(orderItemDailyFood.dailyFood.group), result.get(orderItemDailyFood.orderItemDailyFoodGroup));
+        }
+        return orderItemDailyFoodGroupMultiValueMap;
+    }
 }

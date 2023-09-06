@@ -3,6 +3,7 @@ package co.dalicious.domain.payment.service.impl;
 import co.dalicious.domain.payment.dto.CreditCardDto;
 import co.dalicious.domain.payment.dto.PaymentCancelResponseDto;
 import co.dalicious.domain.payment.dto.PaymentResponseDto;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.payment.util.NiceUtil;
@@ -52,7 +53,8 @@ public class NicePaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponseDto pay(User user, String billingKey, Integer totalPrice, String orderCode, String orderName) throws IOException, ParseException {
+    public PaymentResponseDto pay(User user, CreditCardInfo creditCardInfo, Integer totalPrice, String orderCode, String orderName) throws IOException, ParseException {
+        String billingKey = creditCardInfo.getNiceBillingKey();
         if (billingKey == null) {
             throw new ApiException(ExceptionEnum.CARD_NOT_FOUND);
         }

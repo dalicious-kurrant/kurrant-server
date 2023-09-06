@@ -400,7 +400,7 @@ public class OrderServiceImpl implements OrderService {
 
             //String billingKey, Integer amount, String orderId, String token, String orderName
 
-            PaymentResponseDto paymentResponseDto = paymentService.pay(user, billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType());
+            PaymentResponseDto paymentResponseDto = paymentService.pay(user, creditCardInfo.get(), totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType());
 
             orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(totalPrice));
             orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);
@@ -476,7 +476,7 @@ public class OrderServiceImpl implements OrderService {
 
         String billingKey = creditCardInfo.get().getNiceBillingKey();
 
-        PaymentResponseDto paymentResponseDto = paymentService.pay(user, billingKey, totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType());
+        PaymentResponseDto paymentResponseDto = paymentService.pay(user, creditCardInfo.get(), totalPrice.intValue(), orderItemMembership.getOrder().getCode(), orderItemMembership.getMembershipSubscriptionType());
 
         orderItemMembership.updateDiscountPrice(membership.getMembershipSubscriptionType().getPrice().subtract(totalPrice));
         orderItemMembership.updateOrderStatus(OrderStatus.COMPLETED);

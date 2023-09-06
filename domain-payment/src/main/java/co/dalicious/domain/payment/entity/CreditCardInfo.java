@@ -63,20 +63,18 @@ public class CreditCardInfo {
 
 
     @Builder
-    CreditCardInfo(String cardNumber, User user, String ownerType,
-                   String cardType, String customerKey, String tossBillingKey,
-                   String niceBillingKey,
-                   String cardCompany, Integer defaultType, Integer status){
+    public CreditCardInfo(String cardNumber, String cardCompany, String ownerType, String cardType, Integer status, Integer defaultType, User user, String customerKey, String tossBillingKey, String niceBillingKey, String mingleBillingKey) {
         this.cardNumber = cardNumber;
-        this.user = user;
+        this.cardCompany = cardCompany;
         this.ownerType = ownerType;
         this.cardType = cardType;
+        this.status = status;
+        this.defaultType = defaultType;
+        this.user = user;
         this.customerKey = customerKey;
         this.tossBillingKey = tossBillingKey;
         this.niceBillingKey = niceBillingKey;
-        this.cardCompany = cardCompany;
-        this.defaultType = defaultType;
-        this.status = status;
+        this.mingleBillingKey = mingleBillingKey;
     }
 
     public CreditCardInfo(Integer status) {

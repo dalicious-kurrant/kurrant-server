@@ -211,7 +211,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 if (!creditCardInfo.getUser().equals(user)) {
                     throw new ApiException(ExceptionEnum.NOT_MATCH_USER_CARD);
                 }
-                PaymentResponseDto paymentResponseDto = paymentService.pay(user, creditCardInfo.getNiceBillingKey(), orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), orderItemDailyFoodReqDto.getOrderName());
+                PaymentResponseDto paymentResponseDto = paymentService.pay(user, creditCardInfo, orderItemDailyFoodReqDto.getAmount(), orderItemDailyFoodReqDto.getOrderId(), orderItemDailyFoodReqDto.getOrderName());
 
                 //Order 테이블에 paymentKey와 receiptUrl 업데이트
                 orderDailyFood.updateOrderDailyFoodAfterPayment(paymentResponseDto.getReceipt(), paymentResponseDto.getTransactionCode(), orderItemDailyFoodReqDto.getOrderId(), paymentResponseDto.getPaymentCompany());

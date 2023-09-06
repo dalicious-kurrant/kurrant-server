@@ -3,6 +3,7 @@ package co.dalicious.domain.payment.service;
 import co.dalicious.domain.payment.dto.CreditCardDto;
 import co.dalicious.domain.payment.dto.PaymentCancelResponseDto;
 import co.dalicious.domain.payment.dto.PaymentResponseDto;
+import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.user.entity.User;
 import org.json.simple.parser.ParseException;
 
@@ -17,7 +18,7 @@ public interface PaymentService {
     void deleteBillingKey(String billingKey) throws IOException, ParseException;
 
     // 빌링키를 통해 결제한다
-    PaymentResponseDto pay(User user, String billingKey, Integer totalPrice, String orderCode, String orderName) throws IOException, ParseException;
+    PaymentResponseDto pay(User user, CreditCardInfo creditCardInfo, Integer totalPrice, String orderCode, String orderName) throws IOException, ParseException;
 
     // 빌링키를 통해 할부 결제한다
     PaymentResponseDto payQuota(User user, String billingKey, Integer totalPrice, String orderCode, String orderName, Integer quotaMonth) throws IOException, ParseException;

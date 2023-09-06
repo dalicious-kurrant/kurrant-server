@@ -263,7 +263,7 @@ public class UserController {
         String tid = (String) request.get("tid");
         String cancelPrice = (String) request.get("cancelPrice");
         String orderNumber = (String) request.get("orderNumber");
-        JSONObject response = mingleUtil.cancelPayment(false, tid, BigDecimal.valueOf(Integer.parseInt(cancelPrice)), orderNumber, user.getId(), user.getName());
+        JSONObject response = mingleUtil.cancelPayment(false, tid, Integer.parseInt(cancelPrice), orderNumber, user.getId(), user.getName());
         return ResponseMessage.builder()
                 .data(response)
                 .message("결제 전체 취소에 성공하였습니다.")
@@ -277,9 +277,9 @@ public class UserController {
         User user = userUtil.getUser(securityUser);
 
         String tid = (String) request.get("tid");
-        BigDecimal cancelPrice = (BigDecimal) request.get("cancelPrice");
+        String cancelPrice = (String) request.get("cancelPrice");
         String orderNumber = (String) request.get("orderNumber");
-        JSONObject response = mingleUtil.cancelPayment(true, tid, cancelPrice, orderNumber, user.getId(), user.getName());
+        JSONObject response = mingleUtil.cancelPayment(true, tid, Integer.parseInt(cancelPrice), orderNumber, user.getId(), user.getName());
         return ResponseMessage.builder()
                 .data(response)
                 .message("결제 전체 취소에 성공하였습니다.")
