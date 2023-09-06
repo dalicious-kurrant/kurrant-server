@@ -8,6 +8,7 @@ import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.entity.*;
@@ -122,9 +123,9 @@ public interface CorporationPaycheckMapper {
         return new PaycheckDto.CorporationMain(corporationLists, statusLists);
     }
 
-    default PaycheckDto.CorporationOrder toCorporationOrder(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+    default PaycheckDto.CorporationOrder toCorporationOrder(Corporation corporation, List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups) {
         PaycheckDto.CorporationOrder corporationOrder = new PaycheckDto.CorporationOrder();
-        List<PaycheckDto.CorporationOrderItem> corporationOrderItems = toCorporationOrderItems(dailyFoodSupportPrices);
+        List<PaycheckDto.CorporationOrderItem> corporationOrderItems = toCorporationOrderItems(orderItemDailyFoodGroups, corporation);
         PaycheckDto.CorporationInfo corporationInfo = toCorporationInfo(corporation, corporationOrderItems);
 
         corporationOrder.setCorporationInfo(corporationInfo);
@@ -165,10 +166,10 @@ public interface CorporationPaycheckMapper {
                 .build();
     }
 
-    default List<PaycheckDto.CorporationOrderItem> toCorporationOrderItems(List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+    default List<PaycheckDto.CorporationOrderItem> toCorporationOrderItems(List<OrderItemDailyFoodGroup> dailyFoodSupportPrices, Corporation corporation) {
         List<PaycheckDto.CorporationOrderItem> corporationOrderItems = new ArrayList<>();
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
-            corporationOrderItems.addAll(toCorporationOrderItem(dailyFoodSupportPrice));
+        for (OrderItemDailyFoodGroup dailyFoodSupportPrice : dailyFoodSupportPrices) {
+            corporationOrderItems.addAll(toCorporationOrderItem(dailyFoodSupportPrice, corporation));
         }
         corporationOrderItems = corporationOrderItems.stream()
                 .sorted(Comparator.comparing(PaycheckDto.CorporationOrderItem::getServiceDate).thenComparing(PaycheckDto.CorporationOrderItem::getDiningType))
@@ -176,13 +177,13 @@ public interface CorporationPaycheckMapper {
         return corporationOrderItems;
     }
 
-    default List<PaycheckDto.CorporationOrderItem> toCorporationOrderItem(DailyFoodSupportPrice dailyFoodSupportPrice) {
+    default List<PaycheckDto.CorporationOrderItem> toCorporationOrderItem(OrderItemDailyFoodGroup orderItemDailyFoodGroup, Corporation corporation) {
         List<PaycheckDto.CorporationOrderItem> corporationOrderItems = new ArrayList<>();
-        BigDecimal supportPrice = dailyFoodSupportPrice.getUsingSupportPrice();
-        List<OrderItemDailyFood> orderItemDailyFoods = dailyFoodSupportPrice.getOrderItemDailyFoodGroup().getOrderDailyFoods();
+        BigDecimal supportPrice = orderItemDailyFoodGroup.getUsingSupportPrice();
+        List<OrderItemDailyFood> orderItemDailyFoods = orderItemDailyFoodGroup.getOrderItemDailyFoodInOrderComplete();
 
         // 주문 그룹이 메드트로닉일 경우
-        if (dailyFoodSupportPrice.getGroup().getId().equals(BigInteger.valueOf(97))) {
+        if (corporation.getId().equals(BigInteger.valueOf(97))) {
             BigDecimal totalSupportPrice = BigDecimal.ZERO;
             for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
                 // 취소된 상품은 제외
@@ -213,11 +214,9 @@ public interface CorporationPaycheckMapper {
                 .toList();
 
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
-            if (supportPrice.compareTo(BigDecimal.ZERO) > 0) {
-                PaycheckDto.CorporationOrderItem orderItem = new PaycheckDto.CorporationOrderItem(orderItemDailyFood, supportPrice);
-                corporationOrderItems.add(orderItem);
-                supportPrice = supportPrice.subtract(orderItemDailyFood.getDiscountedPrice());
-            }
+            PaycheckDto.CorporationOrderItem orderItem = new PaycheckDto.CorporationOrderItem(orderItemDailyFood, supportPrice);
+            corporationOrderItems.add(orderItem);
+            supportPrice = supportPrice.subtract(orderItemDailyFood.getDiscountedPrice()).compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : supportPrice.subtract(orderItemDailyFood.getDiscountedPrice());
         }
         return corporationOrderItems;
     }
