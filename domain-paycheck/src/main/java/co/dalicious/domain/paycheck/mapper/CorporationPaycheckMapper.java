@@ -299,7 +299,10 @@ public interface CorporationPaycheckMapper {
 //
 //        return paycheckCategories;
 //    }
+
+    // FIXME: MembershipSupportPrice 사용시 재가동
     default List<PaycheckCategory> toMembership(List<MembershipSupportPrice> membershipSupportPrices) {
+
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
         // 중간에 멤버십 가격이 변동될 수 있으므로 금액을 구분해서 확인
         MultiValueMap<BigDecimal, MembershipSupportPrice> membershipMap = new LinkedMultiValueMap<>();
@@ -314,6 +317,13 @@ public interface CorporationPaycheckMapper {
         return paycheckCategories;
     }
 
+    default List<PaycheckCategory> toSimpleMembership(Integer userCount) {
+        final BigDecimal CORPORATION_MEMBERSHIP_SUPPORT_PRICE = BigDecimal.valueOf(10000);
+        List<PaycheckCategory> paycheckCategories = new ArrayList<>();
+        paycheckCategories.add(new PaycheckCategory(PaycheckCategoryItem.MEMBERSHIP, null, userCount, CORPORATION_MEMBERSHIP_SUPPORT_PRICE, CORPORATION_MEMBERSHIP_SUPPORT_PRICE.multiply(BigDecimal.valueOf(userCount))));
+        return paycheckCategories;
+    }
+
     @Mapping(source = "createdDateTime", target = "issueDate")
     @Mapping(source = "discountedPrice", target = "price")
     @Mapping(source = "usage", target = "memo")
@@ -323,12 +333,12 @@ public interface CorporationPaycheckMapper {
         return PaycheckUtils.getAdditionalPaycheckCategories(corporation, dailyFoodSupportPrices, orderCount);
     }
 
-    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, OrderCount orderCounts, YearMonth yearMonth) {
+    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer userCount, OrderCount orderCounts, YearMonth yearMonth) {
 //    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPrices) {
         // 1. 정기 식사 구매 계산
         List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices);
         // 2. 멤버십 계산
-        List<PaycheckCategory> memberships = (membershipSupportPrices == null) ? null : toMembership(membershipSupportPrices);
+        List<PaycheckCategory> memberships = (userCount == null) ? null : toSimpleMembership(userCount);
         // 3. 추가 이슈
         List<PaycheckCategory> paycheckCategories1 = toPaycheckCategories(corporation, dailyFoodSupportPrices, yearMonth, orderCounts);
 

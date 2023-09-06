@@ -48,6 +48,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -75,6 +76,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final ExpectedPaycheckRepository expectedPaycheckRepository;
     private final QExpectedPaycheckRepository qExpectedPaycheckRepository;
+    private static final BigDecimal CORPORATION_MEMBERSHIP_PRICE = BigDecimal.valueOf(10000);
 
     @Override
     @Transactional
@@ -248,6 +250,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         // 기존에 존재하던 정산 삭제
         List<CorporationPaycheck> corporationPaychecks = qCorporationPaycheckRepository.getCorporationPaychecksByFilter(request.getId(), yearMonth);
         List<ExpectedPaycheck> expectedPaychecks = qExpectedPaycheckRepository.findAllByCorporationPaychecks(corporationPaychecks);
+
         for (CorporationPaycheck corporationPaycheck : corporationPaychecks) {
             imageService.delete(getImagePrefix(corporationPaycheck.getExcelFile()));
             imageService.delete(getImagePrefix(corporationPaycheck.getPdfFile()));
@@ -256,10 +259,9 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         corporationPaycheckRepository.deleteAll(corporationPaychecks);
 
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupsAndPeriod(request.getId(), yearMonth);
-        List<MembershipSupportPrice> membershipSupportPrices = qMembershipSupportPriceRepository.findAllByGroupIdsAndPeriod(request.getId(), yearMonth);
+        Map<BigInteger, Integer> userCountByGroup = qMembershipSupportPriceRepository.getUserCountByGroupIdsAndPeriod(request.getId(), yearMonth);
 
         MultiValueMap<Group, DailyFoodSupportPrice> dailyFoodSupportPriceMap = new LinkedMultiValueMap<>();
-        MultiValueMap<Group, MembershipSupportPrice> membershipSupportPriceMap = new LinkedMultiValueMap<>();
 
         Set<Group> groups = new HashSet<>();
         Set<Group> garbageUseGroups = new HashSet<>();
@@ -276,16 +278,12 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllOrderItemDailyFoodCount(groups, yearMonth);
         List<OrderCount> orderCounts = OrderUtil.getTotalOrderCount(orderItemDailyFoods);
 
-        for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
-            membershipSupportPriceMap.add(membershipSupportPrice.getGroup(), membershipSupportPrice);
-        }
-
         for (Group group : groups) {
             OrderCount orderCount = orderCounts.stream()
                     .filter(v -> v.getGroup().equals(group))
                     .findAny()
                     .orElse(null);
-            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), membershipSupportPriceMap.get(group), orderCount, yearMonth);
+            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), userCountByGroup.get(group.getId()), orderCount, yearMonth);
             ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group)));
             Image excel = new Image(excelPdfDto.getExcelDto());
             Image pdf = new Image(excelPdfDto.getPdfDto());
