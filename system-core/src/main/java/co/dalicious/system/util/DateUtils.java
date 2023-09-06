@@ -183,15 +183,17 @@ public class DateUtils {
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
 
-        if(limitDayAndTime.isBefore(now)){
+        // Check if limitDayAndTime is before 'now', even after adding 5 days
+        if (limitDayAndTime.isBefore(now)) {
             limitDayAndTime = limitDayAndTime.plusDays(5);
-            System.out.println("limitDayAndTime = " + limitDayAndTime);
         }
+        System.out.println("limitDayAndTime = " + limitDayAndTime);
 
         long dateTime = ChronoUnit.MINUTES.between(now, limitDayAndTime);
         long day = dateTime / (60 * 24);
         long hour = (dateTime / 60) % 24;
         long min = dateTime % 60;
+        if (day < 0 || hour < 0 || min < 0) return "-1";
         LocalTime remainingTime = LocalTime.of((int) hour, (int) min);
 
         return String.format("%01d %tH:%tM", day, remainingTime, remainingTime);
