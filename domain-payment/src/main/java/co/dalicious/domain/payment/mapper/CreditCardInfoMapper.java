@@ -23,10 +23,20 @@ public interface CreditCardInfoMapper {
     @Mapping(source = "defaultType", target = "defaultType")
     @Mapping(source = "saveCardResponse.cardNumber", target = "cardNumber")
     @Mapping(source = "saveCardResponse.cardCompany", target = "cardCompany")
+    @Mapping(source = "saveCardResponse.billingKey", target = "mingleBillingKey")
+    @Mapping(source = "id", target = "user.id")
+    CreditCardInfo toEntity(CreditCardDto.Response saveCardResponse, BigInteger id, Integer defaultType);
+
+    /* NicePay Response
+    @Mapping(target = "status", constant = "1")
+    @Mapping(source = "defaultType", target = "defaultType")
+    @Mapping(source = "saveCardResponse.cardNumber", target = "cardNumber")
+    @Mapping(source = "saveCardResponse.cardCompany", target = "cardCompany")
     @Mapping(source = "saveCardResponse.customerKey", target = "customerKey")
     @Mapping(source = "saveCardResponse.billingKey", target = "niceBillingKey")
     @Mapping(source = "id", target = "user.id")
     CreditCardInfo toEntity(CreditCardDto.Response saveCardResponse, BigInteger id, Integer defaultType);
+     */
 
 
 }

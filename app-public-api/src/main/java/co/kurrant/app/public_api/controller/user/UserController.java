@@ -247,7 +247,7 @@ public class UserController {
         String itemName = (String) request.get("itemName");
         String totalPrice = (String) request.get("totalPrice");
         User user = userUtil.getUser(securityUser);
-        JSONObject response = mingleUtil.requestPayment(bid, orderNumber, itemName, BigDecimal.valueOf(Integer.parseInt(totalPrice)), user.getName(), user.getPhone(), user.getEmail());
+        JSONObject response = mingleUtil.requestPayment(bid, orderNumber, itemName, Integer.parseInt(totalPrice), user.getName(), user.getPhone(), user.getEmail());
         return ResponseMessage.builder()
                 .data(response)
                 .message("결제 테스트에 성공하였습니다.")
@@ -329,7 +329,7 @@ public class UserController {
 
     @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
     @PatchMapping("/cards")
-    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto) {
+    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto) throws IOException, ParseException {
         userService.deleteCard(deleteCreditCardDto);
         return ResponseMessage.builder()
                 .message("결제 카드를 삭제 했습니다.")

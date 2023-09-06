@@ -124,7 +124,7 @@ public class MingleUtil {
     }
 
     // 결제 요청
-    public JSONObject requestPayment(String bid, String orderNumber, String itemName, BigDecimal totalPrice, String username, String phone, String email) throws IOException, ParseException {
+    public JSONObject requestPayment(String bid, String orderNumber, String itemName, Integer totalPrice, String username, String phone, String email) throws IOException, ParseException {
         URL url = new URL("https://pg.minglepay.co.kr/payment.doBill");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -172,7 +172,7 @@ public class MingleUtil {
     }
 
     // 결제 취소
-    public JSONObject cancelPayment(Boolean isPartialCancel, String tid, BigDecimal cancelPrice, String orderNumber, BigInteger userId, String username) throws IOException, ParseException {
+    public JSONObject cancelPayment(Boolean isPartialCancel, String tid, Integer cancelPrice, String orderNumber, BigInteger userId, String username) throws IOException, ParseException {
         URL url = new URL("https://pg.minglepay.co.kr/payment.cancel");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -191,7 +191,7 @@ public class MingleUtil {
         request.put("canId", userId.toString());
         request.put("canNm", username);
         request.put("canMsg", isPartialCancel ? "부분취소. 취소 금액: " + cancelPrice : "전체 취소. 취소 금액: " + cancelPrice);
-        request.put("partCanFlg", isPartialCancel ? "T" : "F");
+        request.put("partCanFlg", isPartialCancel ? "1" : "0");
         request.put("ediDate", ediDate);
         request.put("encData", encData);
 

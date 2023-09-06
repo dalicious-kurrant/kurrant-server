@@ -93,7 +93,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final GroupMapper groupMapper;
     private final OrderMapper orderMapper;
     private final MakersMapper makersMapper;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final MakersRepository makersRepository;
     private final OrderRepository orderRepository;
     private final OrderService orderService;
@@ -143,7 +143,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
-        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
         List<BigInteger> memberships = qMembershipRepository.findAllUserIdByFilter(startDate, endDate, group, userId);
 
         return orderMapper.toOrderItemDailyFoodGroupLists(selectOrderDailyFoodDtos, memberships);
@@ -162,7 +162,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
 
         // FIXME: 기존 로직
-        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderItemDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
         return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList, foodCapacities);
     }
 
@@ -228,12 +228,12 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
     @Override
     @Transactional
-    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException {
+    public void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) {
         OrderStatus orderStatus = OrderStatus.ofCode(statusAndIdList.getStatus());
         if (!OrderStatus.completePayment().contains(orderStatus)) {
             throw new ApiException(ExceptionEnum.CANNOT_CHANGE_STATUS);
         }
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllByIds(statusAndIdList.getIdList());
         Set<String> userPhoneNumber = new HashSet<>();
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
         List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
@@ -279,37 +279,21 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         }
         pushService.sendToPush(pushRequestDtoByUsers);
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
-
-        /*
-        String content = "안녕하세요!\n" +
-                "조식 서비스를 운영 중인 커런트입니다.\n" +
-                "\n" +
-                "회원 가입 시, 동호수가 입력되지 않았습니다.\n" +
-                "커런트 어플 내 왼쪽 상단바 (실선 3개) - 개인정보 - 이름(동호수) 정보 변경 부탁드립니다.\n" +
-                "\n" +
-                "동호수 미기입 시에는 배송이 누락될 수 있습니다.\n" +
-                "\n" +
-                "감사합니다.";
-        for (String phone : userPhoneNumber){
-            kaKaoUtil.sendAlimTalk(phone, content, "50074");
-            System.out.println(phone + " phoneNumber");
-        }
-        */
     }
 
     @Override
-    public void cancelOrderNice(BigInteger orderId) throws IOException, ParseException {
+    public void cancelOrder(BigInteger orderId) throws IOException, ParseException {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
         User user = order.getUser();
         if (order instanceof OrderDailyFood orderDailyFood) {
-            Set<BigInteger> makersIds = orderService.cancelOrderDailyFoodNice(orderDailyFood, user);
+            Set<BigInteger> makersIds = orderService.cancelOrderDailyFood(orderDailyFood, user);
             applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
         }
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRED)
-    public String cancelOrderItemsNice(List<BigInteger> orderItemList) throws IOException, ParseException {
+    public String cancelOrderItems(List<BigInteger> orderItemList) {
         StringBuilder failMessage = new StringBuilder();
         List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
         Set<BigInteger> makersIds = new HashSet<>();
@@ -454,7 +438,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<BigInteger> userIds = users.stream()
                 .map(User::getId)
                 .toList();
-        List<OrderItemDailyFood> orderDailyFoods = qOrderDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, group);
+        List<OrderItemDailyFood> orderDailyFoods = qOrderItemDailyFoodRepository.findExtraOrdersByManagerId(userIds, startDate, endDate, group);
 
         return extraOrderMapper.toExtraOrderDtos(orderDailyFoods);
     }
@@ -485,35 +469,5 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
             orderItemDailyFood.getOrderItemDailyFoodGroup().updateOrderStatus(OrderStatus.CANCELED);
         }
         applicationEventPublisher.publishEvent(new ReloadEvent(Collections.singletonList(orderItemDailyFood.getDailyFood().getFood().getMakers().getId())));
-    }
-
-
-    @Override
-    @Transactional
-    public void cancelOrderToss(BigInteger orderId) throws IOException, ParseException {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ApiException(ExceptionEnum.ORDER_NOT_FOUND));
-        User user = order.getUser();
-
-        if (order instanceof OrderDailyFood orderDailyFood) {
-            orderService.cancelOrderDailyFood(orderDailyFood, user);
-        }
-    }
-
-    @Override
-    @Transactional
-    public void cancelOrderItemsToss(List<BigInteger> orderItemList) {
-        List<OrderItem> orderItems = orderItemRepository.findAllByIds(orderItemList);
-
-        for (OrderItem orderItem : orderItems) {
-            try {
-                User user = orderItem.getOrder().getUser();
-                if (orderItem instanceof OrderItemDailyFood orderItemDailyFood) {
-                    orderService.cancelOrderItemDailyFood(orderItemDailyFood, user);
-                }
-            } catch (Exception e) {
-                // Log the exception or handle it as needed
-                log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
-            }
-        }
     }
 }

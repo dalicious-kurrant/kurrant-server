@@ -19,7 +19,7 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final FoundersUtil foundersUtil;
     private final ClientUtil clientUtil;
     private final JwtTokenProvider jwtTokenProvider;
@@ -421,7 +421,7 @@ public class UserServiceImpl implements UserService {
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 
         // 식사 일정 개수 구하기
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllMealScheduleByUser(user);
         Integer dailyMealCount = getDailyFoodScheduleCount(orderItemDailyFoods);
 
         return UserInfoDto.builder()
@@ -578,7 +578,7 @@ public class UserServiceImpl implements UserService {
             user.updatePaymentPassword(payPassword);
         }
 
-        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
+        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCorporationCode(), billingKeyDto.getCardType(), billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
 
         int defaultType = (billingKeyDto.getDefaultType() == null) ? 0 : billingKeyDto.getDefaultType();
 
@@ -597,7 +597,8 @@ public class UserServiceImpl implements UserService {
             // 기존에 삭제되었던 카드라면 빌링키 업데이트
             if (creditCardInfo.get().getStatus() == 0) {
                 creditCardInfo.get().updateStatus(1);
-                creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
+                creditCardInfo.get().updateMingleBillingKey(saveCardResponse.getBillingKey());
+//                creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
                 return saveCardResponse.getBillingKey();
             }
         }
@@ -610,7 +611,7 @@ public class UserServiceImpl implements UserService {
 
         creditCardInfoRepository.save(cardInfo);
 
-        return cardInfo.getNiceBillingKey();
+        return cardInfo.getMingleBillingKey();
     }
 
     @Override
@@ -689,8 +690,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) {
-        qCreditCardInfoRepository.deleteCard(deleteCreditCardDto.getCardId());
+    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) throws IOException, ParseException {
+        CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(deleteCreditCardDto.getCardId())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+        creditCardInfo.updateStatus(0);
+        creditCardInfo.updateTossBillingKey("삭제된 카드입니다.");
+        paymentService.deleteBillingKey(creditCardInfo.getMingleBillingKey());
     }
 
     @Override
