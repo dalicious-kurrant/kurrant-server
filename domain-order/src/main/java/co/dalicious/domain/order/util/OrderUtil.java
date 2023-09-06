@@ -600,22 +600,10 @@ public class OrderUtil {
     }
 
     public BigDecimal getOrderItemDailyFoodRefundablePrice(List<PaymentCancelHistory> paymentCancelHistories, Order order) {
-        if (paymentCancelHistories.isEmpty()) {
-            // 1. 총 상품 금액 가져오기
-            BigDecimal price = order.getTotalPrice();
-            // 2. 포인트 제외
-            price = price.subtract(order.getPoint());
-            // 3. 지원금 제외
-            List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = order.getOrderItems().stream()
-                    .map(item -> ((OrderItemDailyFood) item).getOrderItemDailyFoodGroup())
-                    .toList();
-            BigDecimal usingSupportPrice = orderItemDailyFoodGroups.stream()
-                    .map(OrderItemDailyFoodGroup::getUsingSupportPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            price = price.subtract(usingSupportPrice);
-            return price;
+        if (!paymentCancelHistories.isEmpty()) {
+            return paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed())
+                    .toList().get(0).getRefundablePrice();
         }
-        return paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed())
-                .toList().get(0).getRefundablePrice();
+        return order.getTotalPrice();
     }
 }
