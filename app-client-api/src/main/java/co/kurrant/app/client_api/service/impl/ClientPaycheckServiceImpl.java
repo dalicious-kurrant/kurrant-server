@@ -2,7 +2,9 @@ package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
@@ -37,6 +39,7 @@ public class ClientPaycheckServiceImpl implements ClientPaycheckService {
     private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
     private final CorporationPaycheckMapper corporationPaycheckMapper;
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
+    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
     private final PaycheckService paycheckService;
 
     @Override
@@ -67,8 +70,9 @@ public class ClientPaycheckServiceImpl implements ClientPaycheckService {
         }
 
         YearMonth yearMonth = corporationPaycheck.getYearMonth();
-        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
-        return corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices);
+//        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = qOrderDailyFoodRepository.findAllOrderItemDailyFoodGroupByGroup(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        return corporationPaycheckMapper.toCorporationOrder(corporation, orderItemDailyFoodGroups);
     }
 
     @Override
