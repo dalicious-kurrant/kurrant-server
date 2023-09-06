@@ -23,7 +23,7 @@ import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
 import co.dalicious.domain.food.util.FoodUtils;
 import co.dalicious.domain.order.dto.ServiceDateBy;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
@@ -69,7 +69,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final FoodScheduleRepository foodScheduleRepository;
     private final DailyFoodRepository dailyFoodRepository;
     private final QDailyFoodRepository qDailyFoodRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final QUserGroupRepository qUserGroupRepository;
     private final GroupRepository groupRepository;
     private final MakersRepository makersRepository;
@@ -172,7 +172,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         for (DailyFood dailyFood : dailyFoods) {
             groups.add(dailyFood.getGroup());
         }
-        ServiceDateBy.MakersAndFood makersOrderCount = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
+        ServiceDateBy.MakersAndFood makersOrderCount = qOrderItemDailyFoodRepository.getMakersCounts(dailyFoods);
         ServiceDateBy.MakersAndFood makersCapacities = orderDailyFoodUtil.getMakersCapacity(dailyFoods, makersOrderCount);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         Map<Group, Integer> userGroupCount = qUserGroupRepository.userCountsInGroup(groups);

@@ -1,6 +1,7 @@
 package co.dalicious.domain.payment.service.impl;
 
 import co.dalicious.domain.payment.dto.CreditCardDto;
+import co.dalicious.domain.payment.dto.PaymentCancelResponseDto;
 import co.dalicious.domain.payment.dto.PaymentResponseDto;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.service.PaymentService;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -66,5 +68,34 @@ public class MinglePlayServiceImpl implements PaymentService {
                 .paymentCompany(PaymentCompany.ofMingleCode((String) jsonObject.get("cpCd")))
                 .build();
 
+    }
+
+    @Override
+    public PaymentResponseDto payQuota(User user, String billingKey, Integer totalPrice, String orderCode, String orderName, Integer quotaMonth) throws IOException, ParseException {
+        return null;
+    }
+
+    @Override
+    public PaymentCancelResponseDto cancelAll(User user, String transactionKey, String orderCode, Integer cancelAmount, String cancelReason) throws IOException, ParseException {
+        JSONObject jsonObject = mingleUtil.cancelPayment(false, transactionKey, cancelAmount, orderCode, user.getId(), user.getName());
+        return getPaymentCancelResponseDto(cancelReason, jsonObject);
+    }
+
+    @Override
+    public PaymentCancelResponseDto cancelPartial(User user, String transactionKey, String orderCode, Integer cancelAmount, String cancelReason) throws IOException, ParseException {
+        JSONObject jsonObject = mingleUtil.cancelPayment(true, transactionKey, cancelAmount, orderCode, user.getId(), user.getName());
+        return getPaymentCancelResponseDto(cancelReason, jsonObject);
+    }
+
+    private PaymentCancelResponseDto getPaymentCancelResponseDto(String cancelReason, JSONObject jsonObject) {
+        String code = (String) jsonObject.get("resultCd");
+        if (!code.equals("2001")) {
+            String message = (String) jsonObject.get("resultMsg");
+            throw new CustomException(HttpStatus.BAD_REQUEST, message, "CE4000023");
+        }
+        return PaymentCancelResponseDto.builder()
+                .orderCode((String) jsonObject.get("ordNo"))
+                .cancelAmount(BigDecimal.valueOf(Long.parseLong((String) jsonObject.get("amt"))))
+                .build();
     }
 }

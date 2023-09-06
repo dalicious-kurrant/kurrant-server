@@ -12,10 +12,9 @@ import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.entity.QOrderItemDailyFood;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
 import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
@@ -72,7 +71,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final QMembershipSupportPriceRepository qMembershipSupportPriceRepository;
     private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final ExpectedPaycheckRepository expectedPaycheckRepository;
     private final QExpectedPaycheckRepository qExpectedPaycheckRepository;
 
@@ -273,7 +272,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
                 garbageUseGroups.add(group);
             }
         }
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllOrderItemDailyFoodCount(groups, yearMonth);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllOrderItemDailyFoodCount(groups, yearMonth);
         List<OrderCount> orderCounts = OrderUtil.getTotalOrderCount(orderItemDailyFoods);
 
         for (MembershipSupportPrice membershipSupportPrice : membershipSupportPrices) {
@@ -507,7 +506,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
         List<Integer> diningTypes = List.of(1, 2, 3);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByMakersFilter(start, end, makers, diningTypes);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllByMakersFilter(start, end, makers, diningTypes);
         MakersPaycheck makersPaycheck = paycheckService.generateMakersPaycheck(makers, orderItemDailyFoods);
         // 정산 엑셀 생성
         ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);

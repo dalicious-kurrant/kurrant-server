@@ -1,6 +1,7 @@
 package co.dalicious.domain.payment.service.impl;
 
 import co.dalicious.domain.payment.dto.CreditCardDto;
+import co.dalicious.domain.payment.dto.PaymentCancelResponseDto;
 import co.dalicious.domain.payment.dto.PaymentResponseDto;
 import co.dalicious.domain.payment.entity.enums.PaymentCompany;
 import co.dalicious.domain.payment.service.PaymentService;
@@ -9,6 +10,7 @@ import co.dalicious.domain.user.entity.User;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.context.annotation.Primary;
@@ -70,6 +72,40 @@ public class NicePaymentServiceImpl implements PaymentService {
                 .receipt(response.get("receipt_url").toString())
                 .transactionCode((String) response.get("imp_uid"))
                 .paymentCompany(PaymentCompany.ofValue(response.get("card_name").toString()))
+                .build();
+    }
+
+    @Override
+    public PaymentResponseDto payQuota(User user, String billingKey, Integer totalPrice, String orderCode, String orderName, Integer quotaMonth) throws IOException, ParseException {
+        String token = niceUtil.getToken();
+        JSONObject jsonObject = niceUtil.niceBillingCardQuota(billingKey, totalPrice,orderCode, token, orderName, quotaMonth);
+        System.out.println(jsonObject);
+        return null;
+    }
+
+    @Override
+    public PaymentCancelResponseDto cancelAll(User user, String transactionKey, String orderCode, Integer cancelAmount, String cancelReason) throws IOException, ParseException {
+        return getPaymentCancelResponseDto(transactionKey, cancelAmount, cancelReason);
+    }
+
+    @Override
+    public PaymentCancelResponseDto cancelPartial(User user, String transactionKey, String orderCode, Integer cancelAmount, String cancelReason) throws IOException, ParseException {
+        return getPaymentCancelResponseDto(transactionKey, cancelAmount, cancelReason);
+    }
+
+    private PaymentCancelResponseDto getPaymentCancelResponseDto(String transactionKey, Integer cancelAmount, String cancelReason) throws IOException, ParseException {
+        String token = niceUtil.getToken();
+
+        JSONObject response = niceUtil.cardCancelOne(transactionKey, cancelReason, cancelAmount, token);
+
+        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
+        String receiptUrl = (String) checkout.get(0);
+        String code = response.get("merchant_uid").toString();
+        long cancelPrice = (long) response.get("cancel_amount");
+        return PaymentCancelResponseDto.builder()
+                .orderCode(code)
+                .receiptUrl(receiptUrl)
+                .cancelAmount(BigDecimal.valueOf(cancelPrice))
                 .build();
     }
 }

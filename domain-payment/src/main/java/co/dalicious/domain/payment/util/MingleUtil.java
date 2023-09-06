@@ -172,7 +172,7 @@ public class MingleUtil {
     }
 
     // 결제 취소
-    public JSONObject cancelPayment(Boolean isPartialCancel, String tid, BigDecimal cancelPrice, String orderNumber, BigInteger userId, String username) throws IOException, ParseException {
+    public JSONObject cancelPayment(Boolean isPartialCancel, String tid, Integer cancelPrice, String orderNumber, BigInteger userId, String username) throws IOException, ParseException {
         URL url = new URL("https://pg.minglepay.co.kr/payment.cancel");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");

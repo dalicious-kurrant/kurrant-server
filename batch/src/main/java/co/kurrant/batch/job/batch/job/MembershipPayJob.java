@@ -117,7 +117,7 @@ public class MembershipPayJob {
                 log.info("[Membership 상태 업데이트 시작] : {}", membership.getId());
                 // TODO: 결제 수단이 추가 될 시 수정
                 try {
-                    orderService.payMembershipNice(membership, PaymentType.CREDIT_CARD);
+                    orderService.payMembership(membership, PaymentType.CREDIT_CARD);
                     return membership;
                 } catch (ApiException e) {
                     // Handle ApiException gracefully

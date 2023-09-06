@@ -19,7 +19,7 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
 import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final FoundersUtil foundersUtil;
     private final ClientUtil clientUtil;
     private final JwtTokenProvider jwtTokenProvider;
@@ -421,7 +421,7 @@ public class UserServiceImpl implements UserService {
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 
         // 식사 일정 개수 구하기
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllMealScheduleByUser(user);
         Integer dailyMealCount = getDailyFoodScheduleCount(orderItemDailyFoods);
 
         return UserInfoDto.builder()
@@ -611,7 +611,6 @@ public class UserServiceImpl implements UserService {
 
         creditCardInfoRepository.save(cardInfo);
 
-//        return cardInfo.getNiceBillingKey();
         return cardInfo.getMingleBillingKey();
     }
 
