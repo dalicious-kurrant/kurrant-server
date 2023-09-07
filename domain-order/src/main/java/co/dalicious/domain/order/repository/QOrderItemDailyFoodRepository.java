@@ -214,7 +214,7 @@ public class QOrderItemDailyFoodRepository {
         Set<BigInteger> orderItemDailyFoodGroupIdSet = result.stream().map(SelectOrderDailyFoodDto::getOrderItemGroupId).collect(Collectors.toSet());
         List<Tuple> totalDiscountPriceList = getTotalDiscountPrice(orderItemDailyFoodGroupIdSet);
         List<Tuple> supportPriceList = getSupportPrice(orderItemDailyFoodGroupIdSet);
-        List<Tuple> orderItemDailyFoodsDetails = fetchOrderItemDailyFoodsDetails(orderItemDailyFoodGroupIdSet);
+        List<Tuple> orderItemDailyFoodsDetails = fetchOrderItemDailyFoodsDetails(orderItemDailyFoodGroupIdSet, selectedMakers);
 
         for (SelectOrderDailyFoodDto dto : result) {
             Tuple totalDiscountPrice = totalDiscountPriceList.stream().filter(v -> Objects.equals(v.get(0, BigInteger.class), dto.getOrderItemGroupId())).findFirst().orElse(null);
@@ -250,7 +250,12 @@ public class QOrderItemDailyFoodRepository {
                 .fetch();
     }
 
-    private List<Tuple> fetchOrderItemDailyFoodsDetails(Set<BigInteger> orderItemDailyFoodGroupId) {
+    private List<Tuple> fetchOrderItemDailyFoodsDetails(Set<BigInteger> orderItemDailyFoodGroupId, Makers selectedMakers) {
+        BooleanBuilder whereClause = new BooleanBuilder();
+        if (selectedMakers != null) {
+            whereClause.and(makers.eq(selectedMakers));
+        }
+
         // 주요 DTO 정보를 기반으로 서브 쿼리를 구성하고 실행
         // 이 예제에서는 주요 DTO의 정보를 사용하지 않았지만 필요에 따라 조건을 추가하여 사용 가능
         return queryFactory.select(orderItemDailyFood.orderItemDailyFoodGroup.id,
@@ -267,7 +272,7 @@ public class QOrderItemDailyFoodRepository {
                 .from(orderItemDailyFood)
                 .innerJoin(orderItemDailyFood.dailyFood.food, food)
                 .innerJoin(food.makers, makers)
-                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId)) // 필요한 조건을 추가
+                .where(orderItemDailyFood.orderItemDailyFoodGroup.id.in(orderItemDailyFoodGroupId), whereClause) // 필요한 조건을 추가
                 .fetch();
     }
 
