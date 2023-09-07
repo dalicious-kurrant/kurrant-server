@@ -44,8 +44,7 @@ public class QUserSpotRepository {
         List<Tuple> userResult = queryFactory.select(user.id, user.firebaseToken)
                 .from(userSpot)
                 .leftJoin(userSpot.user, user)
-                .where(userSpot.spot.id.in(spotIds),
-                        user.firebaseToken.isNotNull())
+                .where(userSpot.spot.id.in(spotIds))
                 .fetch();
 
         Map<BigInteger, String> userIdMap = new HashMap<>();
