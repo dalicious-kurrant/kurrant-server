@@ -130,7 +130,8 @@ public class QOrderItemDailyFoodRepository {
                 .fetch();
     }
 
-    public List<SelectOrderDailyFoodDto> findSelectDtoByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group selectGroup, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus, LocalDate orderDate) {
+    public List<SelectOrderDailyFoodDto> findSelectDtoByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group selectGroup, List<BigInteger> spotIds, Integer diningTypeCode,
+                                                                    BigInteger userId, Makers selectedMakers, OrderStatus orderStatus, LocalDate orderStartDate, LocalDate orderEndDate) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (startDate != null) {
@@ -172,8 +173,12 @@ public class QOrderItemDailyFoodRepository {
             }
         }
 
-        if (orderDate != null) {
-            whereClause.and(orderItemDailyFood.order.createdDateTime.between(DateUtils.localDateToTimestamp(orderDate), DateUtils.localDateToTimestampEndOfDay(orderDate)));
+        if (orderStartDate != null) {
+            whereClause.and(orderItemDailyFood.order.createdDateTime.goe(DateUtils.localDateToTimestamp(orderStartDate)));
+        }
+
+        if (orderEndDate != null) {
+            whereClause.and(orderItemDailyFood.order.createdDateTime.loe(DateUtils.localDateToTimestampEndOfDay(orderEndDate)));
         }
 
         List<SelectOrderDailyFoodDto> result = queryFactory.select(

@@ -96,7 +96,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         Makers makers = (makersId != null) ? makersRepository.findById(makersId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, GroupDataType.CORPORATION.getCode(), corporation, spotIds, diningTypeCode, userId, makers, null, null);
+        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, GroupDataType.CORPORATION.getCode(), corporation, spotIds, diningTypeCode, userId, makers, null, null, null);
         return orderMapper.toGroupOrderDtoList(selectOrderDailyFoodDtos);
     }
 
