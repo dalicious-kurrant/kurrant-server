@@ -70,6 +70,11 @@ public class DateUtils {
         return Timestamp.valueOf(localDateTime);
     }
 
+    public static Timestamp localDateToTimestampEndOfDay(LocalDate localDate) {
+        LocalDateTime localDateTime = LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 23, 59, 59);
+        return Timestamp.valueOf(localDateTime);
+    }
+
     public static LocalTime stringToTime(String str, String separator) {
         String[] strings = str.split(separator);
         Integer[] integers = new Integer[2];

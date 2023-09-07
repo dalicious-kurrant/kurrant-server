@@ -12,7 +12,9 @@ import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.entity.enums.OrderType;
 import co.dalicious.domain.order.mapper.PaymentCancleHistoryMapper;
+import co.dalicious.domain.payment.dto.PaymentCancelResponseDto;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.service.PaymentService;
 import co.dalicious.domain.payment.util.NiceUtil;
 import co.dalicious.domain.payment.util.TossUtil;
 import co.dalicious.domain.user.converter.RefundPriceDto;
@@ -42,9 +44,8 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class OrderUtil {
-    private final TossUtil tossUtil;
-    private final NiceUtil niceUtil;
     private final PaymentCancleHistoryMapper paymentCancleHistoryMapper;
+    private final PaymentService paymentService;
 
     // 주문 코드 생성
     public static String generateOrderCode(OrderType orderType, BigInteger userId) {
@@ -168,7 +169,7 @@ public class OrderUtil {
         BigDecimal totalPrice = BigDecimal.ZERO;
         for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoodGroup.getOrderDailyFoods()) {
             // 주문이 결제 완료(5)인 경우와, 백오피스에서 추가 주문을 취소하기 위한 조건
-            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED)  || (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()) && orderItemDailyFood.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE))) {
+            if (orderItemDailyFood.getOrderStatus().equals(OrderStatus.COMPLETED) || (OrderStatus.completePayment().contains(orderItemDailyFood.getOrderStatus()) && orderItemDailyFood.getOrder().getPaymentType().equals(PaymentType.SUPPORT_PRICE))) {
                 totalPrice = totalPrice.add(orderItemDailyFood.getOrderItemTotalPrice());
             }
         }
@@ -279,7 +280,7 @@ public class OrderUtil {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
             // 사용한 포인트가 (환불 요청 금액 - 환불 가능 금액) 보다 크거나 같으면
-            if(!paymentCancelHistories.isEmpty()){
+            if (!paymentCancelHistories.isEmpty()) {
                 PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).toList().get(0);
                 refundablePrice = paymentCancelHistory.getRefundablePrice();
             }
@@ -352,7 +353,7 @@ public class OrderUtil {
                 throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
             }
             // 사용한 포인트가 (환불 요청 금액 - 환불 가능 금액) 보다 크거나 같으면
-            if(!paymentCancelHistories.isEmpty()){
+            if (!paymentCancelHistories.isEmpty()) {
                 PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).toList().get(0);
                 refundablePrice = paymentCancelHistory.getRefundablePrice();
             }
@@ -523,66 +524,7 @@ public class OrderUtil {
         return oldPrice.subtract(renewSupportPrice);
     }
 
-    public PaymentCancelHistory cancelOrderItemMembership(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
-        //결제 취소 요청
-        JSONObject response = tossUtil.billingCardCancelOne(paymentKey, cancelReason, refundPrice.intValue());
-        System.out.println(response);
-
-        String orderCode = response.get("orderId").toString();
-
-        JSONObject checkout = (JSONObject) response.get("checkout");
-        String checkOutUrl = checkout.get("url").toString();
-        JSONArray cancels = (JSONArray) response.get("cancels");
-        Integer refundablePrice = null;
-
-        if (cancels.size() != 0 && cancels.size() != 1) {
-            for (Object cancel : cancels) {
-                JSONObject cancel1 = (JSONObject) cancel;
-                refundablePrice = Integer.valueOf(cancel1.get("refundableAmount").toString());
-                System.out.println(refundablePrice + " = refundablePrice");
-            }
-        }
-        JSONObject cancel = (JSONObject) cancels.get(0);
-        refundablePrice = Integer.valueOf(cancel.get("refundableAmount").toString());
-
-        JSONObject card = (JSONObject) response.get("card");
-        String paymentCardNumber = card.get("number").toString();
-
-        //결제 취소 후 기록을 저장한다.
-        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
-
-    }
-
-    public PaymentCancelHistory cancelOrderItemDailyFood(String paymentKey, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {
-        //결제 취소 요청
-        JSONObject response = tossUtil.cardCancelOne(paymentKey, cancelReason, refundPriceDto.getPrice().intValue());
-        System.out.println(response);
-
-        String orderCode = response.get("orderId").toString();
-
-        JSONObject checkout = (JSONObject) response.get("checkout");
-        String checkOutUrl = checkout.get("url").toString();
-        JSONArray cancels = (JSONArray) response.get("cancels");
-        Integer refundablePrice = null;
-
-        if (cancels.size() != 0 && cancels.size() != 1) {
-            for (Object cancel : cancels) {
-                JSONObject cancel1 = (JSONObject) cancel;
-                refundablePrice = Integer.valueOf(cancel1.get("refundableAmount").toString());
-                System.out.println(refundablePrice + " = refundablePrice");
-            }
-        }
-        JSONObject cancel = (JSONObject) cancels.get(0);
-        refundablePrice = Integer.valueOf(cancel.get("refundableAmount").toString());
-
-        JSONObject card = (JSONObject) response.get("card");
-        String paymentCardNumber = card.get("number").toString();
-
-        //결제 취소 후 기록을 저장한다.
-        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
-    }
-
-    public PaymentCancelHistory cancelOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) {
+    public PaymentCancelHistory cancelOrderDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto, List<PaymentCancelHistory> paymentCancelHistories) {
         Order order = orderItemDailyFood.getOrder();
         // 남은 환불 가능 금액 = 총 상품 금액 - 남은 환불 금액
         BigDecimal refundablePrice = order.getTotalPrice().subtract(refundPriceDto.getPrice());
@@ -596,42 +538,34 @@ public class OrderUtil {
 
     public PaymentCancelHistory cancelPointPaidOrderItemDailyFood(OrderItemDailyFood orderItemDailyFood, RefundPriceDto refundPriceDto) {
         Order order = orderItemDailyFood.getOrder();
-
-        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 마감 전 주문 취소", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundPriceDto.getPrice());
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity("주문 마감 전 주문 취소. 포인트 환불", refundPriceDto, orderItemDailyFood, null, order.getCode(), refundPriceDto.getPrice());
     }
 
-    public PaymentCancelHistory cancelOrderItemDailyFoodNice(String impUid, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {
-        //결제 취소 요청
-        String token = niceUtil.getToken();
-
-        JSONObject response = niceUtil.cardCancelOne(impUid, cancelReason, refundPriceDto.getPrice().intValue(), token);
-
-        String orderCode = response.get("merchant_uid").toString();
-
-        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
-        String checkOutUrl = (String) checkout.get(0);
-        long refundablePrice = (long) response.get("amount") - (long) response.get("cancel_amount");
-
-        //결제 취소 후 기록을 저장한다.
-        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice));
+    public PaymentCancelHistory cancelOrderItemDailyFood(List<PaymentCancelHistory> paymentCancelHistories, String impUid, String cancelReason, OrderItemDailyFood orderItem, RefundPriceDto refundPriceDto) throws IOException, ParseException {
+        BigDecimal refundablePrice = getOrderItemDailyFoodRefundablePrice(paymentCancelHistories, orderItem.getOrder());
+        if(refundablePrice.subtract(refundPriceDto.getPrice()).compareTo(BigDecimal.ZERO) < 0) {
+            throw new ApiException(ExceptionEnum.NOT_MATCHED_PRICE);
+        }
+        refundablePrice = refundablePrice.subtract(refundPriceDto.getPrice());
+        PaymentCancelResponseDto paymentCancelResponseDto = paymentService.cancelPartial(null, impUid, null, refundPriceDto.getPrice().intValue(), cancelReason);
+        return paymentCancleHistoryMapper.orderDailyItemFoodToEntity(cancelReason, refundPriceDto, orderItem, paymentCancelResponseDto.getReceiptUrl(), paymentCancelResponseDto.getOrderCode(), refundablePrice);
 
     }
 
 
     public PaymentCancelHistory cancelOrderItemMembershipNice(String paymentKey, CreditCardInfo creditCardInfo, String cancelReason, OrderItemMembership orderItem, BigDecimal refundPrice) throws IOException, ParseException {
         //결제 취소 요청
-        String token = niceUtil.getToken();
-        JSONObject response = niceUtil.cardCancelOne(paymentKey, cancelReason, refundPrice.intValue(), token);
-        System.out.println(response);
+        PaymentCancelResponseDto paymentCancelResponseDto;
+        if (refundPrice.compareTo(orderItem.getOrder().getTotalPrice()) == 0) {
+            paymentCancelResponseDto = paymentService.cancelAll(null, paymentKey, orderItem.getOrder().getCode(), refundPrice.intValue(), cancelReason);
+        } else {
+            paymentCancelResponseDto = paymentService.cancelPartial(null, paymentKey, orderItem.getOrder().getCode(), refundPrice.intValue(), cancelReason);
+        }
 
-        String orderCode = response.get("merchant_uid").toString();
-
-        JSONArray checkout = (JSONArray) response.get("cancel_receipt_urls");
-        String checkOutUrl = (String) checkout.get(0);
-        long refundablePrice = (Long) response.get("amount") - (Long) response.get("cancel_amount");
+        BigDecimal refundablePrice = orderItem.getOrder().getTotalPrice().subtract(refundPrice);
 
         //결제 취소 후 기록을 저장한다.
-        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, checkOutUrl, orderCode, BigDecimal.valueOf(refundablePrice), creditCardInfo);
+        return paymentCancleHistoryMapper.orderItemMembershipToEntity(cancelReason, refundPrice, orderItem, paymentCancelResponseDto.getReceiptUrl(), paymentCancelResponseDto.getOrderCode(), refundablePrice, creditCardInfo);
 
     }
 
@@ -663,5 +597,13 @@ public class OrderUtil {
         }
 
         return result;
+    }
+
+    public BigDecimal getOrderItemDailyFoodRefundablePrice(List<PaymentCancelHistory> paymentCancelHistories, Order order) {
+        if (!paymentCancelHistories.isEmpty()) {
+            return paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed())
+                    .toList().get(0).getRefundablePrice();
+        }
+        return order.getTotalPrice();
     }
 }

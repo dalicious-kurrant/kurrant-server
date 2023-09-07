@@ -7,7 +7,7 @@ import co.dalicious.domain.food.entity.Food;
 import co.dalicious.domain.food.repository.DailyFoodRepository;
 import co.dalicious.domain.food.repository.FoodRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.user.dto.*;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.Country;
@@ -27,7 +27,6 @@ import co.kurrant.app.public_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -52,7 +51,7 @@ public class DailyReportServiceImpl implements DailyReportService {
     private final OrderItemDailyFoodDailyReportMapper orderItemDailyFoodDailyReportMapper;
     private final UserUtil userUtil;
     private final DailyFoodRepository dailyFoodRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     @Override
     @Transactional
     public String userPreferenceSave(SecurityUser securityUser, UserPreferenceDto userPreferenceDto) {
@@ -300,7 +299,7 @@ public class DailyReportServiceImpl implements DailyReportService {
         User user = userUtil.getUser(securityUser);
 
         //해당 날짜에 주문한 내역을 불러오기
-        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderItemDailyFoodRepository.findAllUserIdAndDate(user.getId(), LocalDate.parse(dto.getStartDate()), LocalDate.parse(dto.getEndDate()));
 
         List<DailyReport> dailyReports = qDailyReportRepository.findAllByUserId(user.getId());
 
@@ -341,7 +340,7 @@ public class DailyReportServiceImpl implements DailyReportService {
 
         User user = userUtil.getUser(securityUser);
 
-        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderItemDailyFoodRepository.findAllByDateAndDiningType(user.getId(), date, diningType);
 
         if (orderItemDailyFoodList.isEmpty()) return resultList;
 

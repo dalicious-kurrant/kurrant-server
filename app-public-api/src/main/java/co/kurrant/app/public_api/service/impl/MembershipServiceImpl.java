@@ -60,7 +60,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final BigDecimal REFUND_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.YEAR.getPrice().multiply(BigDecimal.valueOf((100 - MembershipSubscriptionType.YEAR.getDiscountRate()) * 0.01)).divide(BigDecimal.valueOf(12));
     private final BigDecimal DISCOUNT_YEARLY_MEMBERSHIP_PER_MONTH = MembershipSubscriptionType.MONTH.getPrice().subtract(REFUND_YEARLY_MEMBERSHIP_PER_MONTH);
     private final OrderMembershipResMapper orderMembershipResMapper;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final DeliveryFeePolicy deliveryFeePolicy;
     private final MembershipBenefitMapper membershipBenefitMapper;
     private final QMembershipRepository qMembershipRepository;
@@ -71,7 +71,7 @@ public class MembershipServiceImpl implements MembershipService {
 
     @Override
     @Transactional
-    public void joinMembership(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) {
+    public void joinMembership(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
         // 금액 정보가 일치하는지 확인
         MembershipSubscriptionType membershipSubscriptionType = MembershipSubscriptionType.ofCode(orderMembershipReqDto.getSubscriptionType());
@@ -168,7 +168,7 @@ public class MembershipServiceImpl implements MembershipService {
     @Transactional
     public void refundMembership(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null,membership.getStartDate(), membership.getEndDate());
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null,membership.getStartDate(), membership.getEndDate());
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();
@@ -198,7 +198,7 @@ public class MembershipServiceImpl implements MembershipService {
         }
 
         // 취소 내역 저장
-        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembership(order.getPaymentKey(), orderMembership.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
+        PaymentCancelHistory paymentCancelHistory = orderUtil.cancelOrderItemMembershipNice(order.getPaymentKey(), orderMembership.getCreditCardInfo(), "멤버십 환불", orderItemMembership, refundPrice);
         paymentCancelHistoryRepository.save(paymentCancelHistory);
     }
 
@@ -257,7 +257,7 @@ public class MembershipServiceImpl implements MembershipService {
         }
 
         // 멤버십 이용 금액 혜택을 받은 주문 상품 가져오기
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllWhichGetMembershipBenefit(user, now, threeMonthAgo);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllWhichGetMembershipBenefit(user, now, threeMonthAgo);
 
         // 최근 3개월동안 멤버십을 통해 할인 받은 정기식사 할인 금액을 가져온다.
         DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto = getDailyFoodPriceBenefits(orderItemDailyFoods);
@@ -398,14 +398,14 @@ public class MembershipServiceImpl implements MembershipService {
 
         assert periodDto != null;
         // 멤버십 등록
-        orderService.payMembershipNice(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
+        orderService.payMembership(user, membershipSubscriptionType, periodDto, PaymentType.ofCode(orderMembershipReqDto.getPaymentType()));
     }
 
     @Override
     @Transactional
     public void refundMembershipNice(User user, Order order, Membership membership, OrderMembership orderMembership) throws IOException, ParseException {
         // TODO: 연간구독 해지시, membership endDate update.
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null, membership.getStartDate(), membership.getEndDate());
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findByUserAndGroupAndServiceDateBetween(user, null, membership.getStartDate(), membership.getEndDate());
 
         // 멤버십 결제금액 가져오기
         BigDecimal paidPrice = order.getTotalPrice();

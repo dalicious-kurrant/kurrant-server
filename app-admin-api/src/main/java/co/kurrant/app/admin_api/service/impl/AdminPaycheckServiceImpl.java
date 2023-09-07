@@ -10,7 +10,12 @@ import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.entity.*;
-import co.dalicious.domain.order.repository.*;
+import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.MembershipSupportPrice;
+import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.repository.QMembershipSupportPriceRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.order.util.OrderUtil;
 import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
@@ -69,7 +74,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
     private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
     private final QMembershipSupportPriceRepository qMembershipSupportPriceRepository;
     private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final ExpectedPaycheckRepository expectedPaycheckRepository;
     private final QExpectedPaycheckRepository qExpectedPaycheckRepository;
     private static final BigDecimal CORPORATION_MEMBERSHIP_PRICE = BigDecimal.valueOf(10000);
@@ -254,7 +259,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         expectedPaycheckRepository.deleteAll(expectedPaychecks);
         corporationPaycheckRepository.deleteAll(corporationPaychecks);
 
-        MultiValueMap<Group, OrderItemDailyFoodGroup> orderItemDailyFoodGroupMap = qOrderDailyFoodRepository.findAllGroupIdsAndPeriod(request.getId(), yearMonth);
+        MultiValueMap<Group, OrderItemDailyFoodGroup> orderItemDailyFoodGroupMap = qOrderItemDailyFoodRepository.findAllGroupIdsAndPeriod(request.getId(), yearMonth);
         List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupsAndPeriod(request.getId(), yearMonth);
         Map<BigInteger, Integer> userCountByGroup = qMembershipSupportPriceRepository.getUserCountByGroupIdsAndPeriod(request.getId(), yearMonth);
 
@@ -272,7 +277,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
                 garbageUseGroups.add(group);
             }
         }
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllOrderItemDailyFoodCount(groups, yearMonth);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllOrderItemDailyFoodCount(groups, yearMonth);
         List<OrderCount> orderCounts = OrderUtil.getTotalOrderCount(orderItemDailyFoods);
 
         for (Group group : groups) {
@@ -335,7 +340,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
         Corporation corporation = corporationPaycheck.getCorporation();
         YearMonth yearMonth = corporationPaycheck.getYearMonth();
-        List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = qOrderDailyFoodRepository.findAllOrderItemDailyFoodGroupByGroup(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = qOrderItemDailyFoodRepository.findAllOrderItemDailyFoodGroupByGroup(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
         return corporationPaycheckMapper.toCorporationOrder(corporation, orderItemDailyFoodGroups);
     }
 
@@ -441,7 +446,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
 
         YearMonth yearMonth = corporationPaycheck.getYearMonth();
 //        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
-        List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = qOrderDailyFoodRepository.findAllOrderItemDailyFoodGroupByGroup(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = qOrderItemDailyFoodRepository.findAllOrderItemDailyFoodGroupByGroup(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
 
         // 요청 Body에 파일이 존재하지 않는다면 삭제
         if (corporationPaycheck.getExcelFile() != null) {
@@ -504,7 +509,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
         LocalDate start = yearMonth.atDay(1);
         LocalDate end = yearMonth.atEndOfMonth();
         List<Integer> diningTypes = List.of(1, 2, 3);
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllByMakersFilter(start, end, makers, diningTypes);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllByMakersFilter(start, end, makers, diningTypes);
         MakersPaycheck makersPaycheck = paycheckService.generateMakersPaycheck(makers, orderItemDailyFoods);
         // 정산 엑셀 생성
         ExcelPdfDto excelPdfDto = excelService.createMakersPaycheckExcel(makersPaycheck);

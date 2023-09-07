@@ -49,4 +49,10 @@ class DomainFileApplicationTests {
         assertEquals(prefix, result);
         assertEquals(prefix2, result2);
     }
+
+    @Test
+    void test3() {
+        String cardNumber = "5362482700627890";
+        System.out.println(cardNumber.substring(0, 8) + "*".repeat(4) + cardNumber.substring(12, 16));
+    }
 }

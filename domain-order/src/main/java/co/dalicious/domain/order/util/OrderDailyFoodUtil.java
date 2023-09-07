@@ -7,7 +7,7 @@ import co.dalicious.domain.food.repository.QMakersScheduleRepository;
 import co.dalicious.domain.food.entity.MakersSchedule;
 import co.dalicious.domain.order.dto.FoodCountDto;
 import co.dalicious.domain.order.dto.ServiceDateBy;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import exception.ApiException;
 import exception.CustomException;
 import exception.ExceptionEnum;
@@ -22,7 +22,7 @@ import java.util.*;
 public class OrderDailyFoodUtil {
     private final QFoodScheduleRepository qFoodScheduleRepository;
     private final QMakersScheduleRepository qMakersScheduleRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
 
 
     public ServiceDateBy.MakersAndFood getMakersCapacity(List<DailyFood> dailyFoods, ServiceDateBy.MakersAndFood makersOrderCount) {
@@ -69,7 +69,7 @@ public class OrderDailyFoodUtil {
         // 2. 메이커스에서 값을 설정했는지 가져온다.
         List<MakersSchedule> makersSchedules = qMakersScheduleRepository.findAllByDailyFoods(dailyFoods);
         // 3. 메이커스별/음식별 주문 수량을 가져온다
-        ServiceDateBy.MakersAndFood makersAndFood = qOrderDailyFoodRepository.getMakersCounts(dailyFoods);
+        ServiceDateBy.MakersAndFood makersAndFood = qOrderItemDailyFoodRepository.getMakersCounts(dailyFoods);
         // 4. 총 주문 수량을 가져온다.
         for (DailyFood dailyFood : dailyFoods) {
             Integer foodCount = 0;
@@ -134,7 +134,7 @@ public class OrderDailyFoodUtil {
             } else {
                 makersCount = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getCapacity();
             }
-            Integer makersBuyCount = qOrderDailyFoodRepository.getMakersCount(dailyFood);
+            Integer makersBuyCount = qOrderItemDailyFoodRepository.getMakersCount(dailyFood);
             Integer sellableCount = makersCount - makersBuyCount;
         }
     }
@@ -167,8 +167,8 @@ public class OrderDailyFoodUtil {
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND))
                     .getCapacity();
         }
-        Integer makersBuyCount = qOrderDailyFoodRepository.getMakersCount(dailyFood);
-        Integer foodBuyCount = qOrderDailyFoodRepository.getFoodCount(dailyFood);
+        Integer makersBuyCount = qOrderItemDailyFoodRepository.getMakersCount(dailyFood);
+        Integer foodBuyCount = qOrderItemDailyFoodRepository.getFoodCount(dailyFood);
         Boolean isFollowingMakersCapacity = makersCount - makersBuyCount < foodCount - foodBuyCount;
         Integer sellableCount = Math.min(makersCount - makersBuyCount, foodCount - foodBuyCount);
         return new FoodCountDto(sellableCount, isFollowingMakersCapacity);
