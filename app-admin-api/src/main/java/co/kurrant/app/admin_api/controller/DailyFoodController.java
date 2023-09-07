@@ -5,6 +5,7 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.food.dto.FoodDto;
+import co.kurrant.app.admin_api.dto.UpdateStatusAndIdListDto;
 import co.kurrant.app.admin_api.service.DailyFoodService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -56,6 +57,16 @@ public class DailyFoodController {
         dailyFoodService.excelDailyFoods(dailyFoodList);
         return ResponseMessage.builder()
                 .message("식단 엑셀 저장 및 수정에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DAILY_FOOD)
+    @Operation(summary = "식단 상태 일괄 변경", description = "식단 상태를 요청한 상태로 일괄로 변경합니다.")
+    @PatchMapping("/status")
+    public ResponseMessage updateAllDailyFoodStatus(@RequestBody UpdateStatusAndIdListDto requestDto) {
+        dailyFoodService.updateAllDailyFoodStatus(requestDto);
+        return ResponseMessage.builder()
+                .message("식단의 상태 일괄 변경에 성공하였습니다.")
                 .build();
     }
 }

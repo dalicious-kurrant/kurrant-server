@@ -36,6 +36,7 @@ import co.dalicious.domain.food.dto.FoodDto;
 import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.MakersDto;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
+import co.kurrant.app.admin_api.dto.UpdateStatusAndIdListDto;
 import co.kurrant.app.admin_api.mapper.GroupMapper;
 import co.kurrant.app.admin_api.mapper.MakersMapper;
 import co.kurrant.app.admin_api.mapper.ScheduleMapper;
@@ -160,8 +161,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         List<BigInteger> groupIds = !parameters.containsKey("groupIds") || parameters.get("groupIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("groupIds"));
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
+        DailyFoodStatus dailyFoodStatus = !parameters.containsKey("dailyFoodStatus") || parameters.get("dailyFoodStatus").equals("") ? null : DailyFoodStatus.ofCode(Integer.parseInt((String) parameters.get("dailyFoodStatus")));
 
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds);
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds,dailyFoodStatus);
 
         // 일치하는 식단이 없을 경우에는 빈 배열 return
         if (dailyFoods.isEmpty()) {
@@ -415,5 +417,16 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         }
         pushService.sendToPush(pushRequestDtoByUsers);
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
+    }
+
+    @Override
+    @Transactional
+    public void updateAllDailyFoodStatus(UpdateStatusAndIdListDto requestDto) {
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByDailyFoodIdsAndStatus(requestDto.getIds(), DailyFoodStatus.ofCode(requestDto.getCurrentStatus()));
+        if(dailyFoods.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND);
+
+        for (DailyFood dailyFood : dailyFoods) {
+            dailyFoodMapper.updateDailyFoodStatus(DailyFoodStatus.ofCode(requestDto.getUpdateStatus()), dailyFood);
+        }
     }
 }
