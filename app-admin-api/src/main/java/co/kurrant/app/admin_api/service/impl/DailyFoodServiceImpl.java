@@ -161,9 +161,9 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         LocalDate endDate = !parameters.containsKey("endDate") || parameters.get("endDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("endDate"));
         List<BigInteger> groupIds = !parameters.containsKey("groupIds") || parameters.get("groupIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("groupIds"));
         List<BigInteger> makersIds = !parameters.containsKey("makersIds") || parameters.get("makersIds").equals("") ? null : StringUtils.parseBigIntegerList((String) parameters.get("makersIds"));
-        DailyFoodStatus dailyFoodStatus = !parameters.containsKey("dailyFoodStatus") || parameters.get("dailyFoodStatus").equals("") ? null : DailyFoodStatus.ofCode(Integer.parseInt((String) parameters.get("dailyFoodStatus")));
+        List<DiningType> diningType = !parameters.containsKey("diningType") || parameters.get("diningType").equals("") ? null : StringUtils.parseIntegerList((String) parameters.get("diningType")).stream().map(DiningType::ofCode).toList();
 
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds,dailyFoodStatus);
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, groupIds, makersIds, diningType);
 
         // 일치하는 식단이 없을 경우에는 빈 배열 return
         if (dailyFoods.isEmpty()) {

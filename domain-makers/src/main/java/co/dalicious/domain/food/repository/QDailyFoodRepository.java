@@ -102,7 +102,7 @@ public class QDailyFoodRepository {
                 .fetch();
     }
 
-    public List<DailyFood> findAllByGroupAndMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, List<BigInteger> groupIds, List<BigInteger> makersIds, DailyFoodStatus status) {
+    public List<DailyFood> findAllByGroupAndMakersBetweenServiceDate(LocalDate startDate, LocalDate endDate, List<BigInteger> groupIds, List<BigInteger> makersIds, List<DiningType> statusList) {
         BooleanBuilder whereClause = new BooleanBuilder();
         if (startDate != null) {
             whereClause.and(dailyFood.serviceDate.goe(startDate));
@@ -120,8 +120,8 @@ public class QDailyFoodRepository {
             whereClause.and(dailyFood.food.makers.id.in(makersIds));
         }
 
-        if (status != null) {
-            whereClause.and(dailyFood.dailyFoodStatus.eq(status));
+        if (statusList != null && !statusList.isEmpty()) {
+            whereClause.and(dailyFood.diningType.in(statusList));
         }
 
         return queryFactory.selectFrom(dailyFood)
