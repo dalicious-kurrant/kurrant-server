@@ -16,6 +16,7 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PaymentType;
 import co.dalicious.domain.user.entity.enums.Role;
 import co.dalicious.system.enums.DiningType;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
@@ -129,7 +130,7 @@ public class QOrderItemDailyFoodRepository {
                 .fetch();
     }
 
-    public List<SelectOrderDailyFoodDto> findSelectDtoByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group selectGroup, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus) {
+    public List<SelectOrderDailyFoodDto> findSelectDtoByGroupFilter(LocalDate startDate, LocalDate endDate, Integer spotType, Group selectGroup, List<BigInteger> spotIds, Integer diningTypeCode, BigInteger userId, Makers selectedMakers, OrderStatus orderStatus, LocalDate orderDate) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (startDate != null) {
@@ -169,6 +170,10 @@ public class QOrderItemDailyFoodRepository {
                 case MY_SPOT -> whereClause.and(group.instanceOf(MySpotZone.class));
                 case OPEN_GROUP -> whereClause.and(group.instanceOf(OpenGroup.class));
             }
+        }
+
+        if (orderDate != null) {
+            whereClause.and(orderItemDailyFood.order.createdDateTime.between(DateUtils.localDateToTimestamp(orderDate), DateUtils.localDateToTimestampEndOfDay(orderDate)));
         }
 
         List<SelectOrderDailyFoodDto> result = queryFactory.select(
