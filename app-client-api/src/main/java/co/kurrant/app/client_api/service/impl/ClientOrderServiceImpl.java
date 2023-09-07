@@ -96,7 +96,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
         Makers makers = (makersId != null) ? makersRepository.findById(makersId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
 
-        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, GroupDataType.CORPORATION.getCode(), corporation, spotIds, diningTypeCode, userId, makers, null);
+        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, GroupDataType.CORPORATION.getCode(), corporation, spotIds, diningTypeCode, userId, makers, null, null);
         return orderMapper.toGroupOrderDtoList(selectOrderDailyFoodDtos);
     }
 
@@ -134,7 +134,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
     @Transactional
     public List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(SecurityUser securityUser, LocalDate startDate, LocalDate endDate) {
         Corporation corporation = userUtil.getCorporation(securityUser);
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, Collections.singletonList(corporation.getId()), null);
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(startDate, endDate, Collections.singletonList(corporation.getId()), null, null);
         Map<DailyFood, Integer> remainFoodCount = orderDailyFoodUtil.getRemainFoodsCount(dailyFoods);
         return extraOrderMapper.toDailyFoodList(dailyFoods, remainFoodCount);
     }
@@ -161,7 +161,7 @@ public class ClientOrderServiceImpl implements ClientOrderService {
             serviceDiningVos.add(serviceDiningVo);
         }
         PeriodDto periodDto = UserSupportPriceUtil.getEarliestAndLatestServiceDate(serviceDiningVos);
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), Collections.singletonList(corporation.getId()), null);
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByGroupAndMakersBetweenServiceDate(periodDto.getStartDate(), periodDto.getEndDate(), Collections.singletonList(corporation.getId()), null, null);
 
         dailyFoods.stream().filter(v -> v.getDailyFoodStatus().equals(DailyFoodStatus.SALES))
                 .findAny()

@@ -136,6 +136,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Long status = !parameters.containsKey("status") || parameters.get("status").equals("") ? null : Long.parseLong((String) parameters.get("status"));
         BigInteger userId = !parameters.containsKey("userId") || parameters.get("userId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("userId")));
         BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
+        LocalDate orderDate = !parameters.containsKey("orderDate") || parameters.get("orderDate").equals("") ? null : DateUtils.stringToDate((String) parameters.get("orderDate"));
 
         Group group = (groupId != null) ? groupRepository.findById(groupId)
                 .orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND)) : null;
@@ -143,7 +144,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS)) : null;
         OrderStatus orderStatus = status == null ? null : OrderStatus.ofCode(status);
 
-        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus);
+        List<SelectOrderDailyFoodDto> selectOrderDailyFoodDtos = qOrderItemDailyFoodRepository.findSelectDtoByGroupFilter(startDate, endDate, spotType, group, spotIds, diningTypeCode, userId, makers, orderStatus, orderDate);
         List<BigInteger> memberships = qMembershipRepository.findAllUserIdByFilter(startDate, endDate, group, userId);
 
         return orderMapper.toOrderItemDailyFoodGroupLists(selectOrderDailyFoodDtos, memberships);
