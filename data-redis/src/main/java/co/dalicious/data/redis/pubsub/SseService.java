@@ -49,6 +49,7 @@ public class SseService {
 
         //생성한 emitter를 저장한다. emitter는 HTTP/2기준 브라우저 당 100개 만들 수 있다.
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+        emitterRepository.save(id, emitter);
         System.out.println("emitter = " + emitter);
         MessageListener messageListener = (message, pattern) -> {
             try {
@@ -63,8 +64,6 @@ public class SseService {
 
         //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
         checkEmitterStatus(emitter, id, messageListener);
-
-        emitterRepository.save(id, emitter);
 
         sendToClient(emitter, id, "EventStream Created. [userId=" + userId + "]");
 
