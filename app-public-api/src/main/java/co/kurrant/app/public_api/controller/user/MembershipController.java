@@ -79,7 +79,7 @@ public class MembershipController {
 
     @Operation(summary = "멤버십 구매", description = "유저가 멤버십에 가입한다")
     @PostMapping("")
-    public ResponseMessage joinMembership(Authentication authentication, @RequestBody OrderMembershipReqDto orderMembershipReqDto) {
+    public ResponseMessage joinMembership(Authentication authentication, @RequestBody OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         membershipService.joinMembership(securityUser, orderMembershipReqDto);
         return ResponseMessage.builder()

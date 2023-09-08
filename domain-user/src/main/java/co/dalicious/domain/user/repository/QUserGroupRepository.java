@@ -134,7 +134,7 @@ public class QUserGroupRepository {
         List<Tuple> userResult = queryFactory.select(user.firebaseToken, user.id)
                 .from(userGroup)
                 .leftJoin(userGroup.user, user)
-                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG), user.firebaseToken.isNotNull())
+                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG))
                 .fetch();
 
         Map<BigInteger, String> userIdMap = new HashMap<>();

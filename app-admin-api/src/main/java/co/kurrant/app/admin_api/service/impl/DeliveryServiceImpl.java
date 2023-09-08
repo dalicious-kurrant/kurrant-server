@@ -28,7 +28,7 @@ import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
 import co.dalicious.domain.order.repository.OrderItemDailyFoodRepository;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.entity.enums.Role;
@@ -74,7 +74,7 @@ public class DeliveryServiceImpl implements DeliveryService {
     private final MakersMapper makersMapper;
     private final GroupMapper groupMapper;
     private final QGroupRepository qGroupRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final SimpleJwtTokenProvider jwtTokenProvider;
     private final DriverRepository driverRepository;
     private final Map<BigInteger, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
@@ -108,7 +108,7 @@ public class DeliveryServiceImpl implements DeliveryService {
         List<Spot> spotAllList = groups == null || groups.isEmpty() ? groupAllList.stream().flatMap(group -> group.getSpots().stream()).toList() : groups.stream().flatMap(group -> group.getSpots().stream()).toList();
         List<Spot> spots = (spotIds == null) ? null : spotAllList.stream().filter(spot -> spotIds.contains(spot.getId())).toList();
 
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findByDailyFoodAndOrderStatus(startDate, endDate, groups, spots);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findByDailyFoodAndOrderStatus(startDate, endDate, groups, spots);
 
         if (orderItemDailyFoods.isEmpty()) return DeliveryVo.create(groupAllList, null, spotAllList);
         return DeliveryVo.create(groupAllList, deliveryMapper.getDeliveryInfoListByOrderItemDailyFood(orderItemDailyFoods), spotAllList);

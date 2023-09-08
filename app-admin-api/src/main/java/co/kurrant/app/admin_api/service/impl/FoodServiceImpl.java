@@ -237,7 +237,7 @@ public class FoodServiceImpl implements FoodService {
                 .orElseThrow(() -> new CustomException(HttpStatus.BAD_REQUEST, "CE400006", "일치하는 식품 그룹이 없습니다"));
 
         List<Image> images = imageService.processImages(
-                foodDetailDto.getImages(),
+                foodDetailDto.getFoodImages(),
                 food.getImages(),
                 files,
                 DirName.FOOD.getName()

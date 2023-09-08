@@ -1,8 +1,9 @@
 package co.kurrant.app.client_api.service.impl;
 
 import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.repository.QDailyFoodSupportPriceRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
 import co.dalicious.domain.paycheck.dto.TransactionInfoDefault;
 import co.dalicious.domain.paycheck.entity.CorporationPaycheck;
@@ -13,14 +14,12 @@ import co.dalicious.domain.paycheck.repository.CorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.repository.QCorporationPaycheckRepository;
 import co.dalicious.domain.paycheck.service.PaycheckService;
 import co.dalicious.system.util.DateUtils;
-import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.client_api.model.SecurityUser;
 import co.kurrant.app.client_api.service.ClientPaycheckService;
 import co.kurrant.app.client_api.util.UserUtil;
 import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -36,7 +35,7 @@ public class ClientPaycheckServiceImpl implements ClientPaycheckService {
     private final CorporationPaycheckRepository corporationPaycheckRepository;
     private final QCorporationPaycheckRepository qCorporationPaycheckRepository;
     private final CorporationPaycheckMapper corporationPaycheckMapper;
-    private final QDailyFoodSupportPriceRepository qDailyFoodSupportPriceRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final PaycheckService paycheckService;
 
     @Override
@@ -67,8 +66,9 @@ public class ClientPaycheckServiceImpl implements ClientPaycheckService {
         }
 
         YearMonth yearMonth = corporationPaycheck.getYearMonth();
-        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
-        return corporationPaycheckMapper.toCorporationOrder(corporation, dailyFoodSupportPrices);
+//        List<DailyFoodSupportPrice> dailyFoodSupportPrices = qDailyFoodSupportPriceRepository.findAllByGroupAndPeriod(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        List<OrderItemDailyFoodGroup> orderItemDailyFoodGroups = qOrderItemDailyFoodRepository.findAllOrderItemDailyFoodGroupByGroup(corporation, yearMonth.atDay(1), yearMonth.atEndOfMonth());
+        return corporationPaycheckMapper.toCorporationOrder(corporation, orderItemDailyFoodGroups);
     }
 
     @Override

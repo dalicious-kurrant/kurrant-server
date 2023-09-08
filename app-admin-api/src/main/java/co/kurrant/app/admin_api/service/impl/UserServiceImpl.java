@@ -415,6 +415,7 @@ public class UserServiceImpl implements UserService {
                         PushCondition pushCondition = PushCondition.NEW_SPOT;
                         String message = pushUtil.getContextCorporationSpot(user.getName(), pushCondition);
                         pushUtil.savePushAlarmHash(pushCondition.getTitle(), message, user.getId(), AlarmType.SPOT_NOTICE, null);
+                        applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
                         return pushUtil.getPushRequest(user, pushCondition, message);
                     }).toList();
 
