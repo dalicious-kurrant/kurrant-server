@@ -119,7 +119,7 @@ public class OrderUtil {
         return DiscountDto.getDiscountWithoutMembership(dailyFood);
     }
 
-    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroup(OrderItemDailyFoodGroup orderItemDailyFoodGroup, List<PaymentCancelHistory> paymentCancelHistories) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         // 1. 배송비 추가
         totalPrice = totalPrice.add(orderItemDailyFoodGroup.getDeliveryFee());
@@ -137,7 +137,10 @@ public class OrderUtil {
         // 예외. 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
         Order order = orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();
         if (order.getTotalPrice().compareTo(totalPrice) < 0) {
-            return order.getTotalPrice();
+            BigDecimal cancelPrice = paymentCancelHistories.stream()
+                    .map(PaymentCancelHistory::getCancelPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            return order.getTotalPrice().subtract(cancelPrice);
         }
 
         return totalPrice;
@@ -368,7 +371,7 @@ public class OrderUtil {
     public static RefundPriceDto getPartialRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup, paymentCancelHistories);
         // 식사 일정에 따른 총 결제 금액
         BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         // 사용한 지원금
