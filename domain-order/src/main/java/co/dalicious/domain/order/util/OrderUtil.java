@@ -32,6 +32,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -46,6 +47,7 @@ import java.util.stream.Collectors;
 public class OrderUtil {
     private final PaymentCancleHistoryMapper paymentCancleHistoryMapper;
     private final PaymentService paymentService;
+    private final EntityManager entityManager;
 
     // 주문 코드 생성
     public static String generateOrderCode(OrderType orderType, BigInteger userId) {
@@ -218,6 +220,7 @@ public class OrderUtil {
     // OrderItemDailyFoodGroup당 환불 금액
     public static RefundPriceDto getRefundPrice(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
+
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
         BigDecimal refundablePrice = getItemPriceGroupByOrderItemDailyFoodGroup(orderItemDailyFoodGroup);
         if (refundablePrice.compareTo(orderItemDailyFood.getOrder().getTotalPrice()) > 0) {
