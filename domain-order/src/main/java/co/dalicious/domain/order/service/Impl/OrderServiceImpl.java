@@ -103,6 +103,7 @@ public class OrderServiceImpl implements OrderService {
         synchronized (niceItemsLocks.computeIfAbsent(user, u -> new Object())) {
             // 이전에 환불을 진행한 경우
             List<PaymentCancelHistory> paymentCancelHistories = paymentCancelHistoryRepository.findAllByOrderOrderByCancelDateTimeDesc(order);
+            List<PaymentCancelHistory> existedPaymentCancelHistories = paymentCancelHistories;
 
             for (OrderItem orderItem : order.getOrderItems()) {
                 OrderItemDailyFood orderItemDailyFood = (OrderItemDailyFood) Hibernate.unproxy(orderItem);
@@ -117,7 +118,16 @@ public class OrderServiceImpl implements OrderService {
 
                 BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
 
-                RefundPriceDto refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                RefundPriceDto refundPriceDto = null;
+
+                SupportType supportType = UserSupportPriceUtil.getSupportTypeByOrderItem(orderItemDailyFood);
+
+                if (supportType.equals(SupportType.PARTIAL)) {
+                    refundPriceDto = OrderUtil.getPartialRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                } else {
+                    refundPriceDto = OrderUtil.getRefundPrice(orderItemDailyFood, paymentCancelHistories, order.getPoint());
+                }
+
                 price = price.add(refundPriceDto.getPrice());
                 deliveryFee = deliveryFee.add(refundPriceDto.getDeliveryFee());
                 point = point.add(refundPriceDto.getPoint());
@@ -142,6 +152,7 @@ public class OrderServiceImpl implements OrderService {
                     DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                     if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
                         dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                        entityManager.refresh(orderItemDailyFood.getOrderItemDailyFoodGroup());
                     }
                 }
 
@@ -159,7 +170,12 @@ public class OrderServiceImpl implements OrderService {
 
             // 결제 환불 금액이 0일 경우 토스페이를 거치지 않고 환불
             if (price.compareTo(BigDecimal.ZERO) != 0) {
-                paymentService.cancelAll(user, order.getPaymentKey(), order.getCode(), price.intValue(), "전체 주문 취소");
+                if (!existedPaymentCancelHistories.isEmpty() && !existedPaymentCancelHistories.stream().filter(v -> v.getCancelPrice() != null && v.getCancelPrice().compareTo(BigDecimal.ZERO) > 0).toList().isEmpty()) {
+                    paymentService.cancelPartial(user, order.getPaymentKey(), order.getCode(), price.intValue(), "전체 주문 취소 요청 (부분 취소)");
+                }
+                else {
+                    paymentService.cancelAll(user, order.getPaymentKey(), order.getCode(), price.intValue(), "전체 주문 취소");
+                }
             }
         }
         return makersIds;

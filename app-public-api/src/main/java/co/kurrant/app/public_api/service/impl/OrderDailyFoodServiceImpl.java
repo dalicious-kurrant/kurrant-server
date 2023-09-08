@@ -230,6 +230,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
+    @Transactional
     public void cancelOrderDailyFood(SecurityUser securityUser, BigInteger orderId) throws IOException, ParseException {
         User user = userUtil.getUser(securityUser);
 
