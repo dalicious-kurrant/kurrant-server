@@ -390,11 +390,13 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<OrderItemDailyFood> todayOrderItemDailyFoods = orderItemDailyFoods.stream().filter(v -> v.getDailyFood().getServiceDate().equals(now)).toList();
         if (todayOrderItemDailyFoods.isEmpty()) {
             lastOrderTimeNotification(user, mealInfos);
+            return;
         }
 
         // 제공하는 dining type 중 하나라도 하지 않았다면
         if (todayOrderItemDailyFoods.stream().anyMatch(v -> !defaultSpot.getGroup().getDiningTypes().contains(v.getDailyFood().getDiningType()))) {
             lastOrderTimeNotification(user, mealInfos);
+            return;
         }
 
         // 다음주 주문이 없을 때
@@ -427,7 +429,6 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 String content = "내일 " + mealInfo.getDiningType().getDiningType() + "식사 주문은 오늘 " + DateUtils.timeToStringWithAMPM(mealInfo.getLastOrderTime().getTime()) + "까지 해야 멤버십 할인을 받을 수 있어요!";
                 applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(4).content(content).build());
                 return;
-
             }
             // 서비스 가능일 이고, 오늘이 서비스 가능일이 아니면 나가기
             if (mealInfo.getLastOrderTime() != null && mealInfo.getLastOrderTime().isValidDayAndTime(2, null)) {
