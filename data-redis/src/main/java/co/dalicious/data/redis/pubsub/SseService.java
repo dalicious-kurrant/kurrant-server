@@ -116,6 +116,7 @@ public class SseService {
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
+            System.out.println("exception = " + exception);
             emitterRepository.deleteAllEmitterStartWithId(id);
             throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
