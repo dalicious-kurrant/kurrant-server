@@ -116,7 +116,7 @@ public class OrderServiceImpl implements OrderService {
                     throw new ApiException(ExceptionEnum.LAST_ORDER_TIME_PASSED);
                 }
 
-                BigDecimal usedSupportPrice = UserSupportPriceUtil.getUsedSupportPrice(orderItemDailyFood.getOrderItemDailyFoodGroup().getUserSupportPriceHistories());
+                BigDecimal usedSupportPrice = orderItemDailyFood.getOrderItemDailyFoodGroup().getUsingSupportPrice();
 
                 RefundPriceDto refundPriceDto = null;
 
@@ -151,8 +151,9 @@ public class OrderServiceImpl implements OrderService {
                     }
                     DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                     if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                        dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
-                        entityManager.refresh(orderItemDailyFood.getOrderItemDailyFoodGroup());
+                        dailyFoodSupportPriceRepository.saveAndFlush(dailyFoodSupportPrice);
+                        OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.saveAndFlush(orderItemDailyFood.getOrderItemDailyFoodGroup());
+                        entityManager.refresh(orderItemDailyFoodGroup);
                     }
                 }
 
@@ -164,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
                     pointUtil.createPointHistoryByOthers(user, paymentCancelHistory.getId(), PointStatus.CANCEL, paymentCancelHistory.getRefundPointPrice());
                 }
                 orderItemDailyFood.updateOrderStatus(OrderStatus.CANCELED);
+                orderItemDailyFoodRepository.save(orderItemDailyFood);
                 makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
             }
             user.updatePoint(user.getPoint().add(point));
@@ -223,7 +225,9 @@ public class OrderServiceImpl implements OrderService {
                 }
                 DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.saveAndFlush(dailyFoodSupportPrice);
+                    OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.saveAndFlush(dailyFoodSupportPrice.getOrderItemDailyFoodGroup());
+                    entityManager.refresh(orderItemDailyFoodGroup);
                 }
             }
 
@@ -301,7 +305,9 @@ public class OrderServiceImpl implements OrderService {
                 }
                 DailyFoodSupportPrice dailyFoodSupportPrice = dailyFoodSupportPriceMapper.toEntity(orderItemDailyFood, refundPriceDto.getRenewSupportPrice());
                 if (dailyFoodSupportPrice.getUsingSupportPrice().compareTo(BigDecimal.ZERO) != 0) {
-                    dailyFoodSupportPriceRepository.save(dailyFoodSupportPrice);
+                    dailyFoodSupportPriceRepository.saveAndFlush(dailyFoodSupportPrice);
+                    OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFoodGroupRepository.saveAndFlush(dailyFoodSupportPrice.getOrderItemDailyFoodGroup());
+                    entityManager.refresh(orderItemDailyFoodGroup);
                 }
             }
 

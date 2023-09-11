@@ -307,6 +307,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                     makersIds.add(orderItemDailyFood.getDailyFood().getFood().getMakers().getId());
                 }
             } catch (Exception e) {
+                log.warn(e.getMessage());
                 failMessage.append(user.getName()).append("님의 ").append(((OrderItemDailyFood) orderItem).getName()).append(" 상품이 취소되지 않았습니다. \n");
                 log.info("Failed to cancel OrderItem ID: " + orderItem.getId() + ". Error: " + e.getMessage());
             }
