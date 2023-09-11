@@ -79,10 +79,9 @@ public class SseService {
         return emitter;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
     public void send(SseReceiverDto sseReceiverDto) {
-        log.info("send 호출");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         NotificationHash notification = createNotification(sseReceiverDto, today);
         notificationHashRepository.save(notification);
@@ -90,7 +89,6 @@ public class SseService {
         String id = String.valueOf(sseReceiverDto.getReceiver());
         emitterRepository.saveEventCache(id, notification);
         redisTemplate.convertAndSend(getChannelName(id), notification);
-        log.info("send 호출 종료");
     }
 
     //notification 생성
@@ -110,14 +108,14 @@ public class SseService {
     //client에게 이벤트 보내기
     private void sendToClient(SseEmitter emitter, String id, Object data) {
         try {
+            log.info("data = " + data.toString());
             emitter.send(SseEmitter.event()
                     .id(id)
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
-            System.out.println("exception = " + exception);
+            log.info("exception = " + exception);
             emitterRepository.deleteAllEmitterStartWithId(id);
-            throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
     }
 

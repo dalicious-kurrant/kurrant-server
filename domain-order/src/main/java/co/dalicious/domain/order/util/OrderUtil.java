@@ -146,7 +146,7 @@ public class OrderUtil {
         return totalPrice;
     }
 
-    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(OrderItemDailyFoodGroup orderItemDailyFoodGroup) {
+    public static BigDecimal getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(OrderItemDailyFoodGroup orderItemDailyFoodGroup, List<PaymentCancelHistory> paymentCancelHistories) {
         BigDecimal totalPrice = BigDecimal.ZERO;
         // 1. 배송비 추가
         totalPrice = totalPrice.add(orderItemDailyFoodGroup.getDeliveryFee());
@@ -164,7 +164,10 @@ public class OrderUtil {
         // 예외. 포인트 사용으로 인해 식사 일정별 환불 가능 금액이 주문 전체 금액이 더 작을 경우
         Order order = orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getOrder();
         if (order.getTotalPrice().compareTo(totalPrice) < 0) {
-            return order.getTotalPrice();
+            BigDecimal cancelPrice = paymentCancelHistories.stream()
+                    .map(PaymentCancelHistory::getCancelPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            return order.getTotalPrice().subtract(cancelPrice);
         }
 
         return totalPrice;
@@ -262,14 +265,14 @@ public class OrderUtil {
         // 3. 환불 가능 금액 > 환불 요청 금액
         if (refundablePrice.compareTo(requestRefundPrice) >= 0) {
             if (!paymentCancelHistories.isEmpty()) {
-                paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
-                BigDecimal refundPoint = BigDecimal.ZERO;
-                Optional<PaymentCancelHistory> tempPaymentCancelHistory = paymentCancelHistories.stream().filter(v -> v.getRefundPointPrice().compareTo(BigDecimal.ZERO) > 0).findAny();
-                if (tempPaymentCancelHistory.isPresent()) {
-                    refundPoint = refundPoint.add(tempPaymentCancelHistory.get().getRefundPointPrice());
-                }
-                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.get(0);
-                BigDecimal tossRefundablePrice = paymentCancelHistory.getRefundablePrice();
+                paymentCancelHistories = paymentCancelHistories.stream()
+                        .sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed())
+                        .collect(Collectors.toList());
+                BigDecimal refundedPoint = paymentCancelHistories.stream()
+                        .map(PaymentCancelHistory::getRefundPointPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal refundPoint = orderItemDailyFood.getOrder().getPoint().subtract(refundedPoint);
+                BigDecimal tossRefundablePrice = paymentCancelHistories.get(0).getRefundablePrice();
                 if (tossRefundablePrice.compareTo(requestRefundPrice) < 0) {
                     if (tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
                         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
@@ -298,7 +301,7 @@ public class OrderUtil {
     public static RefundPriceDto getRefundPriceAdmin(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup, paymentCancelHistories);
         if (refundablePrice.compareTo(orderItemDailyFood.getOrder().getTotalPrice()) > 0) {
             refundablePrice = orderItemDailyFood.getOrder().getTotalPrice();
         }
@@ -335,14 +338,14 @@ public class OrderUtil {
         // 3. 환불 가능 금액 > 환불 요청 금액
         if (refundablePrice.compareTo(requestRefundPrice) >= 0) {
             if (!paymentCancelHistories.isEmpty()) {
-                paymentCancelHistories = paymentCancelHistories.stream().sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed()).collect(Collectors.toList());
-                BigDecimal refundPoint = BigDecimal.ZERO;
-                Optional<PaymentCancelHistory> tempPaymentCancelHistory = paymentCancelHistories.stream().filter(v -> v.getRefundPointPrice().compareTo(BigDecimal.ZERO) > 0).findAny();
-                if (tempPaymentCancelHistory.isPresent()) {
-                    refundPoint = refundPoint.add(tempPaymentCancelHistory.get().getRefundPointPrice());
-                }
-                PaymentCancelHistory paymentCancelHistory = paymentCancelHistories.get(0);
-                BigDecimal tossRefundablePrice = paymentCancelHistory.getRefundablePrice();
+                paymentCancelHistories = paymentCancelHistories.stream()
+                        .sorted(Comparator.comparing(PaymentCancelHistory::getCancelDateTime).reversed())
+                        .collect(Collectors.toList());
+                BigDecimal refundedPoint = paymentCancelHistories.stream()
+                        .map(PaymentCancelHistory::getRefundPointPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal refundPoint = orderItemDailyFood.getOrder().getPoint().subtract(refundedPoint);
+                BigDecimal tossRefundablePrice = paymentCancelHistories.get(0).getRefundablePrice();
                 if (tossRefundablePrice.compareTo(requestRefundPrice) < 0) {
                     if (tossRefundablePrice.add(usingPoint.subtract(refundPoint)).compareTo(requestRefundPrice) < 0) {
                         throw new ApiException(ExceptionEnum.PRICE_INTEGRITY_ERROR);
@@ -420,7 +423,7 @@ public class OrderUtil {
     public static RefundPriceDto getPartialRefundPriceAdmin(OrderItemDailyFood orderItemDailyFood, List<PaymentCancelHistory> paymentCancelHistories, BigDecimal usingPoint) {
         OrderItemDailyFoodGroup orderItemDailyFoodGroup = orderItemDailyFood.getOrderItemDailyFoodGroup();
         // 환불 가능 금액 (일정 모든 아이템 금액 - 지원금)
-        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
+        BigDecimal refundablePrice = getPaidPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup, paymentCancelHistories);
         // 식사 일정에 따른 총 결제 금액
         BigDecimal itemsPrice = getItemPriceGroupByOrderItemDailyFoodGroupAdmin(orderItemDailyFoodGroup);
         // 사용한 지원금

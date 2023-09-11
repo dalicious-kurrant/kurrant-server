@@ -22,7 +22,6 @@ public class CustomPostDeleteEventListener implements PostDeleteEventListener {
 
     private boolean isAdminRequest() {
         Integer currentPort = RequestContextHolder.getCurrentPort();
-        System.out.println("currentPort = " + currentPort);
         return currentPort != null && currentPort == ADMIN_PORT;
     }
     @Override
