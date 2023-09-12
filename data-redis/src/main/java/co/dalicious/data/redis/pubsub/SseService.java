@@ -56,7 +56,7 @@ public class SseService {
                 System.out.println("Received message from Redis on pattern: " + pattern);
                 sendToClient(emitter, id, message);
             } catch(Exception e) {
-                e.printStackTrace();
+                log.info("exception = " + e);
             }
         };
 
