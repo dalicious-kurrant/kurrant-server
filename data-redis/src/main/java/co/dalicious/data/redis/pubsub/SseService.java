@@ -83,6 +83,7 @@ public class SseService {
     @TransactionalEventListener
     @Async
     public void send(SseReceiverDto sseReceiverDto) {
+        log.info("호출");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         NotificationHash notification = createNotification(sseReceiverDto, today);
         notificationHashRepository.save(notification);
@@ -90,6 +91,7 @@ public class SseService {
         String id = String.valueOf(sseReceiverDto.getReceiver());
         emitterRepository.saveEventCache(id, notification);
         redisTemplate.convertAndSend(getChannelName(id), notification);
+        log.info("종료");
     }
 
     //notification 생성
