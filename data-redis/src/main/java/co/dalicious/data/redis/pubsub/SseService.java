@@ -110,12 +110,13 @@ public class SseService {
     //client에게 이벤트 보내기
     private void sendToClient(SseEmitter emitter, String id, Object data) {
         try {
-            System.out.println("data.toString() = " + data.toString());
+            System.out.println("data");
             emitter.send(SseEmitter.event()
                     .id(id)
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
+            System.out.println("exception = " + exception);
             emitterRepository.deleteAllEmitterStartWithId(id);
             throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }

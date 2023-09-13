@@ -80,13 +80,6 @@ public class TossUtil {
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         responseStream.close();
         return jsonObject;
-
-//        return HttpRequest.newBuilder()
-//                .uri(URI.create("https://api.tosspayments.com/v1/billing/authorizations/card"))
-//                .header("Authorization", "Basic " +new String(encodeByte))
-//                .header("Content-Type", "application/json")
-//                .method("POST", HttpRequest.BodyPublishers.ofString("{\"cardNumber\":\""+cardNumber+"\",\"cardExpirationYear\":\""+expirationYear+"\",\"cardExpirationMonth\":\""+expirationMonth+"\",\"cardPassword\":\""+cardPassword+"\",\"customerIdentityNumber\":\""+identityNumber+"\",\"customerKey\":\""+customerKey+"\"}"))
-//                .build();
     }
 
     //카드 자동결제

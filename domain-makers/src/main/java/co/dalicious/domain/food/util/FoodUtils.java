@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
 import java.util.*;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class FoodUtils {
@@ -103,5 +104,18 @@ public class FoodUtils {
         return latestTime.orElse(serviceDate.atTime(DateUtils.stringToLocalTime("10:00")));
     }
 
+    public static String getEarliestLastOrderTime(DailyFood dailyFood) {
+        DayAndTime makersLastOrderTime = dailyFood.getFood().getMakers().getMakersCapacity(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime mealInfoLastOrderTime = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getLastOrderTime();
+        DayAndTime foodLastOrderTime = dailyFood.getFood().getFoodCapacity(dailyFood.getDiningType()).getLastOrderTime();
+
+        List<DayAndTime> lastOrderTimes = Stream.of(makersLastOrderTime, mealInfoLastOrderTime, foodLastOrderTime)
+                .filter(Objects::nonNull) // Exclude null values
+                .toList();
+        DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
+                .orElse(new DayAndTime(0, LocalTime.MIN));
+
+        return lastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
+    }
 
 }

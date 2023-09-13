@@ -1,12 +1,11 @@
 package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.order.dto.point.FoundersPointDto;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.user.dto.PointPolicyReqDto;
 import co.dalicious.domain.user.dto.pointDto.AccumulatedFoundersPointDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.FoundersPointPolicyDto;
 import co.dalicious.domain.user.dto.pointPolicyResponse.PointPolicyResDto;
-import co.dalicious.domain.user.entity.Founders;
 import co.dalicious.domain.user.entity.PointPolicy;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PointCondition;
@@ -38,7 +37,7 @@ public class PointServiceImpl implements PointService {
     private final PointPolicyRepository pointPolicyRepository;
     private final PointMapper pointMapper;
     private final QUserRepository qUserRepository;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final QFoundersRepository foundersRepository;
     @Override
     public List<PointPolicyResDto.ReviewPointPolicy> findReviewPointPolicy() {
@@ -129,7 +128,7 @@ public class PointServiceImpl implements PointService {
     @Transactional
     public List<AccumulatedFoundersPointDto> AccumulatedFoundersPointSave(LocalDate selectDate) {
         //founders 가입 유저 list
-        List<FoundersPointDto> foundersPointDtoList = qOrderDailyFoodRepository.findOrderItemDailyFoodBySelectDate(selectDate);
+        List<FoundersPointDto> foundersPointDtoList = qOrderItemDailyFoodRepository.findOrderItemDailyFoodBySelectDate(selectDate);
         foundersPointDtoList = foundersPointDtoList.stream().sorted(Comparator.comparing(FoundersPointDto::getUserId)).toList();
 
         // user가 파은더스 가입 유저이고 파운더스 가입 일 이후의 수령확인 된 orderItemDailyFood 이면

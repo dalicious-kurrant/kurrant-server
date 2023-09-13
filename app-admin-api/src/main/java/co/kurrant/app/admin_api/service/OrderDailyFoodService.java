@@ -22,15 +22,11 @@ public interface OrderDailyFoodService {
     GroupDto getGroupInfo(BigInteger groupId);
     List<MakersDto.Makers> getMakers();
     void changeOrderStatus(OrderDto.StatusAndIdList statusAndIdList) throws IOException, ParseException;
-    void cancelOrderNice(BigInteger orderId) throws IOException, ParseException;
-    String cancelOrderItemsNice(List<BigInteger> idList) throws IOException, ParseException;
+    void cancelOrder(BigInteger orderId) throws IOException, ParseException;
+    String cancelOrderItems(List<BigInteger> idList) throws IOException, ParseException;
 
     List<ExtraOrderDto.DailyFoodList> getExtraDailyFoods(LocalDate startDate, LocalDate endDate, BigInteger groupId);
     void postExtraOrderItems(List<ExtraOrderDto.Request> orderDtos);
     List<ExtraOrderDto.Response> getExtraOrders(Map<String, Object> parameters);
     void refundExtraOrderItems(BigInteger id);
-
-    // Toss 환불
-    void cancelOrderToss(BigInteger orderId) throws IOException, ParseException;
-    void cancelOrderItemsToss(List<BigInteger> orderItemIdList) throws IOException, ParseException;
 }

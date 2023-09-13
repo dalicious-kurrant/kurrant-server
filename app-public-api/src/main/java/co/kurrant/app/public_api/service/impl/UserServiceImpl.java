@@ -19,14 +19,18 @@ import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.domain.payment.dto.*;
 import co.dalicious.domain.payment.entity.CreditCardInfo;
+import co.dalicious.domain.payment.entity.enums.PGCompany;
 import co.dalicious.domain.payment.entity.enums.PaymentPasswordStatus;
 import co.dalicious.domain.payment.mapper.CreditCardInfoMapper;
 import co.dalicious.domain.payment.repository.CreditCardInfoRepository;
 import co.dalicious.domain.payment.repository.QCreditCardInfoRepository;
 import co.dalicious.domain.payment.service.PaymentService;
+import co.dalicious.domain.payment.service.impl.MinglePlayServiceImpl;
+import co.dalicious.domain.payment.service.impl.NicePaymentServiceImpl;
+import co.dalicious.domain.payment.service.impl.TossPayServiceImpl;
 import co.dalicious.domain.user.entity.*;
 import co.dalicious.domain.user.entity.enums.*;
 import co.dalicious.domain.user.mapper.UserSpotMapper;
@@ -85,7 +89,7 @@ public class UserServiceImpl implements UserService {
     private final QCreditCardInfoRepository qCreditCardInfoRepository;
     private final CreditCardInfoRepository creditCardInfoRepository;
     private final CreditCardInfoMapper creditCardInfoMapper;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final FoundersUtil foundersUtil;
     private final ClientUtil clientUtil;
     private final JwtTokenProvider jwtTokenProvider;
@@ -290,7 +294,7 @@ public class UserServiceImpl implements UserService {
 
         //그룹에서 초대된 유저인지 확인 후 초대된 유저라면 group과 spot 등록
         List<Employee> employeeList = employeeRepository.findAllByEmail(email);
-        if (!employeeList.isEmpty()){
+        if (!employeeList.isEmpty()) {
             userGroupSave(employeeList, user);
         }
 
@@ -304,12 +308,12 @@ public class UserServiceImpl implements UserService {
     }
 
     private void userGroupSave(List<Employee> employeeList, User user) {
-        for (Employee employee : employeeList){
+        for (Employee employee : employeeList) {
             Group group = groupRepository.findById(employee.getCorporation().getId()).orElseThrow(() -> new ApiException(ExceptionEnum.GROUP_NOT_FOUND));
             UserGroup userGroup = userGroupMapper.toUserGroup(user, group, ClientStatus.BELONG);
             userGroupRepository.save(userGroup);
             //스팟도 추가
-            if (!group.getSpots().isEmpty()){
+            if (!group.getSpots().isEmpty()) {
                 UserSpot userSpot = userSpotMapper.toUserSpot(group.getSpots().get(0), user, true, GroupDataType.CORPORATION);
                 userSpotRepository.save(userSpot);
             }
@@ -421,7 +425,7 @@ public class UserServiceImpl implements UserService {
         Integer membershipPeriod = membershipUtil.getUserPeriodOfUsingMembership(user);
 
         // 식사 일정 개수 구하기
-        List<OrderItemDailyFood> orderItemDailyFoods = qOrderDailyFoodRepository.findAllMealScheduleByUser(user);
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findAllMealScheduleByUser(user);
         Integer dailyMealCount = getDailyFoodScheduleCount(orderItemDailyFoods);
 
         return UserInfoDto.builder()
@@ -438,7 +442,7 @@ public class UserServiceImpl implements UserService {
         Group group = qGroupRepository.findGroupByTypeAndId(groupId, GroupDataType.OPEN_GROUP);
         if (group == null) throw new ApiException(ExceptionEnum.GROUP_NOT_FOUND);
 
-        List<UserGroup> userGroups = user.getActiveUserGroups();
+        List<UserGroup> userGroups = user.getGroups();
 
         // TODO: 그룹 슬롯 증가의 경우 반영 필요
         // 오픈 스팟 그룹의 개수가 2개 이상일 떄
@@ -578,7 +582,7 @@ public class UserServiceImpl implements UserService {
             user.updatePaymentPassword(payPassword);
         }
 
-        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
+        CreditCardDto.Response saveCardResponse = paymentService.getBillingKey(billingKeyDto.getCorporationCode(), billingKeyDto.getCardType(), billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getCardPassword(), billingKeyDto.getIdentityNumber());
 
         int defaultType = (billingKeyDto.getDefaultType() == null) ? 0 : billingKeyDto.getDefaultType();
 
@@ -589,6 +593,7 @@ public class UserServiceImpl implements UserService {
                 .filter(v -> v.isSameCard(saveCardResponse.getCardNumber(), saveCardResponse.getCardCompany()))
                 .findAny();
 
+        PGCompany pgCompany = null;
         if (creditCardInfo.isPresent()) {
             // 이미 존재하는 카드라면 에러 발생
             if (creditCardInfo.get().getStatus() == 1) {
@@ -597,7 +602,18 @@ public class UserServiceImpl implements UserService {
             // 기존에 삭제되었던 카드라면 빌링키 업데이트
             if (creditCardInfo.get().getStatus() == 0) {
                 creditCardInfo.get().updateStatus(1);
-                creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
+                if (paymentService instanceof NicePaymentServiceImpl) {
+                    creditCardInfo.get().updateNiceBillingKey(saveCardResponse.getBillingKey());
+                    pgCompany = PGCompany.NICE;
+                }
+                if (paymentService instanceof TossPayServiceImpl) {
+                    creditCardInfo.get().updateTossBillingKey(saveCardResponse.getBillingKey());
+                    pgCompany = PGCompany.TOSS;
+                }
+                if (paymentService instanceof MinglePlayServiceImpl) {
+                    creditCardInfo.get().updateMingleBillingKey(saveCardResponse.getBillingKey());
+                    pgCompany = PGCompany.MINGLE;
+                }
                 return saveCardResponse.getBillingKey();
             }
         }
@@ -606,11 +622,11 @@ public class UserServiceImpl implements UserService {
             defaultType = 1;
         }
 
-        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(saveCardResponse, user.getId(), defaultType);
+        CreditCardInfo cardInfo = creditCardInfoMapper.toEntity(saveCardResponse, user, defaultType, pgCompany);
 
         creditCardInfoRepository.save(cardInfo);
 
-        return cardInfo.getNiceBillingKey();
+        return cardInfo.getMingleBillingKey();
     }
 
     @Override
@@ -689,8 +705,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) {
-        qCreditCardInfoRepository.deleteCard(deleteCreditCardDto.getCardId());
+    public void deleteCard(DeleteCreditCardDto deleteCreditCardDto) throws IOException, ParseException {
+        CreditCardInfo creditCardInfo = creditCardInfoRepository.findById(deleteCreditCardDto.getCardId())
+                .orElseThrow(() -> new ApiException(ExceptionEnum.CARD_NOT_FOUND));
+        creditCardInfo.updateStatus(0);
+        creditCardInfo.updateTossBillingKey("삭제된 카드입니다.");
+        paymentService.deleteBillingKey(creditCardInfo.getMingleBillingKey());
     }
 
     @Override
@@ -921,6 +941,7 @@ public class UserServiceImpl implements UserService {
                 .mapToInt(OrderItemDailyFood::getCount)
                 .sum();
     }
+
     @Override
     public String generateRandomNickName() throws IOException {
         return UserUtil.generateRandomNickName();

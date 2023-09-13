@@ -39,10 +39,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -147,7 +144,7 @@ public class PushAlarmServiceImpl implements PushAlarmService {
             else if (reqDto.getType().equals(HandlePushAlarmType.SPOT.getCode())) userWithFcmToken = qUserSpotRepository.findAllUserSpotFirebaseToken(reqDto.getSpotIds());
             else if (reqDto.getType().equals(HandlePushAlarmType.USER.getCode())) userWithFcmToken = qUserRepository.findAllUserFirebaseToken(reqDto.getUserIds());
 
-            List<String> allUserFcmToken = new ArrayList<>(userWithFcmToken.values());
+            List<String> allUserFcmToken = new ArrayList<>(userWithFcmToken.values().stream().filter(Objects::nonNull).toList());
 
             // 푸시 알림은 한 api에 500개만 전공가능 함으로 500개가 넘어가면 잘라야 한다.
             if(allUserFcmToken.size() > chunkSize) {

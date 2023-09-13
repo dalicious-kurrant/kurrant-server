@@ -1,18 +1,15 @@
 package co.kurrant.app.makers_api.service.impl;
 
-import co.dalicious.domain.client.entity.DayAndTime;
 import co.dalicious.domain.delivery.entity.DeliveryInstance;
 import co.dalicious.domain.delivery.mappper.DeliveryInstanceMapper;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.food.entity.FoodCapacity;
 import co.dalicious.domain.food.entity.Makers;
-import co.dalicious.domain.food.entity.QFoodCapacity;
 import co.dalicious.domain.food.repository.QFoodCapacityRepository;
-import co.dalicious.domain.food.repository.QFoodRepository;
 import co.dalicious.domain.order.dto.OrderDailyFoodByMakersDto;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
 import co.dalicious.domain.order.mapper.OrderDailyFoodByMakersMapper;
-import co.dalicious.domain.order.repository.QOrderDailyFoodRepository;
+import co.dalicious.domain.order.repository.QOrderItemDailyFoodRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.dalicious.system.util.StringUtils;
@@ -31,7 +28,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     private final UserUtil userUtil;
-    private final QOrderDailyFoodRepository qOrderDailyFoodRepository;
+    private final QOrderItemDailyFoodRepository qOrderItemDailyFoodRepository;
     private final OrderDailyFoodByMakersMapper orderDailyFoodByMakersMapper;
     private final DeliveryInstanceMapper deliveryInstanceMapper;
     private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
@@ -46,7 +43,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 //        BigInteger makersId = !parameters.containsKey("makersId") || parameters.get("makersId").equals("") ? null : BigInteger.valueOf(Integer.parseInt((String) parameters.get("makersId")));
 
         List<FoodCapacity> foodCapacities = qFoodCapacityRepository.getFoodCapacitiesByMakers(makers);
-        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
+        List<OrderItemDailyFood> orderItemDailyFoodList = qOrderItemDailyFoodRepository.findAllByMakersFilter(startDate, endDate, makers, diningTypes);
 
         return orderDailyFoodByMakersMapper.toDto(orderItemDailyFoodList, foodCapacities);
     }

@@ -64,7 +64,7 @@ public class Order {
     private BigDecimal point;
 
     @Column(name = "total_price", columnDefinition = "DECIMAL(15, 2)")
-    @Comment("결제 총액(모든 할인이 들어간 가격)")
+    @Comment("결제 총액(포인트를 제외한 실제 결제금액)")
     private BigDecimal totalPrice;
 
     @Convert(converter = PaymentTypeConverter.class)
