@@ -31,7 +31,7 @@ public class SseController {
     private final UserUtil userUtil;
 
     @Description(value = "sse 구독")
-    @GetMapping(value = "/v1/notification/subscribe", produces = "text/event-stream")
+    @GetMapping(value = "/v1/sse/subscribe", produces = "text/event-stream")
     public SseEmitter subscribe(Authentication authentication,
                                 @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId,
                                 HttpServletResponse response) {
