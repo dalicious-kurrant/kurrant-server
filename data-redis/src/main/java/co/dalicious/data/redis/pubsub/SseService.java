@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SseService {
 
-    private static final Long DEFAULT_TIMEOUT = 1000L * 60;
+    private static final Long DEFAULT_TIMEOUT = 1000L * 60 * 30;
     private final EmitterRepository emitterRepository;
     private final NotificationHashRepository notificationHashRepository;
     private final RedisMessageListenerContainer redisMessageListenerContainer;
