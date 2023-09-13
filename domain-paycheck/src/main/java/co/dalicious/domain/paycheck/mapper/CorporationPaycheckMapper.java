@@ -222,7 +222,7 @@ public interface CorporationPaycheckMapper {
     }
 
     // FIXME: dailyFoodSupportPrices -> order의 PaymentType은 1.
-    default List<PaycheckCategory> toPaycheckDailyFood(List<DailyFoodSupportPrice> dailyFoodSupportPrices) {
+    default List<PaycheckCategory> toPaycheckDailyFood(List<OrderItemDailyFoodGroup> dailyFoodSupportPrices, Corporation corporation) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
         Integer morningCount = 0;
         Integer lunchCount = 0;
@@ -232,18 +232,18 @@ public interface CorporationPaycheckMapper {
         BigDecimal lunchPrice = BigDecimal.ZERO;
         BigDecimal dinnerPrice = BigDecimal.ZERO;
 
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+        for (OrderItemDailyFoodGroup dailyFoodSupportPrice : dailyFoodSupportPrices) {
             switch (dailyFoodSupportPrice.getDiningType()) {
                 case MORNING -> {
-                    morningCount += dailyFoodSupportPrice.getCount();
+                    morningCount += dailyFoodSupportPrice.getCount(corporation);
                     morningPrice = morningPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
                 case LUNCH -> {
-                    lunchCount += dailyFoodSupportPrice.getCount();
+                    lunchCount += dailyFoodSupportPrice.getCount(corporation);
                     lunchPrice = lunchPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
                 case DINNER -> {
-                    dinnerCount += dailyFoodSupportPrice.getCount();
+                    dinnerCount += dailyFoodSupportPrice.getCount(corporation);
                     dinnerPrice = dinnerPrice.add(dailyFoodSupportPrice.getUsingSupportPrice());
                 }
             }
@@ -328,14 +328,14 @@ public interface CorporationPaycheckMapper {
     @Mapping(source = "usage", target = "memo")
     PaycheckAdd toPaycheckAdd(OrderItemDailyFood orderItemDailyFood);
 
-    default List<PaycheckCategory> toPaycheckCategories(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, YearMonth yearMonth, OrderCount orderCount) {
+    default List<PaycheckCategory> toPaycheckCategories(Corporation corporation, List<OrderItemDailyFoodGroup> dailyFoodSupportPrices, YearMonth yearMonth, OrderCount orderCount) {
         return PaycheckUtils.getAdditionalPaycheckCategories(corporation, dailyFoodSupportPrices, orderCount);
     }
 
-    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer userCount, OrderCount orderCounts, YearMonth yearMonth) {
+    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<OrderItemDailyFoodGroup> dailyFoodSupportPrices, Integer userCount, OrderCount orderCounts, YearMonth yearMonth) {
 //    default CorporationPaycheck toInitiateEntity(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, Integer membershipSupportPrices) {
         // 1. 정기 식사 구매 계산
-        List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices);
+        List<PaycheckCategory> paycheckCategories = toPaycheckDailyFood(dailyFoodSupportPrices, corporation);
         // 2. 멤버십 계산
         List<PaycheckCategory> memberships = (userCount == null) ? null : toSimpleMembership(userCount);
         // 3. 추가 이슈

@@ -7,6 +7,7 @@ import co.dalicious.domain.order.dto.DailySupportPriceDto;
 import co.dalicious.domain.order.dto.OrderCount;
 import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.paycheck.entity.PaycheckCategory;
 import co.dalicious.system.enums.CategoryPrice;
 import co.dalicious.domain.paycheck.entity.enums.PaycheckType;
@@ -94,20 +95,20 @@ public class PaycheckUtils {
         return null;
     }
 
-    public static List<PaycheckCategory> getAdditionalPaycheckCategories(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, OrderCount orderCount) {
+    public static List<PaycheckCategory> getAdditionalPaycheckCategories(Corporation corporation, List<OrderItemDailyFoodGroup> dailyFoodSupportPrices, OrderCount orderCount) {
         List<PaycheckCategory> paycheckCategories = new ArrayList<>();
 
         dailyFoodSupportPrices = dailyFoodSupportPrices.stream()
-                .sorted(Comparator.comparing(DailyFoodSupportPrice::getServiceDate).thenComparing(DailyFoodSupportPrice::getDiningType)).toList();
+                .sorted(Comparator.comparing(OrderItemDailyFoodGroup::getServiceDate).thenComparing(OrderItemDailyFoodGroup::getDiningType)).toList();
 
         Map<ServiceDiningVo, Integer> serviceDiningTypeMap = new HashMap<>();
-        for (DailyFoodSupportPrice dailyFoodSupportPrice : dailyFoodSupportPrices) {
+        for (OrderItemDailyFoodGroup dailyFoodSupportPrice : dailyFoodSupportPrices) {
             ServiceDiningVo serviceDiningVo = new ServiceDiningVo(dailyFoodSupportPrice.getServiceDate(), dailyFoodSupportPrice.getDiningType());
             if (serviceDiningTypeMap.containsKey(serviceDiningVo)) {
-                Integer count = serviceDiningTypeMap.get(serviceDiningVo) + dailyFoodSupportPrice.getCount();
+                Integer count = serviceDiningTypeMap.get(serviceDiningVo) + dailyFoodSupportPrice.getCount(corporation);
                 serviceDiningTypeMap.put(serviceDiningVo, count);
             } else {
-                serviceDiningTypeMap.put(serviceDiningVo, dailyFoodSupportPrice.getCount());
+                serviceDiningTypeMap.put(serviceDiningVo, dailyFoodSupportPrice.getCount(corporation));
             }
         }
 

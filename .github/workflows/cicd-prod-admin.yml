@@ -39,14 +39,6 @@ jobs:
         echo "${{ secrets.APP_ADMIN_API_PROD_PROD_YAML }}" > ./application-prod.yaml
       shell: bash
 
-    - name: app-admin-api firebase.json 생성
-      run: |
-        cd ./app-admin-api/src/main
-        cd resources
-        touch ./firebase.json
-        echo "${{ secrets.FIREBASE_JSON }}" > ./firebase.json
-      shell: bash
-
     - name: client-core application-jwt.properties 생성
       run: |
         cd ./client-core/src/main

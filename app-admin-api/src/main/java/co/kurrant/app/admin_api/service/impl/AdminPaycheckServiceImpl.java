@@ -285,7 +285,7 @@ public class AdminPaycheckServiceImpl implements AdminPaycheckService {
                     .filter(v -> v.getGroup().equals(group))
                     .findAny()
                     .orElse(null);
-            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group), userCountByGroup.get(group.getId()), orderCount, yearMonth);
+            CorporationPaycheck corporationPaycheck = paycheckService.generateCorporationPaycheck((Corporation) Hibernate.unproxy(group), orderItemDailyFoodGroupMap.get(group), userCountByGroup.get(group.getId()), orderCount, yearMonth);
             ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), orderItemDailyFoodGroupMap.get(group)));
 //            ExcelPdfDto excelPdfDto = excelService.createCorporationPaycheckExcel(corporationPaycheck, corporationPaycheckMapper.toCorporationOrder((Corporation) Hibernate.unproxy(group), dailyFoodSupportPriceMap.get(group)));
             Image excel = new Image(excelPdfDto.getExcelDto());
