@@ -1,5 +1,6 @@
 package co.dalicious.domain.order.entity;
 
+import co.dalicious.domain.client.entity.Corporation;
 import co.dalicious.domain.order.converter.OrderStatusConverter;
 import co.dalicious.domain.order.entity.enums.MonetaryStatus;
 import co.dalicious.domain.order.entity.enums.OrderStatus;
@@ -20,6 +21,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -130,5 +132,55 @@ public class OrderItemDailyFoodGroup {
         return this.orderDailyFoods.stream()
                 .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
                 .toList();
+    }
+
+    public Integer getCount(Corporation corporation) {
+        BigDecimal supportPrice = this.getUsingSupportPrice();
+
+        List<OrderItemDailyFood> orderItemDailyFoods = this.getOrderDailyFoods();
+
+        // 주문 완료인 상품들만 추출
+        orderItemDailyFoods = orderItemDailyFoods.stream()
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
+                .sorted(Comparator.comparing(OrderItemDailyFood::getOrderItemTotalPrice))
+                .toList();
+
+        // 주문 그룹이 메드트로닉일 경우
+        if(corporation.getId().equals(BigInteger.valueOf(97)) || corporation.getId().equals(BigInteger.valueOf(154))) {
+            Integer count = 0;
+            for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+                count += orderItemDailyFood.getCount();
+            }
+            return count;
+        }
+
+        // 주문 완료한 상품의 개수가 1일 경우
+        if(orderItemDailyFoods.size() == 1) {
+            OrderItemDailyFood orderItemDailyFood = orderItemDailyFoods.get(0);
+            // 지원금을 사용한 상품의 개수 추출
+            for(int i = 1; i <= orderItemDailyFood.getCount(); i++) {
+                BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
+                if(discountedPrice.multiply(BigDecimal.valueOf(i)).compareTo(supportPrice) >= 0) {
+                    return i;
+                }
+            }
+        }
+
+        int i = 0;
+        // 주문 완료한 상품의 개수가 1 이상일 경우
+        for (OrderItemDailyFood orderItemDailyFood : orderItemDailyFoods) {
+            if(supportPrice.compareTo(orderItemDailyFood.getOrderItemTotalPrice()) > 0) {
+                i += orderItemDailyFood.getCount();
+            } else if (supportPrice.compareTo(BigDecimal.ZERO) > 0) {
+                // 지원금을 사용한 상품의 개수 추출
+                for(int j = 1; j <= orderItemDailyFood.getCount(); j++) {
+                    BigDecimal discountedPrice = orderItemDailyFood.getDiscountedPrice();
+                    if(discountedPrice.multiply(BigDecimal.valueOf(j)).compareTo(supportPrice) >= 0) {
+                        return i + j;
+                    }
+                }
+            }
+        }
+        return i;
     }
 }
