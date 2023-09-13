@@ -83,6 +83,7 @@ public class Group {
     List<Spot> spots;
 
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
+    @JsonBackReference(value = "client__department_fk")
     List<Department> departments;
 
     @Comment("메모")
