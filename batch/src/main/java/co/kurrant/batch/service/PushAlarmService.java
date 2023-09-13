@@ -26,7 +26,7 @@ public class PushAlarmService {
         Set<BigInteger> groupIds = new HashSet<>();
         LocalDateTime currentTime = LocalDateTime.now();
 
-        log.info("[고객사 주문 마감 시간 Group 읽기 시작] : {}", DateUtils.localDateTimeToString(currentTime));
+        log.info("[고객사/메이커스/상품 주문 마감 시간 읽기 시작] : {}", DateUtils.localDateTimeToString(currentTime));
 
         // 고객사 주문 마감 시간 그룹 조회
         String queryStringForGroup = "SELECT g.id, df.serviceDate, mi.lastOrderTime " +

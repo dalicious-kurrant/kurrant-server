@@ -54,7 +54,7 @@ public interface UserService {
     Object createNiceBillingKeyFirst(SecurityUser securityUser, Integer typeId, BillingKeyDto billingKeyDto) throws IOException, ParseException;
     List<CreditCardResponseDto> getCardList(SecurityUser securityUser);
     void patchDefaultCard(SecurityUser securityUser, CreditCardDefaultSettingDto creditCardDefaultSettingDto);
-    void deleteCard(DeleteCreditCardDto deleteCreditCardDto);
+    void deleteCard(DeleteCreditCardDto deleteCreditCardDto) throws IOException, ParseException;
     void changeName(SecurityUser securityUser, ChangeNameDto changeNameDto);
     void changeNickname(SecurityUser securityUser, String nickname);
     void withdrawal(SecurityUser securityUser);

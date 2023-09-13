@@ -25,11 +25,11 @@ public class FoodController {
 
     @Operation(summary = "메이커스 별 상품 조회", description = "메이커스 별 상품을 모두 조회합니다.")
     @GetMapping("")
-    public ResponseMessage getAllFoodListByMakers(Authentication authentication) {
+    public ResponseMessage getAllFoodListByMakers(Authentication authentication, @RequestParam(required = false) Integer status) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("모든 상품을 조회했습니다.")
-                .data(foodService.getAllFoodListByMakers(securityUser))
+                .data(foodService.getAllFoodListByMakers(securityUser, status))
                 .build();
     }
 

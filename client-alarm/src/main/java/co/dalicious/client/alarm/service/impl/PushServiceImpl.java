@@ -193,6 +193,7 @@ public class PushServiceImpl implements PushService {
     }
 
     @Override
+    @Transactional
     public void sendToPush(BatchAlarmDto batchAlarmDto, PushCondition pushCondition) {
         List<String> tokenList = new ArrayList<>(batchAlarmDto.getTokenList().keySet());
 
@@ -320,8 +321,7 @@ public class PushServiceImpl implements PushService {
         }
     }
 
-    @Transactional
-    public void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
+    private void saveBatchLog(List<BigInteger> userIds, PushCondition pushCondition) {
         LocalDateTime logDateTime = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
 
         List<BatchPushAlarmLog> existPushAlarmLogList = qBatchPushAlarmLogRepository.findAllBatchAlarmLogByUserIds(userIds, pushCondition);

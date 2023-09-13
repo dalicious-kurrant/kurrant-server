@@ -2,6 +2,7 @@ package co.dalicious.domain.file.service.impl;
 
 
 import co.dalicious.domain.file.dto.ImageResponseDto;
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.service.ImageService;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,7 @@ public class ImageServiceImpl implements ImageService {
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                 .build();
     }
+
     private String createKey(String filename) {
         StringJoiner sj = new StringJoiner("/");
 
@@ -142,5 +145,31 @@ public class ImageServiceImpl implements ImageService {
         amazonS3.putObject(request);
 
         return new ImageResponseDto(location, key, fileName);
+    }
+
+    @Override
+    public List<Image> processImages(List<String> requestImages, List<Image> currentImages, List<MultipartFile> files, String uploadPathPrefix) throws IOException {
+        List<Image> resultImages = new ArrayList<>();
+
+        if (requestImages != null && requestImages.size() != currentImages.size()) {
+            List<Image> imagesToDelete = currentImages.stream().filter(v -> !requestImages.contains(v.getLocation())).toList();
+            List<Image> selectedImages = currentImages.stream().filter(v -> requestImages.contains(v.getLocation())).toList();
+
+            imagesToDelete.forEach(image -> delete(image.getPrefix()));
+            currentImages = selectedImages;
+        }
+        if (requestImages == null && !currentImages.isEmpty()) {
+            currentImages.forEach(image -> delete(image.getPrefix()));
+            currentImages.clear();
+        }
+
+        resultImages.addAll(currentImages);
+
+        if (files != null && !files.isEmpty()) {
+            List<ImageResponseDto> uploadedImages = upload(files, uploadPathPrefix);
+            resultImages.addAll(Image.toImages(uploadedImages));
+        }
+
+        return resultImages;
     }
 }

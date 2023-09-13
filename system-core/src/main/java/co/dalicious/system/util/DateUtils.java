@@ -36,6 +36,11 @@ public class DateUtils {
         return date.format(formatter);
     }
 
+    public static String format(LocalDateTime dateTime, String formatString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatString);
+        return dateTime.format(formatter);
+    }
+
     public static String format(Timestamp timestamp, String formatString) {
         SimpleDateFormat sdf;
         sdf = new SimpleDateFormat(formatString);
@@ -62,6 +67,11 @@ public class DateUtils {
 
     public static Timestamp localDateToTimestamp(LocalDate localDate) {
         LocalDateTime localDateTime = LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 0, 0, 0);
+        return Timestamp.valueOf(localDateTime);
+    }
+
+    public static Timestamp localDateToTimestampEndOfDay(LocalDate localDate) {
+        LocalDateTime localDateTime = LocalDateTime.of(localDate.getYear(), localDate.getMonth(), localDate.getDayOfMonth(), 23, 59, 59);
         return Timestamp.valueOf(localDateTime);
     }
 
@@ -178,15 +188,17 @@ public class DateUtils {
     public static String calculatedDDayAndTime(LocalDateTime limitDayAndTime) {
         LocalDateTime now = LocalDateTime.now();
 
-        if(limitDayAndTime.isBefore(now)){
+        // Check if limitDayAndTime is before 'now', even after adding 5 days
+        if (limitDayAndTime.isBefore(now)) {
             limitDayAndTime = limitDayAndTime.plusDays(5);
-            System.out.println("limitDayAndTime = " + limitDayAndTime);
         }
+        System.out.println("limitDayAndTime = " + limitDayAndTime);
 
         long dateTime = ChronoUnit.MINUTES.between(now, limitDayAndTime);
         long day = dateTime / (60 * 24);
         long hour = (dateTime / 60) % 24;
         long min = dateTime % 60;
+        if (day < 0 || hour < 0 || min < 0) return "-1";
         LocalTime remainingTime = LocalTime.of((int) hour, (int) min);
 
         return String.format("%01d %tH:%tM", day, remainingTime, remainingTime);

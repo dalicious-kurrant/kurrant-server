@@ -12,6 +12,7 @@ import java.util.Map;
 public interface UserService {
 
     Object getUserList(Map<String, Object> parameters, OffsetBasedPageRequest pageable);
+    Object getUserListAll();
 
     void deleteMember(DeleteMemberRequestDto deleteMemberRequestDto);
 

@@ -91,7 +91,7 @@ public class OrderDailyFoodController {
     @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/cancel")
     public ResponseMessage cancelOrder(@RequestBody OrderDto.Id id) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderNice(id.getId());
+        orderDailyFoodService.cancelOrder(id.getId());
         return ResponseMessage.builder()
                 .message("주문 전체 취소를 성공했습니다.")
                 .build();
@@ -109,7 +109,7 @@ public class OrderDailyFoodController {
     @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
     @PostMapping("/orderItems/cancel")
     public ResponseMessage cancelOrderItem(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
-        String message = orderDailyFoodService.cancelOrderItemsNice(idList.getIdList());
+        String message = orderDailyFoodService.cancelOrderItems(idList.getIdList());
         return ResponseMessage.builder()
                 .message(message.isEmpty() ? "부분 주문 취소를 성공했습니다." : message)
                 .build();
@@ -150,24 +150,6 @@ public class OrderDailyFoodController {
         orderDailyFoodService.refundExtraOrderItems(id.getId());
         return ResponseMessage.builder()
                 .message("추가 주문을 환불하였습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
-    @PostMapping("/cancel/toss")
-    public ResponseMessage cancelOrderNice(@RequestBody OrderDto.Id id) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderToss(id.getId());
-        return ResponseMessage.builder()
-                .message("주문 전체 취소를 성공했습니다.")
-                .build();
-    }
-
-    @ControllerMarker(ControllerType.ORDER_DAILY_FOOD)
-    @PostMapping("/orderItems/cancel/toss")
-    public ResponseMessage cancelOrderItemNice(@RequestBody OrderDto.IdList idList) throws IOException, ParseException {
-        orderDailyFoodService.cancelOrderItemsToss(idList.getIdList());
-        return ResponseMessage.builder()
-                .message("부분 주문 취소를 성공했습니다.")
                 .build();
     }
 }

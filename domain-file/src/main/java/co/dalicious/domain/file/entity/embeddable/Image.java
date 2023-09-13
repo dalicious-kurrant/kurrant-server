@@ -2,6 +2,7 @@ package co.dalicious.domain.file.entity.embeddable;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -64,8 +65,8 @@ public class Image {
     }
 
     public String getPrefix() {
-        String[] str = this.location.split("/");
-        return str[0] + "/" + str[1] + "/";
+        String[] str = this.key.split("/");
+        return String.join("/", Arrays.copyOf(str, str.length - 1));
     }
 
     public static List<String> getImagesLocation(List<Image> images) {

@@ -5,16 +5,19 @@ import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.data.redis.pubsub.SseEventService;
 import co.dalicious.data.redis.pubsub.SseService;
 import co.dalicious.domain.order.dto.OrderDto;
+import co.kurrant.app.public_api.dto.SseTypeDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.util.UserUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Description;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.security.core.Authentication;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.math.BigInteger;
 
@@ -60,11 +63,10 @@ public class SseController {
     }
 
     @Description(value = "sse 알림 읽기(읽은 알림 삭제)")
-    @PutMapping("/v1/notification/read")
-    public ResponseMessage readNotification(Authentication authentication, @RequestBody Integer type) {
-        SecurityUser securityUser = UserUtil.securityUser(authentication);
-        BigInteger userId = userUtil.getUserId(securityUser);
-        sseService.readNotification(userId, type);
+    @PutMapping(value = "/v1/notification/read", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseMessage readNotification(Authentication authentication, @RequestBody SseTypeDto dto) {
+        BigInteger userId = userUtil.getUserId(UserUtil.securityUser(authentication));
+        sseService.readNotification(userId, dto.getType(), dto.getIds());
         return ResponseMessage.builder()
                 .message("알림 읽기에 성공했습니다.")
                 .build();

@@ -2,6 +2,9 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.file.dto.ImageResponseDto;
+import co.dalicious.domain.file.entity.embeddable.Image;
+import co.dalicious.domain.file.service.ImageService;
 import co.dalicious.domain.food.dto.*;
 import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.food.entity.MakersCapacity;
@@ -19,8 +22,11 @@ import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,10 +40,11 @@ public class MakersServiceImpl implements MakersService {
     private final MakersMapper makersMapper;
     private final MakersCapacityMapper makersCapacityMapper;
     private final QMakersRepository qMakersRepository;
+    private final ImageService imageService;
 
     @Override
     @Transactional
-    public List<MakersInfoResponseDto> findAllMakersInfo() {
+    public List<SaveMakersRequestDto> findAllMakersInfo() {
         List<Makers> makersList = makersRepository.findAll();
         return makersList.stream()
                 .map(makersMapper::toDto)
@@ -84,12 +91,20 @@ public class MakersServiceImpl implements MakersService {
 
     @Override
     @Transactional
-    public void updateMakers(SaveMakersRequestDto updateMakersReqDto) throws ParseException {
+    public void updateMakers(SaveMakersRequestDto updateMakersReqDto, List<MultipartFile> files) throws ParseException, IOException {
         //존재하는 Makers인지 확인
         Makers makers = makersRepository.findById(updateMakersReqDto.getId()).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND_MAKERS));
         //위치값 반영
         Address address = new Address(updateMakersReqDto.getZipCode(), updateMakersReqDto.getAddress1(), updateMakersReqDto.getAddress2(), updateMakersReqDto.getLocation());
         makers.updateMakers(updateMakersReqDto);
+
+        List<Image> introImages = imageService.processImages(
+                updateMakersReqDto.getIntroImages(),
+                makers.getIntroImages(),
+                files,
+                "makers/" + makers.getId() + "/intro"
+        );;
+        makers.updateIntroImages(introImages);
         makers.updateAddress(address);
         updateAllMakersCapacities(makers, updateMakersReqDto);
     }
