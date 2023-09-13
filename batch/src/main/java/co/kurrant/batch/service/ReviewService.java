@@ -1,5 +1,6 @@
 package co.kurrant.batch.service;
 
+import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.system.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ public class ReviewService {
     private final EntityManager entityManager;
 
     public List<BigInteger> findUserIdsByReviewDeadline() {
+        log.info("[마감 리뷰 찾기 시작] : {} ", DateUtils.localDateTimeToString(LocalDateTime.now()));
 
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         LocalDate limitDay = today.minusDays(5);
@@ -48,6 +50,7 @@ public class ReviewService {
             LocalDate serviceDate = (LocalDate) result[1];
             LocalTime pickupTime = (LocalTime) result[2];
 
+            System.out.println("userId = " + userId);
             String deadlineTime = DateUtils.calculatedDDayAndTime(serviceDate.atTime(pickupTime));
             String day = deadlineTime.split(" ")[0];
 

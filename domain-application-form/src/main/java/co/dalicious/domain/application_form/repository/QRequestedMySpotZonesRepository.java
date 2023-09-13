@@ -28,7 +28,7 @@ public class QRequestedMySpotZonesRepository {
 
     public List<FilterInfo> findAllCity() {
 
-        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.city)
+        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.region.id, requestedMySpotZones.region.city)
                 .from(requestedMySpotZones)
                 .groupBy(requestedMySpotZones.region.city)
                 .orderBy(requestedMySpotZones.region.city.asc())
@@ -41,7 +41,7 @@ public class QRequestedMySpotZonesRepository {
         resultList.forEach(result -> {
             FilterInfo filterInfo = new FilterInfo();
 
-            filterInfo.setId(result.get(requestedMySpotZones.id));
+            filterInfo.setId(result.get(requestedMySpotZones.region.id));
             filterInfo.setName(result.get(requestedMySpotZones.region.city));
 
             filterInfos.add(filterInfo);
@@ -57,7 +57,7 @@ public class QRequestedMySpotZonesRepository {
             whereCause.and(requestedMySpotZones.region.city.eq(city));
         }
 
-        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.county)
+        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.region.id, requestedMySpotZones.region.county)
                 .from(requestedMySpotZones)
                 .where(whereCause)
                 .groupBy(requestedMySpotZones.region.county)
@@ -71,7 +71,7 @@ public class QRequestedMySpotZonesRepository {
         resultList.forEach(result -> {
             FilterInfo filterInfo = new FilterInfo();
 
-            filterInfo.setId(result.get(requestedMySpotZones.id));
+            filterInfo.setId(result.get(requestedMySpotZones.region.id));
             filterInfo.setName(result.get(requestedMySpotZones.region.county));
 
             filterInfos.add(filterInfo);
@@ -91,7 +91,7 @@ public class QRequestedMySpotZonesRepository {
             whereCause.and(requestedMySpotZones.region.county.eq(county));
         }
 
-        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.village)
+        List<Tuple> resultList = queryFactory.select(requestedMySpotZones.region.id, requestedMySpotZones.region.village)
                 .from(requestedMySpotZones)
                 .where(whereCause)
                 .groupBy(requestedMySpotZones.region)
@@ -104,7 +104,7 @@ public class QRequestedMySpotZonesRepository {
         resultList.forEach(result -> {
             FilterInfo filterInfo = new FilterInfo();
 
-            filterInfo.setId(result.get(requestedMySpotZones.id));
+            filterInfo.setId(result.get(requestedMySpotZones.region.id));
             filterInfo.setName(result.get(requestedMySpotZones.region.village));
 
             filterInfos.add(filterInfo);
@@ -126,7 +126,7 @@ public class QRequestedMySpotZonesRepository {
             whereCause.and(requestedMySpotZones.region.village.in(village));
         }
 
-        List<Tuple> resultList =  queryFactory.select(requestedMySpotZones.id, requestedMySpotZones.region.zipcode)
+        List<Tuple> resultList =  queryFactory.select(requestedMySpotZones.region.id, requestedMySpotZones.region.zipcode)
                 .from(requestedMySpotZones)
                 .where(whereCause)
                 .fetch();
@@ -138,7 +138,7 @@ public class QRequestedMySpotZonesRepository {
         resultList.forEach(result -> {
             FilterInfo filterInfo = new FilterInfo();
 
-            filterInfo.setId(result.get(requestedMySpotZones.id));
+            filterInfo.setId(result.get(requestedMySpotZones.region.id));
             filterInfo.setName(result.get(requestedMySpotZones.region.zipcode));
 
             filterInfos.add(filterInfo);

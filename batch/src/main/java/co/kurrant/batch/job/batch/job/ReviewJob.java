@@ -105,10 +105,12 @@ public class ReviewJob {
                     PushCondition pushCondition = PushCondition.REVIEW_DEADLINE;
 
                     PushRequestDtoByUser pushRequestDto = pushUtil.getPushRequest(user, pushCondition, null);
-                    BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
-                    pushService.sendToPush(batchAlarmDto, pushCondition);
-                    applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
-                    pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.REVIEW, null);
+                    if (pushRequestDto != null) {
+                        BatchAlarmDto batchAlarmDto = pushUtil.getBatchAlarmDto(pushRequestDto, user);
+                        pushService.sendToPush(batchAlarmDto, pushCondition);
+                        applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
+                        pushUtil.savePushAlarmHash(batchAlarmDto.getTitle(), batchAlarmDto.getMessage(), user.getId(), AlarmType.REVIEW, null);
+                    }
 
                     log.info("[푸시알림 전송 성공] : {}", user.getId());
                 } catch (Exception ignored) {

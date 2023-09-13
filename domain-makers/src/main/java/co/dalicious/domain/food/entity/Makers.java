@@ -2,6 +2,7 @@ package co.dalicious.domain.food.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.entity.DayAndTime;
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.file.entity.embeddable.ImageWithEnum;
 import co.dalicious.domain.file.entity.embeddable.enums.ImageType;
 import co.dalicious.domain.food.converter.ServiceFormConverter;
@@ -134,6 +135,12 @@ public class Makers {
     @CollectionTable(name = "makers__images")
     private List<ImageWithEnum> images = new ArrayList<>();
 
+    @ElementCollection
+    @Comment("상품 소개 이미지")
+    @CollectionTable(
+            name = "makers__intro_images")
+    private List<Image> introImages = new ArrayList<>();
+
     @OneToMany(mappedBy = "makers")
     @JsonManagedReference(value = "makers_fk")
     @Comment("원산지")
@@ -170,7 +177,7 @@ public class Makers {
     private Boolean isActive;
 
     @Builder
-    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<Days> serviceDays, List<ImageWithEnum> images, List<Origin> origins, String password, Role role, String memo, Boolean isActive) {
+    public Makers(String code, String name, String companyName, String CEO, String CEOPhone, String managerName, String managerPhone, List<MakersCapacity> makersCapacities, ServiceType serviceType, ServiceForm serviceForm, Boolean isParentCompany, BigInteger parentCompanyId, Address address, String companyRegistrationNumber, LocalDate contractStartDate, LocalDate contractEndDate, Boolean isNutritionInformation, LocalTime openTime, LocalTime closeTime, String fee, String bank, String depositHolder, String accountNumber, List<Days> serviceDays, List<ImageWithEnum> images, List<Image> introImages, List<Origin> origins, String password, Role role, String memo, Boolean isActive) {
         this.code = code;
         this.name = name;
         this.companyName = companyName;
@@ -196,6 +203,7 @@ public class Makers {
         this.accountNumber = accountNumber;
         this.serviceDays = serviceDays;
         this.images = images;
+        this.introImages = introImages;
         this.origins = origins;
         this.password = password;
         this.role = role;
@@ -255,6 +263,10 @@ public class Makers {
 
     public void updateAddress(Address address) {
         this.address = address;
+    }
+
+    public void updateIntroImages(List<Image> introImages) {
+        this.introImages = introImages;
     }
 
     public MakersCapacity getMakersCapacity(DiningType diningType) {

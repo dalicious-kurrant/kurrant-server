@@ -15,4 +15,6 @@ public class LoginRequestDto {
   private String password;
   @Schema(description = "fcmToken")
   private String fcmToken;
+  @Schema(description = "version")
+  private String version;
 }

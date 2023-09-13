@@ -125,4 +125,10 @@ public class OrderItemDailyFoodGroup {
                 .findFirst();
         return orderItemDailyFood.isPresent();
     }
+
+    public List<OrderItemDailyFood> getOrderItemDailyFoodInOrderComplete() {
+        return this.orderDailyFoods.stream()
+                .filter(v -> OrderStatus.completePayment().contains(v.getOrderStatus()))
+                .toList();
+    }
 }

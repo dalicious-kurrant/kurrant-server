@@ -285,7 +285,7 @@ public interface PublicDailyFoodMapper {
         DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
                 .orElse(null);
 
-        return DayAndTime.dayAndTimeToString(lastOrderTime);
+        return (lastOrderTime == null) ? null : lastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
     }
 
     @Named("getStatus")

@@ -276,7 +276,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     // 유저 인증 완료 후 토큰 발급
-    public LoginResponseDto getLoginAccessToken(User user, SpotStatus spotStatus) {
+    public LoginResponseDto getLoginAccessToken(User user, String version, SpotStatus spotStatus) {
         // 토큰에 권한 넣기
         List<String> authorities = new ArrayList<String>();
         authorities.add(user.getRole().getAuthority());
@@ -293,7 +293,7 @@ public class AuthServiceImpl implements AuthService {
             Duration duration = Duration.between(LocalDateTime.now(), updatedDateTime);
             leftWithdrawDays = (int) duration.toDays();
         }
-
+        user.updateVersion(version);
         return LoginResponseDto.builder()
                 .accessToken(loginResponseDto.getAccessToken())
                 .refreshToken(loginResponseDto.getRefreshToken())
@@ -327,11 +327,11 @@ public class AuthServiceImpl implements AuthService {
         SpotStatus spotStatus = clientUtil.getSpotStatus(user);
 
         //fcm토큰 저장 로직 추가
-        if (dto.getFcmToken() != null && dto.getFcmToken().equals("")){
+        if (dto.getFcmToken() != null && dto.getFcmToken().equals("")) {
             qUserRepository.saveFcmToken(dto.getFcmToken(), user.getId());
         }
 
-        return getLoginAccessToken(user, spotStatus);
+        return getLoginAccessToken(user, dto.getVersion(), spotStatus);
     }
 
     @Override
@@ -341,7 +341,7 @@ public class AuthServiceImpl implements AuthService {
                 () -> new ApiException(ExceptionEnum.USER_NOT_FOUND)
         );
         SpotStatus spotStatus = clientUtil.getSpotStatus(user);
-        return getLoginAccessToken(user, spotStatus);
+        return getLoginAccessToken(user, null, spotStatus);
     }
 
     @Override
@@ -367,7 +367,7 @@ public class AuthServiceImpl implements AuthService {
         if (providerEmail.isPresent()) {
             User user = providerEmail.orElseThrow().getUser();
             SpotStatus spotStatus = clientUtil.getSpotStatus(user);
-            return getLoginAccessToken(user, spotStatus);
+            return getLoginAccessToken(user, snsAccessToken.getVersion(), spotStatus);
         }
 
         // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
@@ -377,7 +377,7 @@ public class AuthServiceImpl implements AuthService {
             User user = providerEmails.get(0).getUser();
             ProviderEmail newProviderEmail = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
             providerEmailRepository.save(newProviderEmail);
-            return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
+            return getLoginAccessToken(user, snsAccessToken.getVersion(), clientUtil.getSpotStatus(user));
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
@@ -396,20 +396,20 @@ public class AuthServiceImpl implements AuthService {
         providerEmailRepository.save(newProviderEmail2);
 
         if (isRegisteredUser) {
-            return getLoginAccessToken(user, SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
+            return getLoginAccessToken(user, snsAccessToken.getVersion(), SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
 
         }
 
         //fcm 토큰 저장
         qUserRepository.saveFcmToken(snsAccessToken.getFcmToken(), user.getId());
-
-        return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
+        return getLoginAccessToken(user, snsAccessToken.getVersion(), clientUtil.getSpotStatus(user));
     }
 
     @Override
     @Transactional
     public LoginResponseDto appleLoginOrJoin(Map<String, Object> appleLoginDto) throws JsonProcessingException {
         Provider provider = Provider.APPLE;
+        String version = (String) appleLoginDto.get("version");
 
         // Vendor 로그인 시도
         SnsLoginResponseDto snsLoginResponseDto = snsLoginService.getAppleLoginUserInfo(appleLoginDto);
@@ -424,7 +424,7 @@ public class AuthServiceImpl implements AuthService {
         if (providerEmail.isPresent()) {
             User user = providerEmail.orElseThrow().getUser();
             SpotStatus spotStatus = clientUtil.getSpotStatus(user);
-            return getLoginAccessToken(user, spotStatus);
+            return getLoginAccessToken(user, version, spotStatus);
         }
 
         // 소셜 로그인으로 가입한 이력은 없지만, 소셜 로그인 이메일과 ProviderEmail에 동일한 이메일이 있는지 확인
@@ -434,7 +434,7 @@ public class AuthServiceImpl implements AuthService {
             User user = providerEmails.get(0).getUser();
             ProviderEmail newProviderEmail = ProviderEmail.builder().provider(provider).email(snsLoginResponseDto.getEmail()).user(user).build();
             providerEmailRepository.save(newProviderEmail);
-            return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
+            return getLoginAccessToken(user, version, clientUtil.getSpotStatus(user));
         }
 
         // 어떤 것도 가입되지 않은 유저라면 계정 생성
@@ -452,10 +452,10 @@ public class AuthServiceImpl implements AuthService {
         providerEmailRepository.save(newProviderEmail2);
 
         if (isRegisteredUser) {
-            return getLoginAccessToken(user, SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
+            return getLoginAccessToken(user, version, SpotStatus.NO_SPOT_BUT_HAS_CLIENT);
 
         }
-        return getLoginAccessToken(user, clientUtil.getSpotStatus(user));
+        return getLoginAccessToken(user, version, clientUtil.getSpotStatus(user));
     }
 
     @Override

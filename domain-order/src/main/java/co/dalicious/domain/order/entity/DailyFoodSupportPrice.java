@@ -59,7 +59,7 @@ public class DailyFoodSupportPrice {
     @Comment("식사 타입(1. 아침, 2. 점심, 3. 저녁)")
     private DiningType diningType;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.MERGE)
     @JoinColumn
     @JsonManagedReference(value = "order_item_daily_food_group_fk")
     @Comment("지원금 사용 아이템")

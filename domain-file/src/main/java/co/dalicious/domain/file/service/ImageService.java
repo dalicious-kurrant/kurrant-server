@@ -17,6 +17,7 @@ public interface ImageService {
     void delete(String key);
     byte[] downloadImageFromS3(String key);
     ImageResponseDto fileUpload(byte[] fileBytes, String dirName, String fileName);
+    List<Image> processImages(List<String> requestImages, List<Image> currentImages, List<MultipartFile> files, String uploadPathPrefix) throws IOException;
 //  Image createImage(ImageCreateRequestDto imageRequestDto);
 //
 //  RequestImageUploadUrlResponseDto requestUrl(RequestImageUploadUrlRequestDto dto);

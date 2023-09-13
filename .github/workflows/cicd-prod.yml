@@ -171,8 +171,8 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           username: ubuntu
-          host: ${{ secrets.DEV_HOST }}
-          key: ${{ secrets.DEV_PRIVATE_KEY }}
+          host: ${{ secrets.PROD_HOST }}
+          key: ${{ secrets.PROD_PRIVATE_KEY }}
           envs: GITHUB_SHA
           script: |
             export IMAGE_TAG=${GITHUB_SHA::7}

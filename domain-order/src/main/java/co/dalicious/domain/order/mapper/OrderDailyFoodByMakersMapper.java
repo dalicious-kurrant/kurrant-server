@@ -153,7 +153,7 @@ public interface OrderDailyFoodByMakersMapper {
                 .sorted(Comparator.comparing(
                         OrderDailyFoodByMakersDto.FoodBySpot::getDeliveryTime,
                         Comparator.nullsLast(Comparator.naturalOrder())
-                ))
+                ).thenComparing(v -> v.getDeliveryId() != null ? Integer.parseInt(v.getDeliveryId()) : 0))
                 .collect(Collectors.toList());
         return foodBySpots;
     }

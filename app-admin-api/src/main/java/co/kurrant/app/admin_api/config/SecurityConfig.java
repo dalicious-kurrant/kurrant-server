@@ -45,6 +45,7 @@ public class SecurityConfig {
             .antMatchers("/swagger-ui/**").permitAll() // swagger
             .antMatchers("/v1/auth/login", "/v1/delivery/login").permitAll()
             .antMatchers("/v1/delivery/**").permitAll()
+            .antMatchers("/v1/homepage/**").permitAll()
             .antMatchers("/v1/**").hasRole(Role.ADMIN.getRoleName())
             //.antMatchers("/v1/users/all").permitAll() // 테스트용
             // .antMatchers("/v1/boards/**").permitAll() // swagger

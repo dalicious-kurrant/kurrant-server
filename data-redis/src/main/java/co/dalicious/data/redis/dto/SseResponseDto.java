@@ -16,5 +16,6 @@ public class SseResponseDto {
     String createDate;
     BigInteger groupId;
     BigInteger commentId;
+    BigInteger noticeId;
 
 }

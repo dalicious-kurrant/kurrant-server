@@ -13,6 +13,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
 
 @Tag(name = "3. Makers")
 @RequiredArgsConstructor
@@ -52,8 +56,8 @@ public class MakersController {
     @ControllerMarker(ControllerType.MAKERS)
     @PatchMapping("")
     @Operation(summary = "메이커스 정보 상세 수정", description = "메이커스의 상세정보를 수정합니다.")
-    public ResponseMessage updateMakers(@RequestBody SaveMakersRequestDto updateMakersReqDto) throws ParseException {
-        makersService.updateMakers(updateMakersReqDto);
+    public ResponseMessage updateMakers(@RequestPart SaveMakersRequestDto updateMakersReqDto, @RequestPart(required = false) List<MultipartFile> files) throws ParseException, IOException {
+        makersService.updateMakers(updateMakersReqDto, files);
         return ResponseMessage.builder()
                 .message("메이커스 정보 수정에 성공했습니다.")
                 .build();

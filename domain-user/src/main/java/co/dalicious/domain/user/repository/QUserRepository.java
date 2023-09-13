@@ -220,7 +220,7 @@ public class QUserRepository {
     public Map<BigInteger, String> findAllUserFirebaseToken(List<BigInteger> userIds) {
         List<Tuple> userResult = queryFactory.select(user.firebaseToken, user.id)
                 .from(user)
-                .where(user.id.in(userIds), user.firebaseToken.isNotNull())
+                .where(user.id.in(userIds))
                 .fetch();
 
         Map<BigInteger, String> userIdMap = new HashMap<>();
@@ -273,5 +273,9 @@ public class QUserRepository {
                 .from(user)
                 .where(user.userStatus.ne(UserStatus.INACTIVE))
                 .fetch();
+    }
+
+    public List<BigInteger> findAllUserId() {
+        return queryFactory.select(user.id).from(user).where(user.userStatus.eq(UserStatus.ACTIVE)).fetch();
     }
 }

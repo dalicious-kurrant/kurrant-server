@@ -105,5 +105,5 @@ local.properties
 ### Eclipse Patch ###
 # Spring Boot Tooling
 .sts4-cache/
-
+src/main/java/co/dalicious/data/redis/RedisConfig.java
 # End of https://www.toptal.com/developers/gitignore/api/eclipse
