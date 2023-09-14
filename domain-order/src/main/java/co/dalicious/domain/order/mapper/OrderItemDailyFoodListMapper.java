@@ -29,6 +29,7 @@ public interface OrderItemDailyFoodListMapper {
         orderItemDto.setImage(orderItemDailyFood.getDailyFood().getFood().getImages() == null || orderItemDailyFood.getDailyFood().getFood().getImages().isEmpty() ? null : orderItemDailyFood.getDailyFood().getFood().getImages().get(0).getLocation());
         orderItemDto.setCount(orderItemDailyFood.getCount());
         orderItemDto.setGroupName(orderItemDailyFood.getDailyFood().getGroup().getName());
+        orderItemDto.setIsEatIn(orderItemDailyFood.getDailyFood().getIsEatIn());
         // 상속 비교를 하기 위해 프록시 해제
         OrderDailyFood orderDailyFood = (OrderDailyFood) Hibernate.unproxy(orderItemDailyFood.getOrder());
         orderItemDto.setGroupName(orderDailyFood.getGroupName());

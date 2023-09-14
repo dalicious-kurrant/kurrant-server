@@ -38,6 +38,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
+import co.dalicious.domain.order.dto.QrResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.util.UserUtil;
@@ -237,7 +238,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Order order = orderRepository.findOneByIdAndUser(orderId, user).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
-
+        // FIXME: 구내식당 상품일 경우 환불 로직 처리 필요
         Set<BigInteger> makersIds = orderService.cancelOrderDailyFood((OrderDailyFood) order, user);
         applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
     }
@@ -462,6 +463,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
 
         // sse
         applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(3).build());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public QrResponseDto sendQRInformation(SecurityUser securityUser, List<BigInteger> idList) {
+        User user = userUtil.getUser(securityUser);
+        LocalDate today = LocalDate.now();
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findByUserAndServiceDateAndOrderStatus(user, today, OrderStatus.qrShowingStatus());
+        orderItemDailyFoods = orderItemDailyFoods.stream()
+                .filter(item -> idList.contains(item.getId()))
+                .toList();
+        return orderDailyFoodItemMapper.entitiesToQrResponseDto(orderItemDailyFoods);
     }
 
     @Override

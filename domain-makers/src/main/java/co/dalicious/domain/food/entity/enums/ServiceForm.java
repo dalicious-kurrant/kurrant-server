@@ -4,14 +4,16 @@ import exception.ApiException;
 import exception.ExceptionEnum;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Getter
 public enum ServiceForm {
-    RESTAURANT("홀매장", 1),
-    DELIVERY_HALL("배달형매장(일반)", 2),
-    DELIVERY_SHARED_KITCHEN("배달형매장(공용주방)", 3),
-    MIXED_RESTAURANT("혼합형매장(공용주방)", 4);
+    DELIVERY_ONLY("배달전용매장", 1),
+    EAT_IN_ONLY("홀전용매장", 2),
+    EAT_IN_AND_DELIVERY("혼합매장", 3),
+    ;
 
     private final String serviceForm;
     private final Integer code;
@@ -33,6 +35,13 @@ public enum ServiceForm {
                 .filter(v -> v.getServiceForm().equals(dbData))
                 .findAny()
                 .orElseThrow(() -> new ApiException(ExceptionEnum.ENUM_NOT_FOUND));
+    }
+
+    public static List<ServiceForm> getContainEatIn() {
+        List<ServiceForm> serviceForms = new ArrayList<>();
+        serviceForms.add(EAT_IN_ONLY);
+        serviceForms.add(EAT_IN_AND_DELIVERY);
+        return serviceForms;
     }
 
 }

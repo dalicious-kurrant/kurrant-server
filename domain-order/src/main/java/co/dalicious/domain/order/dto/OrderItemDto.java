@@ -11,6 +11,7 @@ import java.math.BigInteger;
 public class OrderItemDto {
     private BigInteger id;
     private BigInteger dailyFoodId;
+    private Boolean isEatIn;
     private String name;
     private String deliveryTime;
     private String lastOrderTime;

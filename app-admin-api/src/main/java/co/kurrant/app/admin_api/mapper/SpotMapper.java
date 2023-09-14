@@ -6,7 +6,9 @@ import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.embeddable.ServiceDaysAndSupportPrice;
+import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.entity.enums.PaycheckCategoryItem;
+import co.dalicious.domain.food.entity.Makers;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
@@ -33,6 +35,7 @@ public interface SpotMapper {
         SpotResponseDto spotResponseDto = new SpotResponseDto();
         boolean isCorporation = spot instanceof CorporationSpot;
         spotResponseDto.setSpotId(spot.getId());
+        spotResponseDto.setSpotType(Objects.requireNonNull(GroupDataType.ofClass(spot.getClass())).getType());
         spotResponseDto.setStatus(spot.getStatus().getCode());
         spotResponseDto.setSpotName(spot.getName());
         spotResponseDto.setGroupId(spot.getGroup().getId());
@@ -85,7 +88,7 @@ public interface SpotMapper {
         String[] deliveryTimeStrArr = deliveryTime.split(",|, ");
         List<LocalTime> deliveryTimes = new ArrayList<>();
 
-        for (String deliveryTimeStr : deliveryTimeStrArr ) {
+        for (String deliveryTimeStr : deliveryTimeStrArr) {
             deliveryTimes.add(DateUtils.stringToLocalTime(deliveryTimeStr));
         }
 
@@ -152,8 +155,24 @@ public interface SpotMapper {
         //TODO: Location 생성
         String location = spotInfo.getLocation();
         Address address = new Address(spotInfo.getZipCode(), spotInfo.getAddress1(), spotInfo.getAddress2(), location);
-        if (group instanceof Corporation)
+        GroupDataType groupDataType = GroupDataType.ofString(spotInfo.getSpotType());
+        if (groupDataType.equals(GroupDataType.CORPORATION) && group instanceof Corporation)
             return new CorporationSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo());
+        return null;
+    }
+
+    default EatInSpot toEatInSpot(SpotResponseDto spotInfo, Group group, List<DiningType> diningTypes, Makers makers) throws ParseException {
+        if (group == null) {
+            throw new IllegalArgumentException("상세스팟 아이디:" + spotInfo.getSpotId().toString() + " 등록되어있지 않은 그룹입니다.");
+        }
+        Set<DiningType> groupDiningTypes = new HashSet<>(group.getDiningTypes());
+        if (!groupDiningTypes.containsAll(diningTypes)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
+        Address address = makers.getAddress();
+        GroupDataType groupDataType = GroupDataType.ofString(spotInfo.getSpotType());
+        if (groupDataType.equals(GroupDataType.EAT_IN))
+            return new EatInSpot(spotInfo.getSpotName(), address, diningTypes, group, spotInfo.getMemo(), makers.getId());
         return null;
     }
 
@@ -215,7 +234,7 @@ public interface SpotMapper {
         spotDetailResDto.setMemo(group.getMemo());
 
 
-        if(mealInfoList != null && ! mealInfoList.isEmpty()) {
+        if (mealInfoList != null && !mealInfoList.isEmpty()) {
             LinkedHashSet<Days> serviceDays = new LinkedHashSet<>();
             LinkedHashSet<Days> supportDays = new LinkedHashSet<>();
             for (MealInfo mealInfo : mealInfoList) {
@@ -269,11 +288,10 @@ public interface SpotMapper {
     }
 
 
-
     default String deliveryTimeToString(List<LocalTime> deliveryTimeList) {
         StringBuilder stringBuilder = new StringBuilder();
 
-        for(LocalTime deliveryTime : deliveryTimeList) {
+        for (LocalTime deliveryTime : deliveryTimeList) {
             stringBuilder.append(DateUtils.timeToString(deliveryTime)).append(", ");
         }
         return stringBuilder.substring(0, stringBuilder.length() - 2);

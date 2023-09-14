@@ -685,4 +685,12 @@ public class QOrderItemDailyFoodRepository {
         }
         return orderItemDailyFoodGroupMultiValueMap;
     }
+
+    public List<OrderItemDailyFood> findByUserAndServiceDateAndOrderStatus(User user, LocalDate serviceDate, List<OrderStatus> orderStatuses) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.serviceDate.eq(serviceDate),
+                        orderItemDailyFood.orderStatus.in(orderStatuses))
+                .fetch();
+    }
 }

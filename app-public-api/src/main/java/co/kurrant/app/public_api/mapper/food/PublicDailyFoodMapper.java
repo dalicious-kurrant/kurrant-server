@@ -271,6 +271,7 @@ public interface PublicDailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
     @Mapping(source = "discountDto.periodDiscountRate", target = "periodDiscountRate")
+    @Mapping(source = "dailyFood.isEatIn", target = "isEatIn")
     DailyFoodDto toDto(BigInteger spotId, DailyFood dailyFood, DiscountDto discountDto, Integer capacity, List<UserRecommends> userRecommends, double reviewAverage, Integer totalCount, Integer sort);
 
     @Named("getLastOrderTime")
