@@ -248,7 +248,7 @@ public class CartServiceImpl implements CartService {
         SupportType supportType = SupportType.NONE;
         BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, spot.getGroup());
 
-        if (spot instanceof CorporationSpot) {
+        if (spot instanceof CorporationSpot || spot instanceof EatInSpot) {
             supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, serviceDiningVo.getServiceDate(), serviceDiningVo.getDiningType());
             supportType = UserSupportPriceUtil.getSupportType(supportPrice);
         }

@@ -25,6 +25,7 @@ public class FoodDetailDto {
     private Integer periodDiscountedRate;
     private Integer totalDiscountRate;
     private BigDecimal totalDiscountedPrice;
+    private Boolean isEatIn;
     private List<String> imageList;
     private List<String> introImageList;
     private String spicy;

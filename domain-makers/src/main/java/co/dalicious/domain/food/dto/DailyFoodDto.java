@@ -37,6 +37,7 @@ public class DailyFoodDto {
     private Integer makersDiscountRate;
     private BigDecimal periodDiscountPrice;
     private Integer periodDiscountRate;
+    private Boolean isEatIn;
     private Integer rank;
     private Integer sort;
 }
