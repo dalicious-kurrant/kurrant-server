@@ -3,6 +3,7 @@ package co.dalicious.domain.food.entity;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.converter.DailyFoodStatusConverter;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiscountType;
@@ -69,6 +70,9 @@ public class DailyFood {
     @Column(name = "period_discount_rate")
     @Comment("기간 할인율")
     private Integer periodDiscountRate;
+
+    @Column(name = "is_eat_in", columnDefinition = "BIT(1) DEFAULT 0")
+    private Boolean isEatIn;
 
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")

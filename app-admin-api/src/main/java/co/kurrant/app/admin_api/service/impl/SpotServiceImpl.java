@@ -2,12 +2,16 @@ package co.kurrant.app.admin_api.service.impl;
 
 import co.dalicious.domain.address.dto.CreateAddressRequestDto;
 import co.dalicious.domain.client.dto.SpotResponseDto;
+import co.dalicious.domain.client.entity.EatInSpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
 import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.food.entity.Makers;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
+import co.dalicious.domain.food.repository.MakersRepository;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DiningTypesUtils;
 import co.kurrant.app.admin_api.dto.GroupDto;
@@ -36,6 +40,7 @@ public class SpotServiceImpl implements SpotService {
     private final QGroupRepository qGroupRepository;
     private final GroupMapper groupMapper;
     private final GroupRepository groupRepository;
+    private final MakersRepository makersRepository;
 
     @Override
     public List<SpotResponseDto> getAllSpotList(Integer status) {
@@ -61,7 +66,11 @@ public class SpotServiceImpl implements SpotService {
         Set<BigInteger> groupIds = spotResponseDtos.stream()
                 .map(SpotResponseDto::getGroupId)
                 .collect(Collectors.toSet());
+        Set<BigInteger> makersIds = spotResponseDtos.stream()
+                .map(SpotResponseDto::getMakersId)
+                .collect(Collectors.toSet());
         List<Group> groups = qGroupRepository.findAllByIds(groupIds);
+        List<Makers> makersList = makersRepository.findAllById(makersIds);
 
         // FIXME 스팟 수정
         List<Spot> updateSpots = qSpotRepository.findAllByIds(spotIds);
@@ -88,13 +97,23 @@ public class SpotServiceImpl implements SpotService {
                 .filter(v -> !updateSpotIds.contains(v.getSpotId()))
                 .toList();
         for (SpotResponseDto createSpot : createSpots) {
-            Spot spot = spotMapper.toEntity(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()));
+            Spot spot = null;
+            if (createSpot.getMakersId() == null) {
+                spot = spotMapper.toEntity(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()));
+                spotRepository.save(spot);
+            } else {
+                Makers makers = makersList.stream()
+                        .filter(maker -> maker.getId().equals(createSpot.getMakersId()))
+                        .findAny()
+                        .orElse(null);
+                if(makers != null && ServiceForm.getContainEatIn().contains(makers.getServiceForm())) {
+                    spot = spotMapper.toEatInSpot(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()), createSpot.getMakersId());
+                }
+            }
             if (Group.getGroup(groups, createSpot.getGroupId()) == null) {
                 throw new IllegalIdentifierException("(상세스팟 아이디:" + createSpot.getSpotId().toString() + ") 등록되어있지 않은 그룹입니다.");
             }
-            spotRepository.save(spot);
-
-            spot.updateDiningTypes(spot.getDiningTypes());
+            if (spot != null) spotRepository.save(spot);
         }
 
     }
