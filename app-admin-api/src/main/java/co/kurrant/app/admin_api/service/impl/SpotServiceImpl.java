@@ -107,7 +107,7 @@ public class SpotServiceImpl implements SpotService {
                         .findAny()
                         .orElse(null);
                 if(makers != null && ServiceForm.getContainEatIn().contains(makers.getServiceForm())) {
-                    spot = spotMapper.toEatInSpot(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()), createSpot.getMakersId());
+                    spot = spotMapper.toEatInSpot(createSpot, Group.getGroup(groups, createSpot.getGroupId()), DiningTypesUtils.stringToDiningTypes(createSpot.getDiningType()), makers);
                 }
             }
             if (Group.getGroup(groups, createSpot.getGroupId()) == null) {
