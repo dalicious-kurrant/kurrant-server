@@ -59,4 +59,5 @@ public class MakersInfoResponseDto {
     private String lunchMaxTime;
     private String dinnerMinTime;
     private String dinnerMaxTime;
+    private List<String> introImages;
 }

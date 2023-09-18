@@ -24,7 +24,7 @@ public interface MembershipService {
     List<MembershipDto> retrieveMembership(SecurityUser securityUser);
 
     // 유저가 멤버십에 가입한다
-    void joinMembership(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto);
+    void joinMembership(SecurityUser securityUser, OrderMembershipReqDto orderMembershipReqDto) throws IOException, ParseException;
 
     // 멤버십 결제 정보를 가져온다.
     OrderMembershipResDto getOrderMembership(SecurityUser securityUser, Integer subscriptionType);

@@ -9,6 +9,7 @@ import co.dalicious.domain.order.dto.ServiceDiningVo;
 import co.dalicious.domain.order.entity.DailyFoodSupportPrice;
 import co.dalicious.domain.order.entity.MembershipSupportPrice;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
+import co.dalicious.domain.order.entity.OrderItemDailyFoodGroup;
 import co.dalicious.domain.order.service.DeliveryFeePolicy;
 import co.dalicious.domain.paycheck.dto.ExcelPdfDto;
 import co.dalicious.domain.paycheck.dto.PaycheckDto;
@@ -149,11 +150,11 @@ public class PaycheckServiceImpl implements PaycheckService {
 
     @Override
     @Transactional
-    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<DailyFoodSupportPrice> dailyFoodSupportPrices, List<MembershipSupportPrice> membershipSupportPrices, OrderCount orderCount, YearMonth yearMonth) {
+    public CorporationPaycheck generateCorporationPaycheck(Corporation corporation, List<OrderItemDailyFoodGroup> dailyFoodSupportPrices, Integer userCount, OrderCount orderCount, YearMonth yearMonth) {
         // 1. 매니저 계정 확인
 
         // 2. CorporationPaycheck 생성
-        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, membershipSupportPrices, orderCount, yearMonth);
+        CorporationPaycheck corporationPaycheck = corporationPaycheckMapper.toInitiateEntity(corporation, dailyFoodSupportPrices, userCount, orderCount, yearMonth);
         corporationPaycheck = corporationPaycheckRepository.save(corporationPaycheck);
 
         // 선불 정산인 경우 체크

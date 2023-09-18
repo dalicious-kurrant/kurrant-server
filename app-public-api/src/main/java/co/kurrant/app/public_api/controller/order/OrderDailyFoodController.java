@@ -1,6 +1,7 @@
 package co.kurrant.app.public_api.controller.order;
 
 import co.dalicious.client.core.dto.response.ResponseMessage;
+import co.dalicious.domain.order.dto.OrderDto;
 import co.dalicious.domain.order.dto.OrderItemDailyFoodByNiceReqDto;
 import co.kurrant.app.public_api.dto.order.IdDto;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
@@ -27,12 +28,12 @@ import java.time.LocalDate;
 public class OrderDailyFoodController {
     private final OrderDailyFoodService orderDailyFoodService;
 
-    @Operation(summary = "정기 식사 주문하기(나이스빌링)", description = "정기 식사를 구매한다.")
+    @Operation(summary = "정기 식사 주문하기", description = "정기 식사를 구매한다.")
     @PostMapping("/nice")
     public ResponseMessage userOrderByDateNice(Authentication authentication, @RequestBody OrderItemDailyFoodByNiceReqDto orderItemDailyFoodReqDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
-                .data(orderDailyFoodService.orderDailyFoodsNice(securityUser, orderItemDailyFoodReqDto))
+                .data(orderDailyFoodService.orderDailyFoods(securityUser, orderItemDailyFoodReqDto))
                 .message("식사 주문에 성공하였습니다.")
                 .build();
     }
@@ -73,21 +74,21 @@ public class OrderDailyFoodController {
                 .build();
     }
 
-    @Operation(summary = "정기식사 전체 환불 (나이스)", description = "정기 식사 구매내역 상세를 가져온다.")
+    @Operation(summary = "정기식사 전체 환불", description = "정기 식사 구매내역 상세를 가져온다.")
     @PostMapping("/refund/nice")
     public ResponseMessage userOrderDailyFoodDetailNice(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.cancelOrderDailyFoodNice(securityUser, idDto.getId());
+        orderDailyFoodService.cancelOrderDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("전체 주문 환불에 성공하였습니다.")
                 .build();
     }
 
-    @Operation(summary = "정기식사 부분 환불 (나이스)", description = "주문한 한 정기식사 상품을 환불한다.")
+    @Operation(summary = "정기식사 부분 환불", description = "주문한 한 정기식사 상품을 환불한다.")
     @PostMapping("/dailyFoods/refund/nice")
     public ResponseMessage userOrderItemDailyFoodRefundNice(Authentication authentication, @RequestBody IdDto idDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
-        orderDailyFoodService.cancelOrderItemDailyFoodNice(securityUser, idDto.getId());
+        orderDailyFoodService.cancelOrderItemDailyFood(securityUser, idDto.getId());
         return ResponseMessage.builder()
                 .message("정기식사 부분 환불에 성공하였습니다.")
                 .build();
@@ -100,6 +101,16 @@ public class OrderDailyFoodController {
         orderDailyFoodService.changingOrderItemOrderStatus(securityUser, orderItemId.getId());
         return ResponseMessage.builder()
                 .message("주문의 상태를 수령 완료로 변경했습니다.")
+                .build();
+    }
+
+    @Operation(summary = "QR 코드 정보 조회", description = "QR 코드 정보 조회")
+    @GetMapping("/qr")
+    public ResponseMessage sendQRInformation(Authentication authentication, @RequestBody OrderDto.IdList idList) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .data(orderDailyFoodService.sendQRInformation(securityUser, idList.getIdList()))
+                .message("QR값 내보내기에 성공하였습니다.")
                 .build();
     }
 

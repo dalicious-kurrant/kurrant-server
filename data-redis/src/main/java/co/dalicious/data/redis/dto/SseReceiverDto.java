@@ -1,5 +1,6 @@
 package co.dalicious.data.redis.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,12 +14,15 @@ public class SseReceiverDto {
     private String content;
     private BigInteger groupId;
     private BigInteger commentId;
+    private BigInteger noticeId;
 
-    public SseReceiverDto(BigInteger receiver, Integer type, String content, BigInteger groupId, BigInteger commentId) {
+    @Builder
+    public SseReceiverDto(BigInteger receiver, Integer type, String content, BigInteger groupId, BigInteger commentId, BigInteger noticeId) {
         this.receiver = receiver;
         this.type = type;
         this.content = content;
         this.groupId = groupId;
         this.commentId = commentId;
+        this.noticeId = noticeId;
     }
 }

@@ -1,6 +1,7 @@
 package co.dalicious.domain.board.repository;
 
 import co.dalicious.domain.board.entity.Notice;
+import co.dalicious.domain.board.entity.enums.BoardOption;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
@@ -16,6 +17,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static co.dalicious.domain.board.entity.QNotice.notice;
@@ -26,11 +28,19 @@ public class QNoticeRepository {
 
     public final JPAQueryFactory queryFactory;
 
-    public List<Notice> findPopupNotice() {
+    public List<Notice> findPopupNotice(List<BigInteger> userGroups) {
+        List<Tuple> popupNotice = queryFactory.select(notice.id, notice.boardType, notice.boardOption, notice.groupIds).from(notice)
+                .where(notice.isStatus.isTrue(), notice.activeDate.goe(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7)))
+                .fetch();
+
+        popupNotice = popupNotice.stream().filter(v -> v.get(notice.boardOption).contains(BoardOption.POPUP)).toList();
+
+        List<BigInteger> noticeIds = popupNotice.stream()
+                .filter(v -> Objects.equals(v.get(notice.boardType), BoardType.ALL) || (Objects.equals(v.get(notice.boardType), BoardType.SPOT) && userGroups.stream().anyMatch(i -> v.get(notice.groupIds).contains(i))))
+                .map(v -> v.get(notice.id)).toList();
+
         return queryFactory.selectFrom(notice)
-                .where(notice.isStatus.isTrue(),
-                        notice.boardType.in(BoardType.POPUP),
-                        notice.activeDate.goe(LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(7)))
+                .where(notice.id.in(noticeIds))
                 .orderBy(notice.createdDateTime.desc())
                 .fetch();
     }
@@ -70,7 +80,7 @@ public class QNoticeRepository {
                 .fetch();
     }
 
-    public Page<Notice> findAllByParameters(List<BigInteger> groupIds, BoardType boardType, Boolean isStatus, Boolean isPushAlarm, Pageable pageable) {
+    public Page<Notice> findAllByParameters(List<BigInteger> groupIds, BoardType boardType, Boolean isStatus, Boolean isPushAlarm, Boolean isPopup, Boolean isEvent, Pageable pageable) {
         BooleanBuilder whereCause = new BooleanBuilder();
 
         if(groupIds != null && !groupIds.isEmpty()) {
@@ -90,6 +100,16 @@ public class QNoticeRepository {
         }
         if(isPushAlarm != null) {
             whereCause.and(notice.isPushAlarm.eq(isPushAlarm));
+        }
+        if (isPopup != null) {
+            List<Tuple> popupNotice = queryFactory.select(notice.id, notice.boardOption).from(notice).fetch();
+            List<BigInteger> noticeIds = popupNotice.stream().filter(v -> v.get(notice.boardOption).contains(BoardOption.POPUP)).map(v -> v.get(notice.id)).toList();
+            whereCause.and(notice.id.in(noticeIds));
+        }
+        if (isEvent != null) {
+            List<Tuple> popupNotice = queryFactory.select(notice.id, notice.boardOption).from(notice).fetch();
+            List<BigInteger> noticeIds = popupNotice.stream().filter(v -> v.get(notice.boardOption).contains(BoardOption.EVENT)).map(v -> v.get(notice.id)).toList();
+            whereCause.and(notice.id.in(noticeIds));
         }
 
         QueryResults<Notice> results = queryFactory.selectFrom(notice)

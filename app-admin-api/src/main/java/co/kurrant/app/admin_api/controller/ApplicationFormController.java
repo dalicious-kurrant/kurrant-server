@@ -4,14 +4,19 @@ import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestReqDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
+import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
+import co.kurrant.app.admin_api.dto.IdListDto;
 import co.kurrant.app.admin_api.service.ApplicationFormService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
@@ -70,8 +75,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 신청 삭제", description = "마이 스팟 신청을 삭제합니다.")
     @DeleteMapping("/spots/my")
-    public ResponseMessage deleteMySpotRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.deleteMySpotRequest(ids);
+    public ResponseMessage deleteMySpotRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteMySpotRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 삭제했습니다.")
                 .build();
@@ -80,8 +85,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 생성", description = "마이 스팟을 추가합니다.")
     @PostMapping("/create/zone")
-    public ResponseMessage createMySpotZonesFromRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.createMySpotZonesFromRequest(ids);
+    public ResponseMessage createMySpotZonesFromRequest(@RequestBody IdListDto ids) {
+        applicationFormService.createMySpotZonesFromRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("마이 스팟 생성을 성공했습니다.")
                 .build();
@@ -122,8 +127,8 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "공유 스팟 신청 삭제", description = "공유 스팟 신청을 삭제합니다.")
     @DeleteMapping("/spots/share")
-    public ResponseMessage deleteShareSpotRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.deleteShareSpotRequest(ids);
+    public ResponseMessage deleteShareSpotRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteShareSpotRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("공유 스팟 신청을 삭제했습니다.")
                 .build();
@@ -142,10 +147,95 @@ public class ApplicationFormController {
     @ControllerMarker(ControllerType.APPLICATION_FORM)
     @Operation(summary = "마이 스팟 신청 갱신", description = "이미 개설된 마이 스팟을 삭제합니다.")
     @PostMapping("/spots/my/renew")
-    public ResponseMessage renewalMySpotRequest(@RequestBody List<BigInteger> ids) {
-        applicationFormService.renewalMySpotRequest(ids);
+    public ResponseMessage renewalMySpotRequest(@RequestBody IdListDto ids) {
+        applicationFormService.renewalMySpotRequest(ids.getIds());
         return ResponseMessage.builder()
                 .message("마이 스팟 신청을 갱신했습니다.")
                 .build();
     }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 조회", description = "메이커스 신청 현황를 조회합니다.")
+    @GetMapping("/makers")
+    public ResponseMessage getAllMakersRequestList(@RequestParam Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest offsetBasedPageRequest = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
+        return ResponseMessage.builder()
+                .message("메이커스 신청 현황 조회를 성공했습니다.")
+                .data(applicationFormService.getAllMakersRequestList(offsetBasedPageRequest))
+                .build();
+    }
+
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 생성", description = "메이커스 신청을 추가합니다.")
+    @PostMapping("/makers")
+    public ResponseMessage createMakersRequest(@RequestBody MakersRequestedReqDto request) throws ParseException {
+        applicationFormService.createMakersRequest(request);
+        return ResponseMessage.builder()
+                .message("메이커스 신청을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 수정", description = "메이커스 신청 내역을 수정합니다.")
+    @PatchMapping("/makers/status/{applicationId}")
+    public ResponseMessage updateMakerRequest(@PathVariable BigInteger applicationId, @RequestBody StatusUpdateDto request) throws ParseException {
+        applicationFormService.updateMakerRequestStatus(applicationId, request);
+        return ResponseMessage.builder()
+                .message("메이커스 신청 내역 수정을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 신청 삭제", description = "메이커스 신청을 삭제합니다.")
+    @DeleteMapping("/makers")
+    public ResponseMessage deleteMakersRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteMakersRequest(ids.getIds());
+        return ResponseMessage.builder()
+                .message("메이커스 신청을 삭제했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 조회", description = "프라이빗 스팟 신청 현황를 조회합니다.")
+    @GetMapping("/corporation")
+    public ResponseMessage getAllCorporationRequestList(@RequestParam Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest offsetBasedPageRequest = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청 현황 조회를 성공했습니다.")
+                .data(applicationFormService.getAllCorporationRequestList(offsetBasedPageRequest))
+                .build();
+    }
+
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 생성", description = "프라이빗 스팟 신청을 추가합니다.")
+    @PostMapping("/corporation")
+    public ResponseMessage createCorporationRequest(@RequestBody CorporationRequestReqDto request) throws ParseException {
+        applicationFormService.createCorporationRequest(request);
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 수정", description = "프라이빗 스팟 신청 내역을 수정합니다.")
+    @PatchMapping("/corporation/status/{applicationId}")
+    public ResponseMessage updateCorporationRequest(@PathVariable BigInteger applicationId, @RequestBody StatusUpdateDto request) throws ParseException {
+        applicationFormService.updateCorporationRequestStatus(applicationId, request);
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청 내역 수정을 성공했습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "프라이빗 스팟 신청 삭제", description = "프라이빗 스팟 신청을 삭제합니다.")
+    @DeleteMapping("/corporation")
+    public ResponseMessage deleteCorporationRequest(@RequestBody IdListDto ids) {
+        applicationFormService.deleteCorporationRequest(ids.getIds());
+        return ResponseMessage.builder()
+                .message("프라이빗 스팟 신청을 삭제했습니다.")
+                .build();
+    }
+
 }

@@ -198,4 +198,8 @@ public interface DailyFoodMapper {
 
         dailyFoodGroup.updateDeliverySchedules(newDeliveryScheduleList);
     }
+
+    default void updateDailyFoodStatus(DailyFoodStatus status, @MappingTarget DailyFood dailyFood) {
+        dailyFood.updateDailyFoodStatus(status);
+    }
 }

@@ -33,6 +33,7 @@ public interface FoodMapper {
     @Mapping(source = "discountDto.price", target = "price")
     @Mapping(target = "discountedPrice", expression = "java(discountDto.getDiscountedPrice())")
     @Mapping(source = "dailyFood.food.images", target = "imageList", qualifiedByName = "getImageLocation")
+    @Mapping(source = "dailyFood.food", target = "introImageList", qualifiedByName = "getIntroImageLocation")
     @Mapping(source = "dailyFood", target = "spicy", qualifiedByName = "getSpicy")
     @Mapping(source = "dailyFood", target = "vegan", qualifiedByName = "getVegan")
     @Mapping(source = "dailyFood.food.name", target = "name")
@@ -43,13 +44,30 @@ public interface FoodMapper {
     @Mapping(source = "dailyFood.food.fat", target = "fat")
     @Mapping(source = "dailyFood.food.protein", target = "protein")
     @Mapping(source = "dailyFood.food.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyFood.isEatIn", target = "isEatIn")
     FoodDetailDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
     @Named("getImageLocation")
     default List<String> getImageLocation(List<Image> imageList) {
         List<String> imageLocation = new ArrayList<>();
-        if(imageList != null && !imageList.isEmpty()) {
+        if (imageList != null && !imageList.isEmpty()) {
             imageLocation = imageList.stream().map(Image::getLocation).collect(Collectors.toList());
+        }
+        return imageLocation;
+    }
+
+    @Named("getIntroImageLocation")
+    default List<String> getIntroImageLocation(Food food) {
+        List<String> imageLocation = new ArrayList<>();
+
+        List<Image> introImages = food.getIntroImages();
+        if (introImages != null && !introImages.isEmpty()) {
+            return introImages.stream().map(Image::getLocation).collect(Collectors.toList());
+        }
+
+        List<Image> makersIntroImages = food.getMakers().getIntroImages();
+        if(makersIntroImages != null && !makersIntroImages.isEmpty()) {
+            return makersIntroImages.stream().map(Image::getLocation).collect(Collectors.toList());
         }
         return imageLocation;
     }
@@ -72,7 +90,9 @@ public interface FoodMapper {
                 .discountRate(discountRate)
                 .food(food)
                 .build();
-    };
+    }
+
+    ;
 
     @Named("originsToDto")
     default List<OriginDto> originsToDto(List<Origin> origins) {
@@ -104,7 +124,7 @@ public interface FoodMapper {
     @Named("getFoodStatus")
     default FoodStatus getFoodStatus(String foodStatusStr) {
         FoodStatus foodStatus = null;
-        if(foodStatusStr != null) {
+        if (foodStatusStr != null) {
             return foodStatus = FoodStatus.ofString(foodStatusStr);
         }
         throw new ApiException(ExceptionEnum.NOT_FOUND_FOOD_STATUS);

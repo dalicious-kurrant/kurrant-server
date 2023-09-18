@@ -16,6 +16,7 @@ import co.dalicious.domain.board.entity.ClientNotice;
 import co.dalicious.domain.board.entity.MakersNotice;
 import co.dalicious.domain.board.entity.Notice;
 import co.dalicious.domain.board.entity.enums.BoardCategory;
+import co.dalicious.domain.board.entity.enums.BoardOption;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.entity.enums.NoticeType;
 import co.dalicious.domain.board.mapper.BackOfficeNoticeMapper;
@@ -46,6 +47,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -79,9 +81,17 @@ public class BoardServiceImpl implements BoardService {
     public void createAppBoard(AppBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (boardType.equals(BoardType.SPOT) && requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.MUST_GROUP_ID);
+        else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeMapper.toNotice(requestDto);
         noticeRepository.save(notice);
+
+        if(requestDto.getIsStatus()) {
+            notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+            sendSseNotification(notice);
+        }
     }
 
     @Override
@@ -91,8 +101,10 @@ public class BoardServiceImpl implements BoardService {
         Boolean isStatus = !parameters.containsKey("isStatus") || parameters.get("isStatus") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isStatus")));
         Boolean isPushAlarm = !parameters.containsKey("isPushAlarm") || parameters.get("isPushAlarm") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isPushAlarm")));
         BoardType boardType = !parameters.containsKey("boardType") || parameters.get("boardType") == null ? null : BoardType.ofCode(Integer.parseInt(String.valueOf(parameters.get("boardType"))));
+        Boolean isPopup = !parameters.containsKey("isPopup") || parameters.get("isPopup") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isPopup")));
+        Boolean isEvent = !parameters.containsKey("isEvent") || parameters.get("isEvent") == null ? null : Boolean.valueOf(String.valueOf(parameters.get("isEvent")));
 
-        Page<Notice> noticeList = qNoticeRepository.findAllByParameters(groupIds, boardType, isStatus, isPushAlarm, pageable);
+        Page<Notice> noticeList = qNoticeRepository.findAllByParameters(groupIds, boardType, isStatus, isPushAlarm, isPopup, isEvent, pageable);
 
         if(noticeList.isEmpty()) ListItemResponseDto.<AppBoardResponseDto>builder().items(null).limit(pageable.getPageSize()).offset(pageable.getOffset()).count(0).total((long) noticeList.getTotalPages()).build();
 
@@ -108,10 +120,15 @@ public class BoardServiceImpl implements BoardService {
     public void updateAppBoard(BigInteger noticeId, AppBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showApp().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
-
+        if (boardType.equals(BoardType.SPOT) && requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.MUST_GROUP_ID);
+        else if (boardType.equals(BoardType.ALL) && !requestDto.getGroupIds().isEmpty()) throw new ApiException(ExceptionEnum.NOT_NECESSARY_GROUP_ID);
 
         Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
-        if(requestDto.getIsStatus() && !notice.getIsStatus()) notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+        if(requestDto.getIsStatus() && !notice.getIsStatus()) {
+            notice.updateActiveDate(LocalDate.now(ZoneId.of("Asia/Seoul")));
+
+            sendSseNotification(notice);
+        }
         noticeMapper.updateNotice(requestDto, notice);
     }
 
@@ -122,17 +139,13 @@ public class BoardServiceImpl implements BoardService {
         if(notice == null) throw new ApiException(ExceptionEnum.NOTICE_NOT_FOUND);
         if(notice.getIsPushAlarm()) throw new ApiException(ExceptionEnum.ALREADY_SEND_ALARM);
 
-        int sseType;
-        List<User> users;
-        if(notice.getGroupIds() == null || notice.getGroupIds().isEmpty()) {
+        List<User> users = null;
+        if(notice.getBoardType().equals(BoardType.ALL)) {
             users = qUserRepository.findAllByNotNullFirebaseToken();
-            sseType = 1;
-        } else {
+        } else if (notice.getBoardType().equals(BoardType.SPOT)) {
             users = qUserGroupRepository.findAllUserByGroupIdsAadFirebaseTokenNotNull(notice.getGroupIds());
-            sseType = 2;
         }
 
-        System.out.println("notice.getTitle() = " + notice.getTitle());
         String customMessage = pushUtil.getContextAppNotice(notice.getTitle(), PushCondition.NEW_NOTICE);
         System.out.println("customMessage = " + customMessage);
         List<PushRequestDtoByUser> pushRequestDtoByUserList = new ArrayList<>();
@@ -141,9 +154,8 @@ public class BoardServiceImpl implements BoardService {
             if(pushRequestDtoByUser == null) continue;
             pushRequestDtoByUserList.add(pushRequestDtoByUser);
 
-            pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), AlarmType.NOTICE, notice.getId());
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), 6, null, null, null));
-            applicationEventPublisher.publishEvent(new SseReceiverDto(user.getId(), sseType, null, null, null));
+            pushUtil.savePushAlarmHashByNotice(pushRequestDtoByUser.getTitle(), pushRequestDtoByUser.getMessage(), user.getId(), notice.getBoardOption().contains(BoardOption.EVENT) ? AlarmType.EVENT : AlarmType.NOTICE, notice.getId());
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user.getId()).type(6).build());
         }
 
         pushService.sendToPush(pushRequestDtoByUserList);
@@ -155,6 +167,7 @@ public class BoardServiceImpl implements BoardService {
     public void createMakersBoard(MakersBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showMakers().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (boardType.equals(BoardType.MAKERS) && requestDto.getMakersId() == null) throw new ApiException(ExceptionEnum.MUST_MAKERS_ID);
 
         MakersNotice notice = backOfficeNoticeMapper.toMakersNotice(requestDto);
         notice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
@@ -185,6 +198,7 @@ public class BoardServiceImpl implements BoardService {
     public void updateMakersBoard(BigInteger noticeId, MakersBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showMakers().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (boardType.equals(BoardType.MAKERS) && requestDto.getMakersId() == null) throw new ApiException(ExceptionEnum.MUST_MAKERS_ID);
 
         MakersNotice makersNotice = (MakersNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         makersNotice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
@@ -196,6 +210,7 @@ public class BoardServiceImpl implements BoardService {
     public void createClientBoard(ClientBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showClient().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (boardType.equals(BoardType.CLIENT) && (requestDto.getGroupIds() == null || requestDto.getGroupIds().isEmpty())) throw new ApiException(ExceptionEnum.MUST_GROUP_ID);
 
         ClientNotice notice = backOfficeNoticeMapper.toClientNotice(requestDto);
         notice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
@@ -226,6 +241,7 @@ public class BoardServiceImpl implements BoardService {
     public void updateClientBoard(BigInteger noticeId, ClientBoardRequestDto requestDto) {
         BoardType boardType = BoardType.ofCode(requestDto.getBoardType());
         if(!BoardType.showClient().contains(boardType)) throw new ApiException(ExceptionEnum.BAD_REQUEST);
+        if (boardType.equals(BoardType.CLIENT) && (requestDto.getGroupIds() == null || requestDto.getGroupIds().isEmpty())) throw new ApiException(ExceptionEnum.MUST_GROUP_ID);
 
         ClientNotice clientNotice = (ClientNotice) backOfficeNoticeRepository.findById(noticeId).orElseThrow(() -> new ApiException(ExceptionEnum.NOTICE_NOT_FOUND));
         clientNotice.setBoardCategory(BoardCategory.getBoardTypeByCategory(BoardType.ofCode(requestDto.getBoardType())));
@@ -294,4 +310,19 @@ public class BoardServiceImpl implements BoardService {
         return templateMap.get(boardCategory).get(noticeType);
     }
 
+    private void sendSseNotification(Notice notice) {
+        int sseType = 0;
+        List<BigInteger> users = null;
+        if(notice.getBoardType().equals(BoardType.ALL)) {
+            users = qUserRepository.findAllUserId();
+            sseType = 1;
+        } else if (notice.getBoardType().equals(BoardType.SPOT)) {
+            users = qUserGroupRepository.findAllUserIdByGroupId(notice.getGroupIds());
+            sseType = 2;
+        }
+
+        for (BigInteger user : users) {
+            applicationEventPublisher.publishEvent(SseReceiverDto.builder().receiver(user).type(sseType).noticeId(notice.getId()).build());
+        }
+    }
 }

@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -32,20 +33,16 @@ public class FoodServiceImpl implements FoodService {
     private final MakersFoodMapper makersFoodMapper;
     private final UserUtil userUtil;
     private final FoodMapper foodMapper;
-    private final MakersRepository makersRepository;
-    private final FoodDiscountPolicyMapper foodDiscountPolicyMapper;
     private final FoodDiscountPolicyRepository foodDiscountPolicyRepository;
-    private final CapacityMapper capacityMapper;
-    private final FoodCapacityRepository foodCapacityRepository;
     private final QFoodRepository qFoodRepository;
 
     @Override
     @Transactional
-    public List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser) {
+    public List<FoodListDto.FoodList> getAllFoodListByMakers(SecurityUser securityUser, Integer status) {
         Makers makers = userUtil.getMakers(securityUser);
 
         // makersId로 상품 조회
-        List<Food> foodListByMakers = foodRepository.findByMakersOrderById(makers);
+        List<Food> foodListByMakers = qFoodRepository.findByMakersIdAndStatus(makers, status);
         if (foodListByMakers.isEmpty()) { return null; }
 
         // 상품 dto에 담기
@@ -57,7 +54,7 @@ public class FoodServiceImpl implements FoodService {
             FoodListDto.FoodList dto = makersFoodMapper.toAllFoodListByMakersDto(food, discountDto, resultPrice);
             dtoList.add(dto);
         }
-
+        dtoList = dtoList.stream().sorted(Comparator.comparing(FoodListDto.FoodList::getFoodStatus).thenComparing(FoodListDto.FoodList::getFoodId)).toList();
         return dtoList;
     }
 

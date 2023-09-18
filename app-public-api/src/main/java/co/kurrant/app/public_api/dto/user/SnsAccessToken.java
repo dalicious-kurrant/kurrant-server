@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SnsAccessToken {
-    String snsAccessToken;
-    String fcmToken;
+    private String snsAccessToken;
+    private String fcmToken;
+    private String version;
 }

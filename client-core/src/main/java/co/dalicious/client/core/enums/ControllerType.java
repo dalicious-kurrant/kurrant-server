@@ -27,7 +27,10 @@ public enum ControllerType {
     LOGS("LogController", "로그", 18),
     APPLICATION_FORM("ApplicationFormController", "스팟 신청", 19),
     DRIVER("DriverController", "배송 기사", 19),
-    BOARD("BoardController", "공지사항", 20),;
+    BOARD("BoardController", "공지사항", 20),
+    HOME("HomeController", "홈", 21),
+    QR("QrController", "QR(넥스트 페이먼츠)", 22),
+    ;
     private final String controller;
     private final String type;
     private final Integer code;

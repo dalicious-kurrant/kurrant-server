@@ -6,8 +6,6 @@ import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.EmitterRepository;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.system.util.DateUtils;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.MessageListener;
@@ -26,6 +24,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -49,22 +48,20 @@ public class SseService {
 
         //생성한 emitter를 저장한다. emitter는 HTTP/2기준 브라우저 당 100개 만들 수 있다.
         SseEmitter emitter = new SseEmitter(DEFAULT_TIMEOUT);
+        emitterRepository.save(id, emitter);
         System.out.println("emitter = " + emitter);
         MessageListener messageListener = (message, pattern) -> {
             try {
                 System.out.println("Received message from Redis on pattern: " + pattern);
                 sendToClient(emitter, id, message);
             } catch(Exception e) {
-                e.printStackTrace();
+                log.info("exception = " + e);
             }
         };
-
         redisMessageListenerContainer.addMessageListener(messageListener, ChannelTopic.of(getChannelName(id)));
 
         //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
         checkEmitterStatus(emitter, id, messageListener);
-
-        emitterRepository.save(id, emitter);
 
         sendToClient(emitter, id, "EventStream Created. [userId=" + userId + "]");
 
@@ -80,10 +77,11 @@ public class SseService {
         return emitter;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener
     @Async
     public void send(SseReceiverDto sseReceiverDto) {
+        log.info("호출");
         LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
         NotificationHash notification = createNotification(sseReceiverDto, today);
         notificationHashRepository.save(notification);
@@ -91,6 +89,7 @@ public class SseService {
         String id = String.valueOf(sseReceiverDto.getReceiver());
         emitterRepository.saveEventCache(id, notification);
         redisTemplate.convertAndSend(getChannelName(id), notification);
+        log.info("종료");
     }
 
     //notification 생성
@@ -103,26 +102,29 @@ public class SseService {
                 .createDate(today)
                 .groupId(sseReceiverDto.getGroupId())
                 .commentId(sseReceiverDto.getCommentId())
+                .noticeId(sseReceiverDto.getNoticeId())
                 .build();
     }
 
     //client에게 이벤트 보내기
     private void sendToClient(SseEmitter emitter, String id, Object data) {
-        System.out.println("data.toString() = " + data.toString());
         try {
+            log.info("data");
             emitter.send(SseEmitter.event()
                     .id(id)
                     .name("message")
                     .data(data));
         } catch (IOException exception) {
+            log.info("exception = " + exception);
             emitterRepository.deleteAllEmitterStartWithId(id);
-            throw new ApiException(ExceptionEnum.CONNECTION_ERROR);
         }
     }
 
     @Transactional
-    public void readNotification(BigInteger userId, Integer type) {
-        List<NotificationHash> notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+    public void readNotification(BigInteger userId, Integer type, List<String> ids) {
+        List<NotificationHash> notificationList;
+        if(ids == null || ids.isEmpty()) notificationList = notificationHashRepository.findAllByUserIdAndTypeAndIsRead(userId, type, false);
+        else notificationList = (List<NotificationHash>) notificationHashRepository.findAllById(ids);
 
         //읽을 알림이 있는지 확인
         if(notificationList.size() == 0) {
@@ -156,6 +158,7 @@ public class SseService {
             sseResponseDto.setIsRead(false);
             sseResponseDto.setGroupId(v.getGroupId());
             sseResponseDto.setCommentId(v.getCommentId());
+            sseResponseDto.setNoticeId(v.getNoticeId());
 
             return sseResponseDto;
 
@@ -166,10 +169,17 @@ public class SseService {
 
     private void checkEmitterStatus(final SseEmitter emitter,final String id, final MessageListener messageListener) {
         emitter.onCompletion(() -> {
+            log.info("완료된 emitter 삭제");
             emitterRepository.deleteById(id);
             redisMessageListenerContainer.removeMessageListener(messageListener);
         });
         emitter.onTimeout(() -> {
+            log.info("time out emitter 삭제");
+            emitterRepository.deleteById(id);
+            redisMessageListenerContainer.removeMessageListener(messageListener);
+        });
+        emitter.onError((error) -> {
+            log.info("error emitter 삭제");
             emitterRepository.deleteById(id);
             redisMessageListenerContainer.removeMessageListener(messageListener);
         });

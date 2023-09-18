@@ -4,23 +4,23 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestReqDto;
+import co.dalicious.domain.application_form.dto.corporation.CorporationRequestResDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
+import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
+import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
-import co.dalicious.domain.application_form.entity.RequestedMySpot;
-import co.dalicious.domain.application_form.entity.RequestedMySpotZones;
-import co.dalicious.domain.application_form.entity.RequestedShareSpot;
-import co.dalicious.domain.application_form.mapper.RequestedMySpotZonesMapper;
-import co.dalicious.domain.application_form.mapper.RequestedShareSpotMapper;
+import co.dalicious.domain.application_form.entity.*;
+import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
 import co.dalicious.domain.application_form.utils.ApplicationSlackUtil;
 import co.dalicious.domain.client.entity.MealInfo;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
-import co.dalicious.domain.application_form.mapper.MySpotMapper;
-import co.dalicious.domain.application_form.mapper.MySpotZoneMapper;
 import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.MealInfoRepository;
@@ -78,6 +78,12 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final SpotRepository spotRepository;
+    private final RequestedMakersRepository requestedMakersRepository;
+    private final RequestedMakersMapper requestedMakersMapper;
+    private final QRequestedMakersRepository qRequestedMakersRepository;
+    private final RequestedCorporationRepository requestedCorporationRepository;
+    private final RequestedCorporationMapper requestedCorporationMapper;
+    private final QRequestedCorporationRepository qRequestedCorporationRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -274,6 +280,62 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
 
         requestedMySpotRepository.deleteAll(deleteRequestedMySpot);
         requestedMySpotZonesRepository.deleteAll(requestedMySpotZones);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable) {
+        Page<RequestedMakers> requestedMakersList = qRequestedMakersRepository.pageFindAllRequestedMakers(pageable);
+        return ListItemResponseDto.<MakersRequestedResDto>builder().items(requestedMakersMapper.toMakersRequestedResDtoList(requestedMakersList)).limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .count(requestedMakersList.getNumberOfElements()).total((long) requestedMakersList.getTotalPages()).isLast(requestedMakersList.isLast()).build();
+    }
+
+    @Override
+    @Transactional
+    public void createMakersRequest(MakersRequestedReqDto request) {
+        requestedMakersRepository.save(requestedMakersMapper.toRequestedMakersEntity(request));
+    }
+
+    @Override
+    @Transactional
+    public void updateMakerRequestStatus(BigInteger id, StatusUpdateDto request) {
+        RequestedMakers requestedMakers = requestedMakersRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        requestedMakersMapper.updateRequestedMakersStatus(request, requestedMakers);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMakersRequest(List<BigInteger> ids) {
+        List<RequestedMakers> requestedMakers = requestedMakersRepository.findAllById(ids);
+        requestedMakersRepository.deleteAll(requestedMakers);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<CorporationRequestResDto> getAllCorporationRequestList(OffsetBasedPageRequest pageable) {
+        Page<RequestedCorporation> requestedCorporations = qRequestedCorporationRepository.pageFindAllRequestedCorporation(pageable);
+        return ListItemResponseDto.<CorporationRequestResDto>builder().items(requestedCorporationMapper.toCorporationRequestedResDtoList(requestedCorporations)).limit(pageable.getPageSize()).offset(pageable.getOffset())
+                .count(requestedCorporations.getNumberOfElements()).total((long) requestedCorporations.getTotalPages()).isLast(requestedCorporations.isLast()).build();
+    }
+
+    @Override
+    @Transactional
+    public void createCorporationRequest(CorporationRequestReqDto request) {
+        requestedCorporationRepository.save(requestedCorporationMapper.toRequestedCorporationEntity(request));
+    }
+
+    @Override
+    @Transactional
+    public void updateCorporationRequestStatus(BigInteger id, StatusUpdateDto request) {
+        RequestedCorporation requestedCorporation = requestedCorporationRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        requestedCorporationMapper.updateRequestedCorporationStatus(request, requestedCorporation);
+    }
+
+    @Override
+    @Transactional
+    public void deleteCorporationRequest(List<BigInteger> ids) {
+        List<RequestedCorporation> requestedCorporations = requestedCorporationRepository.findAllById(ids);
+        requestedCorporationRepository.deleteAll(requestedCorporations);
     }
 
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {

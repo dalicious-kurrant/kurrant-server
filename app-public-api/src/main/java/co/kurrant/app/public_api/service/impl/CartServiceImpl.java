@@ -248,7 +248,7 @@ public class CartServiceImpl implements CartService {
         SupportType supportType = SupportType.NONE;
         BigDecimal deliveryFee = deliveryFeePolicy.getGroupDeliveryFee(user, spot.getGroup());
 
-        if (spot instanceof CorporationSpot) {
+        if (spot instanceof CorporationSpot || spot instanceof EatInSpot) {
             supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, serviceDiningVo.getServiceDate(), serviceDiningVo.getDiningType());
             supportType = UserSupportPriceUtil.getSupportType(supportPrice);
         }
@@ -274,7 +274,7 @@ public class CartServiceImpl implements CartService {
         DayAndTime lastOrderTime = lastOrderTimes.stream().min(Comparator.comparing(DayAndTime::getDay).reversed().thenComparing(DayAndTime::getTime))
                 .orElse(null);
 
-        return DayAndTime.dayAndTimeToString(lastOrderTime);
+        return (lastOrderTime == null) ? null : lastOrderTime.dayAndTimeToStringByDate(dailyFood.getServiceDate());
     }
 
 //    @Transactional

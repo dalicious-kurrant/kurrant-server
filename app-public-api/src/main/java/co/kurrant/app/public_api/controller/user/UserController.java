@@ -4,10 +4,12 @@ import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.payment.dto.BillingKeyDto;
 import co.dalicious.domain.payment.dto.CreditCardDefaultSettingDto;
 import co.dalicious.domain.payment.dto.DeleteCreditCardDto;
+import co.dalicious.domain.payment.util.MingleUtil;
 import co.dalicious.domain.user.dto.SaveDailyReportFoodReqDto;
 import co.dalicious.domain.user.dto.SaveDailyReportReqDto;
 import co.dalicious.domain.user.dto.UserPreferenceDto;
 import co.dalicious.domain.user.dto.SaveDailyReportDto;
+import co.dalicious.domain.user.entity.User;
 import co.kurrant.app.public_api.dto.user.*;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.UserService;
@@ -16,12 +18,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -39,6 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final MingleUtil mingleUtil;
+    private final UserUtil userUtil;
 
     @Operation(summary = "마이페이지 유저 가져오기", description = "로그인 한 유저 정보를 불러온다.")
     @GetMapping("")
@@ -89,7 +95,7 @@ public class UserController {
 
     @Operation(summary = "애플 SNS 계정 연결", description = "SNS 계정을 연결한다.")
     @PostMapping("/connectingApple")
-    public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody Map<String,Object> appleLoginDto) throws JsonProcessingException {
+    public ResponseMessage connectSnsAccount(Authentication authentication, @RequestBody Map<String, Object> appleLoginDto) throws JsonProcessingException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.connectAppleAccount(securityUser, appleLoginDto);
         return ResponseMessage.builder()
@@ -151,7 +157,7 @@ public class UserController {
 
     @Operation(summary = "이름변경", description = "로그인한 유저의 이름이 없을시(애플로그인) 이름을 설정한다.")
     @PostMapping("/setting/name")
-    public ResponseMessage changeName(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
+    public ResponseMessage changeName(Authentication authentication, @RequestBody ChangeNameDto changeNameDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.changeName(securityUser, changeNameDto);
         return ResponseMessage.builder()
@@ -161,7 +167,7 @@ public class UserController {
 
     @Operation(summary = "닉네임 변경", description = "닉네임을 설정한다.")
     @PostMapping("/setting/nickname")
-    public ResponseMessage changeNickname(Authentication authentication ,@RequestBody ChangeNameDto changeNameDto){
+    public ResponseMessage changeNickname(Authentication authentication, @RequestBody ChangeNameDto changeNameDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.changeNickname(securityUser, changeNameDto.getName());
         return ResponseMessage.builder()
@@ -171,7 +177,7 @@ public class UserController {
 
     @Operation(summary = "회원탈퇴 요청", description = "회원 탈퇴를 요청한다.")
     @GetMapping("/withdrawal")
-    public ResponseMessage userWithdrawal(Authentication authentication){
+    public ResponseMessage userWithdrawal(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.withdrawal(securityUser);
         return ResponseMessage.builder()
@@ -181,7 +187,7 @@ public class UserController {
 
     @Operation(summary = "회원탈퇴 요청 취소", description = "회원 탈퇴를 요청을 취소한다.")
     @GetMapping("/withdrawal/cancel")
-    public ResponseMessage userWithdrawalCancel(Authentication authentication){
+    public ResponseMessage userWithdrawalCancel(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.withdrawalCancel(securityUser);
         return ResponseMessage.builder()
@@ -191,7 +197,7 @@ public class UserController {
 
     @PostMapping("/save/token")
     @Operation(summary = "FCM 토큰 저장하기", description = "유저정보에 FCM토큰을 저장한다")
-    public ResponseMessage tokenSave(Authentication authentication, @RequestBody FcmTokenSaveReqDto fcmTokenSaveReqDto){
+    public ResponseMessage tokenSave(Authentication authentication, @RequestBody FcmTokenSaveReqDto fcmTokenSaveReqDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.saveToken(fcmTokenSaveReqDto, securityUser);
         return ResponseMessage.builder()
@@ -210,6 +216,78 @@ public class UserController {
     }
 
     @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
+    @PostMapping("/billing/test")
+    public ResponseMessage createBillingKeyTest(Authentication authentication, @RequestBody BillingKeyDto billingKeyDto) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        JSONObject response = mingleUtil.generateBillingKey(billingKeyDto.getCorporationCode(), billingKeyDto.getCardType(), billingKeyDto.getCardNumber(), billingKeyDto.getExpirationYear(), billingKeyDto.getExpirationMonth(), billingKeyDto.getIdentityNumber(), billingKeyDto.getCardPassword());
+        return ResponseMessage.builder()
+                .data(response)
+                .message("빌링키 발급에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "빌링키 삭제하기 테스트", description = "빌링키 삭제하기 테스트를 발급한다.")
+    @PostMapping("/billing/test2")
+    public ResponseMessage deleteBillingKeyTest(Authentication authentication, @RequestBody String bid) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        JSONObject response = mingleUtil.deleteBillingKey(bid);
+        return ResponseMessage.builder()
+                .data(response)
+                .message("빌링키 삭제하기에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 테스트", description = "결제.")
+    @PostMapping("/payment/test")
+    public ResponseMessage payment(Authentication authentication, @RequestBody Map<String, Object> request) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+
+        String bid = (String) request.get("bid");
+        String orderNumber = (String) request.get("orderNumber");
+        String itemName = (String) request.get("itemName");
+        String totalPrice = (String) request.get("totalPrice");
+        User user = userUtil.getUser(securityUser);
+        JSONObject response = mingleUtil.requestPayment(bid, orderNumber, itemName, Integer.parseInt(totalPrice), user.getName(), user.getPhone(), user.getEmail());
+        return ResponseMessage.builder()
+                .data(response)
+                .message("결제 테스트에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 전체 취소", description = "결제 전체 취소.")
+    @PostMapping("/cancel/test")
+    public ResponseMessage cancelAll(Authentication authentication, @RequestBody Map<String, Object> request) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        User user = userUtil.getUser(securityUser);
+
+        String tid = (String) request.get("tid");
+        String cancelPrice = (String) request.get("cancelPrice");
+        String orderNumber = (String) request.get("orderNumber");
+        JSONObject response = mingleUtil.cancelPayment(false, tid, Integer.parseInt(cancelPrice), orderNumber, user.getId(), user.getName());
+        return ResponseMessage.builder()
+                .data(response)
+                .message("결제 전체 취소에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "결제 부분 취소 테스트", description = "결제 부분 취소 테스트한다.")
+    @PostMapping("/cancel/partial/test")
+    public ResponseMessage cancelPartial(Authentication authentication, @RequestBody Map<String, Object> request) throws IOException, ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        User user = userUtil.getUser(securityUser);
+
+        String tid = (String) request.get("tid");
+        String cancelPrice = (String) request.get("cancelPrice");
+        String orderNumber = (String) request.get("orderNumber");
+        JSONObject response = mingleUtil.cancelPayment(true, tid, Integer.parseInt(cancelPrice), orderNumber, user.getId(), user.getName());
+        return ResponseMessage.builder()
+                .data(response)
+                .message("결제 전체 취소에 성공하였습니다.")
+                .build();
+    }
+
+
+    @Operation(summary = "첫번째 빌링키 발급하기", description = "나이스페이먼츠 빌링키를 발급한다.")
     @PostMapping("/cards/types/{typeId}")
     public ResponseMessage createBillingKeyFirst(Authentication authentication, @PathVariable Integer typeId, @RequestBody BillingKeyDto billingKeyDto) throws IOException, ParseException {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
@@ -218,6 +296,7 @@ public class UserController {
                 .message("빌링키 발급에 성공하였습니다.")
                 .build();
     }
+
     @PostMapping("/payment/password/check")
     @Operation(summary = "결제 비밀번호 확인하기", description = "결제 비밀번호 확인")
     public ResponseMessage checkPaymentPassword(Authentication authentication, @RequestBody SavePaymentPasswordDto savePaymentPasswordDto) {
@@ -230,7 +309,7 @@ public class UserController {
 
     @Operation(summary = "결제 카드 조회", description = "결제 카드를 조회한다.")
     @GetMapping("/cards")
-    public ResponseMessage getCardList(Authentication authentication){
+    public ResponseMessage getCardList(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .message("결제 카드 목록 조회에 성공했습니다.")
@@ -240,7 +319,7 @@ public class UserController {
 
     @Operation(summary = "디폴트타입 변경", description = "디폴트 타입을 변경한다")
     @PatchMapping("/cards/setting")
-    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto){
+    public ResponseMessage patchDefaultCard(Authentication authentication, @RequestBody CreditCardDefaultSettingDto creditCardDefaultSettingDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.patchDefaultCard(securityUser, creditCardDefaultSettingDto);
         return ResponseMessage.builder()
@@ -250,7 +329,7 @@ public class UserController {
 
     @Operation(summary = "결제 카드 삭제", description = "결제 카드를 삭제한다.")
     @PatchMapping("/cards")
-    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto){
+    public ResponseMessage deleteCard(@RequestBody DeleteCreditCardDto deleteCreditCardDto) throws IOException, ParseException {
         userService.deleteCard(deleteCreditCardDto);
         return ResponseMessage.builder()
                 .message("결제 카드를 삭제 했습니다.")
@@ -259,7 +338,7 @@ public class UserController {
 
     @GetMapping("/payment/password")
     @Operation(summary = "결제 비밀번호 등록 되어 있는지 확인", description = "결제 비밀번호 등록 유무 확인")
-    public ResponseMessage isPaymentPassword(Authentication authentication){
+    public ResponseMessage isPaymentPassword(Authentication authentication) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         return ResponseMessage.builder()
                 .data(userService.isPaymentPassword(securityUser))
@@ -269,7 +348,7 @@ public class UserController {
 
     @PatchMapping("/payment/password/reset")
     @Operation(summary = "결제 비밀번호 재설정", description = "결제 비밀번호 재설정")
-    public ResponseMessage paymentPasswordReset(Authentication authentication, @RequestBody PaymentResetReqDto resetDto){
+    public ResponseMessage paymentPasswordReset(Authentication authentication, @RequestBody PaymentResetReqDto resetDto) {
         SecurityUser securityUser = UserUtil.securityUser(authentication);
         userService.paymentPasswordReset(securityUser, resetDto);
         return ResponseMessage.builder()
