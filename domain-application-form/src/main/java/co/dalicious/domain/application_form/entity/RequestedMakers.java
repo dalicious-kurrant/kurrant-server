@@ -43,10 +43,6 @@ public class RequestedMakers {
     @Comment("신청한 유저 이름")
     private String username;
 
-    @Column(name = "makers_name")
-    @Comment("신청한 메이커스 이름")
-    private String makersName;
-
     @NotNull
     @Column(name = "address", nullable = false)
     @Comment("메이커스 주소")
@@ -60,9 +56,7 @@ public class RequestedMakers {
     @Comment("메모")
     private String memo;
 
-    @Column(name = "main_product")
-    @Comment("메인 상품")
-    private String mainProduct;
+
 
     @Convert(converter = ProgressStatusConverter.class)
     @Comment("진행 상황")
@@ -72,11 +66,9 @@ public class RequestedMakers {
     @Builder
     public RequestedMakers(String username, String makersName, String address, String phone, String memo, String mainProduct, ProgressStatus progressStatus) {
         this.username = username;
-        this.makersName = makersName;
         this.address = address;
         this.phone = phone;
         this.memo = memo;
-        this.mainProduct = mainProduct;
         this.progressStatus = progressStatus;
     }
 }

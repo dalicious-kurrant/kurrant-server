@@ -16,13 +16,5 @@ import static co.dalicious.domain.application_form.entity.QRequestedMakers.reque
 public class QRequestedMakersRepository {
     private final JPAQueryFactory queryFactory;
 
-    public Page<RequestedMakers> pageFindAllRequestedMakers(Pageable pageable) {
-        QueryResults<RequestedMakers> results = queryFactory.selectFrom(requestedMakers)
-                .orderBy(requestedMakers.createdDateTime.desc())
-                .limit(pageable.getPageSize())
-                .offset(pageable.getOffset())
-                .fetchResults();
 
-        return new PageImpl<>(results.getResults(), pageable, results.getTotal());
-    }
 }
