@@ -186,7 +186,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
 
                 // 5. 지원금 사용 저장
-                if (spot instanceof CorporationSpot) {
+                if (Spot.isUsableSupportPriceSpot(spot)) {
                     BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                     if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                         if (supportType.equals(SupportType.PARTIAL)) {
@@ -494,7 +494,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
 
         BigDecimal supportPrice = BigDecimal.ZERO;
-        if (spot instanceof CorporationSpot) {
+        if (Spot.isUsableSupportPriceSpot(spot)) {
             supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
             if (spot.getGroup() instanceof Corporation && UserSupportPriceUtil.getSupportType(supportPrice).equals(SupportType.FIXED) && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);

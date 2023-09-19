@@ -88,4 +88,11 @@ public class QFoodRepository {
                 .where(food.name.in(names))
                 .fetch();
     }
+
+    public List<Food> findSellingFoodByMakers(List<Makers> makers) {
+        return queryFactory.selectFrom(food)
+                .where(food.foodStatus.eq(FoodStatus.SALES),
+                        food.makers.in(makers))
+                .fetch();
+    }
 }

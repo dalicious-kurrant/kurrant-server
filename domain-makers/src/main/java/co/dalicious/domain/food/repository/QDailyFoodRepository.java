@@ -64,6 +64,24 @@ public class QDailyFoodRepository {
                 .where(dailyFood.serviceDate.goe(startDate),
                         dailyFood.serviceDate.loe(endDate),
                         dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME),
+                        dailyFood.isEatIn.isFalse(),
+                        whereCause)
+                .fetch();
+    }
+
+    public List<DailyFood> getEatInDailyFoodsBetweenServiceDate(LocalDate startDate, LocalDate endDate, Group group) {
+        BooleanBuilder whereCause = new BooleanBuilder();
+
+        if(group != null) {
+            whereCause.and(dailyFood.group.eq(group));
+        }
+
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.serviceDate.goe(startDate),
+                        dailyFood.serviceDate.loe(endDate),
+                        dailyFood.dailyFoodStatus.in(DailyFoodStatus.SALES, DailyFoodStatus.SOLD_OUT, DailyFoodStatus.PASS_LAST_ORDER_TIME),
+                        dailyFood.isEatIn.isTrue(),
                         whereCause)
                 .fetch();
     }
@@ -202,6 +220,16 @@ public class QDailyFoodRepository {
         return queryFactory
                 .selectFrom(dailyFood)
                 .where(dailyFood.id.in(dailyFoodIds), dailyFood.dailyFoodStatus.eq(status))
+                .fetch();
+    }
+
+    public List<DailyFood> findAllisEatInByGroupAndPeriod(List<Group> groups, LocalDate startDate, LocalDate endDate) {
+        return queryFactory
+                .selectFrom(dailyFood)
+                .where(dailyFood.isEatIn.isTrue(),
+                        dailyFood.group.in(groups),
+                        dailyFood.serviceDate.goe(startDate),
+                        dailyFood.serviceDate.loe(endDate))
                 .fetch();
     }
 }

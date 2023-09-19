@@ -2,10 +2,7 @@ package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
-import co.dalicious.domain.client.entity.Corporation;
-import co.dalicious.domain.client.entity.DayAndTime;
-import co.dalicious.domain.client.entity.Group;
-import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.client.repository.SpotRepository;
 import co.dalicious.domain.food.dto.*;
@@ -35,6 +32,7 @@ import co.dalicious.domain.review.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.repository.UserRepository;
+import co.dalicious.domain.user.util.UserGroupUtil;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.DaysUtil;
@@ -72,11 +70,9 @@ public class FoodServiceImpl implements FoodService {
     private final QDailyFoodRepository qDailyFoodRepository;
     private final DailyFoodMapper dailyFoodMapper;
     private final FoodMapper foodMapper;
-    private final SpotRepository spotRepository;
     private final DailyFoodRepository dailyFoodRepository;
     private final OrderDailyFoodUtil orderDailyFoodUtil;
     private final QUserRecommendRepository qUserRecommendRepository;
-    private final DailyFoodSupportPriceRepository dailyFoodSupportPriceRepository;
     private final ReviewRepository reviewRepository;
     private final QReviewRepository qReviewRepository;
     private final ReviewMapper reviewMapper;
@@ -91,111 +87,6 @@ public class FoodServiceImpl implements FoodService {
     private final PublicDailyFoodMapper publicDailyFoodMapper;
     private final QSpotRepository qSpotRepository;
 
-
-    @Override
-    @Transactional
-    public RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate, Integer diningTypeCode) {
-        // 유저가 그룹에 속해있는지 확인
-        User user = userUtil.getUser(securityUser);
-
-        Spot spot = spotRepository.findById(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        Group group = spot.getGroup();
-
-        List<UserGroup> userGroups = user.getActiveUserGroups();
-        userGroups.stream().filter(v -> v.getGroup().equals(group))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-
-        if (diningTypeCode != null) {
-            DiningType diningType = DiningType.ofCode(diningTypeCode);
-            List<DailyFood> dailyFoodList = qDailyFoodRepository.findAllByGroupAndSelectedDateAndDiningType(group, selectedDate, diningType);
-            List<DailyFoodDto> dailyFoodDtos = getDailyFoodDtos(user, group, spot, selectedDate, dailyFoodList);
-            return RetrieveDailyFoodDto.builder()
-                    .dailyFoodDtos(dailyFoodDtos)
-                    .build();
-        }
-        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
-        List<RetrieveDailyFoodDto.DiningType> diningTypes = new ArrayList<>();
-        RetrieveDailyFoodDto.ServiceDays serviceDays = new RetrieveDailyFoodDto.ServiceDays();
-        RetrieveDailyFoodDto.SupportPrice supportPriceDto = new RetrieveDailyFoodDto.SupportPrice();
-        List<DailyFoodSupportPrice> dailyFoodSupportPrices = new ArrayList<>();
-        if (Hibernate.unproxy(group) instanceof Corporation) {
-            dailyFoodSupportPrices = dailyFoodSupportPriceRepository.findAllByUserAndGroupAndServiceDate(user, group, selectedDate);
-        }
-        for (DiningType diningType : spot.getDiningTypes()) {
-            // 이용가능 날짜
-            switch (diningType) {
-                case MORNING -> {
-                    serviceDays.setMorningServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
-                    if (Hibernate.unproxy(group) instanceof Corporation)
-                        supportPriceDto.setMorningSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, selectedDate, DiningType.MORNING));
-                }
-                case LUNCH -> {
-                    serviceDays.setLunchServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
-                    if (Hibernate.unproxy(group) instanceof Corporation)
-                        supportPriceDto.setLunchSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, selectedDate, DiningType.LUNCH));
-                }
-                case DINNER -> {
-                    serviceDays.setDinnerServiceDays(DaysUtil.serviceDaysToDaysStringList(group.getMealInfo(diningType).getServiceDays()));
-                    if (Hibernate.unproxy(group) instanceof Corporation)
-                        supportPriceDto.setDinnerSupportPrice(UserSupportPriceUtil.getUsableSupportPrice(spot, dailyFoodSupportPrices, selectedDate, DiningType.DINNER));
-                }
-            }
-
-            List<LocalTime> deliveryTimes = group.getMealInfo(diningType).getDeliveryTimes();
-            List<String> deliveryTimesStr = deliveryTimes.stream()
-                    .map(DateUtils::timeToString)
-                    .toList();
-            RetrieveDailyFoodDto.DiningType diningTypeDto = new RetrieveDailyFoodDto.DiningType(diningType.getCode(), deliveryTimesStr);
-            diningTypes.add(diningTypeDto);
-        }
-        List<DailyFood> dailyFoodList = qDailyFoodRepository.getSellingAndSoldOutDailyFood(group, selectedDate);
-        List<DailyFoodDto> dailyFoodDtos = getDailyFoodDtos(user, group, spot, selectedDate, dailyFoodList);
-
-
-        return RetrieveDailyFoodDto.builder()
-                .diningTypes(diningTypes)
-                .supportPrice(supportPriceDto)
-                .dailyFoodDtos(dailyFoodDtos)
-                .serviceDays(serviceDays)
-                .build();
-
-    }
-
-    @Override
-    @Transactional
-    public DailyFoodResDto getDailyFoodByPeriod(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate) {
-        // 유저가 그룹에 속해있는지 확인
-        User user = userUtil.getUser(securityUser);
-
-        Spot spot = qSpotRepository.findByIdFetchGroup(spotId).orElseThrow(
-                () -> new ApiException(ExceptionEnum.SPOT_NOT_FOUND)
-        );
-        Group group = spot.getGroup();
-
-        List<UserGroup> userGroups = user.getActiveUserGroups();
-        userGroups.stream().filter(v -> v.getGroup().equals(group))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
-
-        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
-        List<DailyFood> dailyFoodList = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
-        List<DailyFoodSupportPrice> dailyFoodSupportPriceList = group instanceof Corporation
-                ? qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBySpotBetweenServiceDate(user, group, startDate, endDate)
-                : new ArrayList<>();
-        Map<DailyFood, Integer> dailyFoodCountMap = orderDailyFoodUtil.getRemainFoodsCount(dailyFoodList);
-
-        Set<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toSet());
-        List<UserRecommends> userRecommendList = qUserRecommendRepository.getUserRecommends(
-                new UserRecommendByPeriodWhereData(user.getId(), group.getId(), foodIds, new PeriodDto(startDate, endDate)));
-
-        Map<BigInteger, Pair<Double, Long>> reviewMap = qReviewRepository.getStarAverage(foodIds);
-
-        return publicDailyFoodMapper.toDailyFoodResDto(startDate, endDate, dailyFoodList, group, spot, dailyFoodSupportPriceList, dailyFoodCountMap, userRecommendList, reviewMap, user);
-    }
-
     @Override
     @Transactional
     public DailyFoodByDateDto getDailyFoodByPeriodAndServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate) {
@@ -207,16 +98,16 @@ public class FoodServiceImpl implements FoodService {
         );
         Group group = spot.getGroup();
 
-        List<UserGroup> userGroups = user.getActiveUserGroups();
-        userGroups.stream().filter(v -> v.getGroup().equals(group))
-                .findAny()
-                .orElseThrow(() -> new ApiException(ExceptionEnum.UNAUTHORIZED));
+        UserGroupUtil.isUserIncludedInGroup(user, group);
 
-        // 유저가 당일날에 해당하는 식사타입이 몇 개인지 확인
-        List<DailyFood> dailyFoodList = qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
+        List<DailyFood> dailyFoodList = spot instanceof EatInSpot
+                ? qDailyFoodRepository.getEatInDailyFoodsBetweenServiceDate(startDate, endDate, group)
+                : qDailyFoodRepository.getDailyFoodsBetweenServiceDate(startDate, endDate, group);
+
         List<DailyFoodSupportPrice> dailyFoodSupportPriceList = group instanceof Corporation
                 ? qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBySpotBetweenServiceDate(user, group, startDate, endDate)
                 : new ArrayList<>();
+
         Map<DailyFood, Integer> dailyFoodCountMap = orderDailyFoodUtil.getRemainFoodsCount(dailyFoodList);
 
         Set<BigInteger> foodIds = dailyFoodList.stream().map(v -> v.getFood().getId()).collect(Collectors.toSet());
@@ -273,7 +164,6 @@ public class FoodServiceImpl implements FoodService {
         DailyFood dailyFood = dailyFoodRepository.findById(dailyFoodId).orElseThrow(
                 () -> new ApiException(ExceptionEnum.DAILY_FOOD_NOT_FOUND)
         );
-        // TODO: 식단에 가격 업데이트 적용이 되는 시점부터 주석 해제
         DiscountDto discountDto = DiscountDto.getDiscount(dailyFood);
         return new RetrieveDiscountDto(discountDto);
     }

@@ -2,6 +2,7 @@ package co.dalicious.domain.client.repository;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
+import co.dalicious.domain.client.entity.EatInSpot;
 import co.dalicious.domain.client.entity.Spot;
 import co.dalicious.domain.client.entity.enums.SpotStatus;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static co.dalicious.domain.client.entity.QEatInSpot.eatInSpot;
 import static co.dalicious.domain.client.entity.QGroup.group;
 import static co.dalicious.domain.client.entity.QSpot.spot;
 
@@ -150,5 +152,13 @@ public class QSpotRepository {
                 .from(spot)
                 .where(spot.id.eq(spotId))
                 .fetchOne();
+    }
+
+    public List<EatInSpot> findAllActiveEatInSpotsByMakers(List<BigInteger> makersId) {
+        return queryFactory.selectFrom(eatInSpot)
+                .where(eatInSpot.makersId.in(makersId),
+                        eatInSpot.status.eq(SpotStatus.ACTIVE))
+                .fetch();
+
     }
 }

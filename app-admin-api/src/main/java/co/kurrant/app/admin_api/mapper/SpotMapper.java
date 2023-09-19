@@ -33,7 +33,7 @@ public interface SpotMapper {
 
     default SpotResponseDto toDto(Spot spot) {
         SpotResponseDto spotResponseDto = new SpotResponseDto();
-        boolean isCorporation = spot instanceof CorporationSpot;
+        boolean isCorporation = Spot.isUsableSupportPriceSpot(spot);
         spotResponseDto.setSpotId(spot.getId());
         spotResponseDto.setSpotType(Objects.requireNonNull(GroupDataType.ofClass(spot.getClass())).getType());
         spotResponseDto.setStatus(spot.getStatus().getCode());

@@ -44,7 +44,22 @@ public interface DailyFoodMapper {
                 .build();
     }
 
-    ;
+    default DailyFood toEatInDailyFood(Food food, LocalDate serviceDate, DiningType diningType, Group group, DailyFoodGroup dailyFoodGroup) {
+        return DailyFood.builder()
+                .diningType(diningType)
+                .dailyFoodStatus(DailyFoodStatus.SALES)
+                .serviceDate(serviceDate)
+                .supplyPrice(food.getSupplyPrice())
+                .defaultPrice(food.getPrice())
+                .membershipDiscountRate(food.getFoodDiscountRate(DiscountType.MEMBERSHIP_DISCOUNT))
+                .makersDiscountRate(food.getFoodDiscountRate(DiscountType.MAKERS_DISCOUNT))
+                .periodDiscountRate(food.getFoodDiscountRate(DiscountType.PERIOD_DISCOUNT))
+                .isEatIn(true)
+                .food(food)
+                .group(group)
+                .dailyFoodGroup(dailyFoodGroup)
+                .build();
+    }
 
     @Mapping(source = "presetGroupDailyFood.deliveryScheduleList", target = "deliverySchedules")
     DailyFoodGroup toDailyFoodGroup(PresetGroupDailyFood presetGroupDailyFood);
@@ -60,7 +75,16 @@ public interface DailyFoodMapper {
         return new DailyFoodGroup(deliveryScheduleList);
     }
 
-    ;
+    default DailyFoodGroup toDailyFoodGroup(List<LocalTime> deliveryTimes) {
+        List<DeliverySchedule> deliveryScheduleList = new ArrayList<>();
+
+        deliveryTimes.forEach(deliveryTime -> {
+            DeliverySchedule deliverySchedule = new DeliverySchedule(deliveryTime, deliveryTime.minusMinutes(45));
+            deliveryScheduleList.add(deliverySchedule);
+        });
+
+        return new DailyFoodGroup(deliveryScheduleList);
+    }
 
     default List<DailyFood> toDailyFoods(MultiValueMap<DailyFoodGroup, FoodDto.DailyFood> dailyFoodMap, List<Group> groups, List<Food> foods) {
         List<DailyFood> dailyFoods = new ArrayList<>();
@@ -108,7 +132,6 @@ public interface DailyFoodMapper {
                 .build();
     }
 
-    ;
 
     @Mapping(source = "sort", target = "sort")
     @Mapping(source = "lastOrderTime", target = "lastOrderTime")
