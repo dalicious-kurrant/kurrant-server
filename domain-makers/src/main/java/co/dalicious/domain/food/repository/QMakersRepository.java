@@ -260,4 +260,11 @@ public class QMakersRepository {
                 .where(whereCause)
                 .fetchOne();
     }
+
+    public List<Makers> findActiveMakersByServiceForm(List<ServiceForm> serviceForm) {
+        return queryFactory.selectFrom(makers)
+                .where(makers.isActive.isTrue(),
+                        makers.serviceForm.in(serviceForm))
+                .fetch();
+    }
 }

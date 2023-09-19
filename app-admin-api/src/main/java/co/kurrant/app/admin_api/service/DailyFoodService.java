@@ -6,6 +6,7 @@ import co.kurrant.app.admin_api.dto.GroupDto;
 import co.kurrant.app.admin_api.dto.ScheduleDto;
 import co.kurrant.app.admin_api.dto.UpdateStatusAndIdListDto;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -15,4 +16,5 @@ public interface DailyFoodService {
     GroupDto.GroupAndMakers getGroupAndMakers();
     void excelDailyFoods(List<FoodDto.DailyFood> dailyFoodList);
     void updateAllDailyFoodStatus(UpdateStatusAndIdListDto requestDto);
+    void generateEatInDailyFood(LocalDate startDate, LocalDate endDate);
 }
