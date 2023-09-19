@@ -1,6 +1,5 @@
 package co.dalicious.domain.application_form.repository;
 
-import co.dalicious.domain.application_form.entity.RequestedMakers;
 import co.dalicious.domain.application_form.entity.RequestedPartnership;
 import co.dalicious.domain.application_form.entity.enums.HomepageRequestedType;
 import com.querydsl.core.QueryResults;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import static co.dalicious.domain.application_form.entity.QRequestedMakers.requestedMakers;
 import static co.dalicious.domain.application_form.entity.QRequestedPartnership.requestedPartnership;
 
 @Repository

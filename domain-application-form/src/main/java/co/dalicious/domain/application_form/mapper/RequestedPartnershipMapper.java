@@ -7,7 +7,6 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationRequestRe
 import co.dalicious.domain.application_form.dto.makers.MakersRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
-import co.dalicious.domain.application_form.entity.RequestedMakers;
 import co.dalicious.domain.application_form.entity.RequestedPartnership;
 import co.dalicious.domain.application_form.entity.enums.HomepageRequestedType;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
