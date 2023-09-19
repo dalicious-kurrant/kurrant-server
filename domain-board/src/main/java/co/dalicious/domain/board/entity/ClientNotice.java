@@ -1,7 +1,7 @@
 package co.dalicious.domain.board.entity;
 
-import co.dalicious.domain.board.converter.GroupIdListConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
+import co.dalicious.system.converter.IdListConverter;
 import lombok.*;
 import org.hibernate.annotations.Comment;
 
@@ -18,7 +18,7 @@ import java.util.List;
 public class ClientNotice extends BackOfficeNotice {
 
     @Column(name = "group_ids")
-    @Convert(converter = GroupIdListConverter.class)
+    @Convert(converter = IdListConverter.class)
     @Comment("그룹ID List")
     private List<BigInteger> groupIds;
 

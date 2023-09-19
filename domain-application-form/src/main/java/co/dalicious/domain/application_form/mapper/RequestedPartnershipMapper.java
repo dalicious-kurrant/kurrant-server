@@ -7,6 +7,8 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationRequestRe
 import co.dalicious.domain.application_form.dto.makers.MakersRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
+import co.dalicious.domain.application_form.entity.RequestedCorporation;
+import co.dalicious.domain.application_form.entity.RequestedMakers;
 import co.dalicious.domain.application_form.entity.RequestedPartnership;
 import co.dalicious.domain.application_form.entity.enums.HomepageRequestedType;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
@@ -21,29 +23,27 @@ import java.util.List;
 @Mapper(componentModel = "spring", imports = DateUtils.class)
 public interface RequestedPartnershipMapper {
 
-    default RequestedPartnership toRequestedCorporationEntity(CorporationRequestAtHomepageDto request) {
-        return RequestedPartnership.builder()
+    default RequestedCorporation toRequestedCorporationEntity(CorporationRequestAtHomepageDto request) {
+        return RequestedCorporation.builder()
                 .username(request.getName())
                 .address(request.getAddress())
                 .phone(request.getPhone())
                 .memo(request.getMemo())
                 .progressStatus(ProgressStatus.APPLY)
-                .requestedType(HomepageRequestedType.CORPORATION)
                 .build();
     }
 
-    default RequestedPartnership toRequestedCorporationEntity(CorporationRequestReqDto request) {
-        return RequestedPartnership.builder()
+    default RequestedCorporation toRequestedCorporationEntity(CorporationRequestReqDto request) {
+        return RequestedCorporation.builder()
                 .username(request.getName())
                 .address(request.getAddress())
                 .phone(request.getPhone())
                 .memo(request.getMemo())
                 .progressStatus(ProgressStatus.ofCode(request.getProgressStatus()))
-                .requestedType(HomepageRequestedType.CORPORATION)
                 .build();
     }
 
-    default List<CorporationRequestResDto> toCorporationRequestedResDtoList(Page<RequestedPartnership> requestedCorporations) {
+    default List<CorporationRequestResDto> toCorporationRequestedResDtoList(Page<RequestedCorporation> requestedCorporations) {
         return requestedCorporations.stream()
                 .map(this::toCorporationRequestedResDto)
                 .toList();
@@ -52,14 +52,14 @@ public interface RequestedPartnershipMapper {
     @Mapping(source = "username", target = "name")
     @Mapping(target = "createDate", expression = "java(DateUtils.toISOLocalDate(requestedCorporation.getCreatedDateTime()))")
     @Mapping(source = "progressStatus.code", target = "progressStatus")
-    CorporationRequestResDto toCorporationRequestedResDto(RequestedPartnership requestedCorporation);
+    CorporationRequestResDto toCorporationRequestedResDto(RequestedCorporation requestedCorporation);
 
     default void updateRequestedCorporationStatus(StatusUpdateDto dto, @MappingTarget RequestedPartnership requestedCorporation) {
         requestedCorporation.setProgressStatus(ProgressStatus.ofCode(dto.getStatus()));
     }
 
-    default RequestedPartnership toRequestedMakersEntity(MakersRequestAtHomepageDto request) {
-        return RequestedPartnership.builder()
+    default RequestedMakers toRequestedMakersEntity(MakersRequestAtHomepageDto request) {
+        return RequestedMakers.builder()
                 .username(request.getName())
                 .address(request.getAddress())
                 .phone(request.getPhone())
@@ -67,12 +67,11 @@ public interface RequestedPartnershipMapper {
                 .makersName(request.getMakersName())
                 .mainProduct(request.getMainProduct())
                 .progressStatus(ProgressStatus.APPLY)
-                .requestedType(HomepageRequestedType.MAKERS)
                 .build();
     }
 
-    default RequestedPartnership toRequestedMakersEntity(MakersRequestedReqDto request) {
-        return RequestedPartnership.builder()
+    default RequestedMakers toRequestedMakersEntity(MakersRequestedReqDto request) {
+        return RequestedMakers.builder()
                 .username(request.getName())
                 .address(request.getAddress())
                 .phone(request.getPhone())
@@ -80,11 +79,10 @@ public interface RequestedPartnershipMapper {
                 .makersName(request.getMakersName())
                 .mainProduct(request.getMainProduct())
                 .progressStatus(ProgressStatus.ofCode(request.getProgressStatus()))
-                .requestedType(HomepageRequestedType.MAKERS)
                 .build();
     }
 
-    default List<MakersRequestedResDto> toMakersRequestedResDtoList(Page<RequestedPartnership> requestedMakersList) {
+    default List<MakersRequestedResDto> toMakersRequestedResDtoList(Page<RequestedMakers> requestedMakersList) {
         return requestedMakersList.stream()
                 .map(this::toMakersRequestedResDto)
                 .toList();
@@ -93,7 +91,7 @@ public interface RequestedPartnershipMapper {
     @Mapping(source = "username", target = "name")
     @Mapping(target = "createDate", expression = "java(DateUtils.toISOLocalDate(requestedMakers.getCreatedDateTime()))")
     @Mapping(source = "progressStatus.code", target = "progressStatus")
-    MakersRequestedResDto toMakersRequestedResDto(RequestedPartnership requestedMakers);
+    MakersRequestedResDto toMakersRequestedResDto(RequestedMakers requestedMakers);
 
     default void updateRequestedMakersStatus(StatusUpdateDto dto, @MappingTarget RequestedPartnership requestedMakers) {
         requestedMakers.setProgressStatus(ProgressStatus.ofCode(dto.getStatus()));

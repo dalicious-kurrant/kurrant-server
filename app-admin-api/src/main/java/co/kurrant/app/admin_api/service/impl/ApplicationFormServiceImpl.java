@@ -281,7 +281,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable) {
-        Page<RequestedPartnership> requestedMakersList = qRequestedPartnershipRepository.pageFindAllRequestedMakers(pageable);
+        Page<RequestedMakers> requestedMakersList = qRequestedPartnershipRepository.pageFindAllRequestedMakers(pageable);
         return ListItemResponseDto.<MakersRequestedResDto>builder().items(requestedPartnershipMapper.toMakersRequestedResDtoList(requestedMakersList)).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(requestedMakersList.getNumberOfElements()).total((long) requestedMakersList.getTotalPages()).isLast(requestedMakersList.isLast()).build();
     }
@@ -309,7 +309,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<CorporationRequestResDto> getAllCorporationRequestList(OffsetBasedPageRequest pageable) {
-        Page<RequestedPartnership> requestedCorporations = qRequestedPartnershipRepository.pageFindAllRequestedCorporation(pageable);
+        Page<RequestedCorporation> requestedCorporations = qRequestedPartnershipRepository.pageFindAllRequestedCorporation(pageable);
         return ListItemResponseDto.<CorporationRequestResDto>builder().items(requestedPartnershipMapper.toCorporationRequestedResDtoList(requestedCorporations)).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(requestedCorporations.getNumberOfElements()).total((long) requestedCorporations.getTotalPages()).isLast(requestedCorporations.isLast()).build();
     }

@@ -1,24 +1,29 @@
 package co.dalicious.domain.application_form.entity;
 
-import co.dalicious.domain.application_form.converter.HomepageRequestedTypeConverter;
 import co.dalicious.domain.application_form.converter.ProgressStatusConverter;
-import co.dalicious.domain.application_form.entity.enums.HomepageRequestedType;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.*;
-import org.hibernate.annotations.Comment;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.*;
 
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
+@DynamicInsert
+@DynamicUpdate
 @Entity
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "application_form__requested_partnership")
 public class RequestedPartnership {
 
@@ -57,33 +62,16 @@ public class RequestedPartnership {
     @Comment("메모")
     private String memo;
 
-    @Column(name = "makers_name")
-    @Comment("신청한 메이커스 이름")
-    private String makersName;
-
-    @Column(name = "main_product")
-    @Comment("메인 상품")
-    private String mainProduct;
-
     @Convert(converter = ProgressStatusConverter.class)
     @Comment("진행 상황")
     @Column(name = "e_status")
     private ProgressStatus progressStatus;
 
-    @Convert(converter = HomepageRequestedTypeConverter.class)
-    @Comment("신청 티압 - 0: 기업 / 1: 메이커스")
-    @Column(name = "e_type")
-    private HomepageRequestedType requestedType;
-
-    @Builder
-    public RequestedPartnership(String username, String address, String phone, String memo, String makersName, String mainProduct, ProgressStatus progressStatus, HomepageRequestedType requestedType) {
+    public RequestedPartnership(String username, String address, String phone, String memo, ProgressStatus progressStatus) {
         this.username = username;
         this.address = address;
         this.phone = phone;
         this.memo = memo;
-        this.makersName = makersName;
-        this.mainProduct = mainProduct;
         this.progressStatus = progressStatus;
-        this.requestedType = requestedType;
     }
 }

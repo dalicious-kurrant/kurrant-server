@@ -3,6 +3,7 @@ drop table application_form__requested_makers;
 
 create table application_form__requested_partnership
 (
+    dtype             varchar(31)                               null,
     id                bigint unsigned auto_increment
         primary key,
     created_date_time timestamp(6) default CURRENT_TIMESTAMP(6) not null comment '생성일',
@@ -14,5 +15,4 @@ create table application_form__requested_partnership
     memo              varchar(255)                              null comment '메모',
     main_product      varchar(255)                              null comment '메인 상품',
     e_status          tinyint(1)                                null comment '진행 상황',
-    e_type          tinyint(1)                                null comment '신청 티압 - 0: 기업 / 1: 메이커스'
 );
