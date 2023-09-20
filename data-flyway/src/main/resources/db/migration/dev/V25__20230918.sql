@@ -14,5 +14,5 @@ create table application_form__requested_partnership
     user_phone             varchar(255)                              null comment '유저 핸드폰 번호',
     memo              varchar(255)                              null comment '메모',
     main_product      varchar(255)                              null comment '메인 상품',
-    e_status          tinyint(1)                                null comment '진행 상황',
+    e_status          tinyint(1)                                null comment '진행 상황'
 );
