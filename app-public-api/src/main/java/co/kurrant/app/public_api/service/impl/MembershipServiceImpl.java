@@ -270,8 +270,10 @@ public class MembershipServiceImpl implements MembershipService {
 
         // 정기식사 포인트 적립 조회
         BigDecimal earnDailyFoodEarnPoint = qPointHistoryRepository.getTotalEarnPointByPeriodAndStatus(user, threeMonthAgo, now, PointStatus.earnDailyFoodPoint());
+        // FIXME: 추후 마켓 추가시 변경
+        BigDecimal totalEarnPoint = earnDailyFoodEarnPoint;
 
-        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice, earnDailyFoodEarnPoint);
+        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice, earnDailyFoodEarnPoint, totalEarnPoint);
     }
 
     @Override
