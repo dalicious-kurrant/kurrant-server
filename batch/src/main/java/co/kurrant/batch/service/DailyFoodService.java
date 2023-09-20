@@ -113,6 +113,7 @@ public class DailyFoodService {
                 lastOrderDate = lastOrderDate.minusDays(2);
 
             }
+
             LocalDateTime lastOrderDateTime = lastOrderDate.atTime(lastOrderDayAndTime.getTime());
 
             if (LocalDateTime.now().isAfter(lastOrderDateTime) || LocalDateTime.now().isEqual(lastOrderDateTime)) {
@@ -137,6 +138,14 @@ public class DailyFoodService {
             DayAndTime lastOrderDayAndTime = (DayAndTime) result[1];
             LocalDate serviceDate = (LocalDate) result[2];
             LocalDate lastOrderDate = serviceDate.minusDays(lastOrderDayAndTime.getDay());
+
+            DayOfWeek dayOfWeek = lastOrderDate.getDayOfWeek();
+            if (dayOfWeek == DayOfWeek.SATURDAY) {
+                lastOrderDate = lastOrderDate.minusDays(1);
+            } else if (dayOfWeek == DayOfWeek.SUNDAY) {
+                lastOrderDate = lastOrderDate.minusDays(2);
+            }
+            
             LocalDateTime lastOrderDateTime = lastOrderDate.atTime(lastOrderDayAndTime.getTime());
 
             if (LocalDateTime.now().isAfter(lastOrderDateTime) || LocalDateTime.now().isEqual(lastOrderDateTime)) {
