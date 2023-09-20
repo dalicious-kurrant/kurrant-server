@@ -7,10 +7,7 @@ import co.dalicious.data.redis.event.ReloadEvent;
 import co.dalicious.domain.application_form.dto.corporation.CorporationRequestAtHomepageDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestAtHomepageDto;
 import co.dalicious.domain.order.dto.OrderDto;
-import co.kurrant.app.admin_api.service.ApplicationFormAtHomepageService;
-import co.kurrant.app.admin_api.service.GroupService;
-import co.kurrant.app.admin_api.service.AdminPaycheckService;
-import co.kurrant.app.admin_api.service.UserService;
+import co.kurrant.app.admin_api.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.io.ParseException;
@@ -32,6 +29,7 @@ public class PublicController {
     private final ApplicationEventPublisher applicationEventPublisher;
     private final UserService userService;
     private final ApplicationFormAtHomepageService applicationFormAtHomepageService;
+    private final ApplicationFormService applicationFormService;
 
     @ControllerMarker(ControllerType.PUBLIC)
     @Operation(summary = "메이커스 조회", description = "메이커스 조회")
@@ -122,4 +120,25 @@ public class PublicController {
                 .message("홈페이지에서 메이커스 신청을 성공했습니다.")
                 .build();
     }
+
+    @ControllerMarker(ControllerType.PUBLIC)
+    @Operation(summary = "추천 메이커스 정보", description = "추천 메이커스 정보를 전부 조회합니다.")
+    @GetMapping("/recommend/makersInfos")
+    public ResponseMessage getRecommendMakersName() {
+        return ResponseMessage.builder()
+                .message("추천 메이커스 정보 조회에 성공했습니다.")
+                .data(applicationFormService.getRecommendMakersName())
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.PUBLIC)
+    @Operation(summary = "전체 그룹 정보", description = "모든 그룹의 정보를 조회합니다.")
+    @GetMapping("/groupInfos")
+    public ResponseMessage getAllGroupInfo() {
+        return ResponseMessage.builder()
+                .message("전체 그룹의 정보 조회에 성공했습니다.")
+                .data(groupService. getAllGroupInfo())
+                .build();
+    }
+
 }

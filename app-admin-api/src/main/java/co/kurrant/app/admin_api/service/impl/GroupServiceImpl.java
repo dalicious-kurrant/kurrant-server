@@ -463,5 +463,11 @@ public class GroupServiceImpl implements GroupService {
         mySpotZoneList.forEach(mySpotZone -> mySpotZoneMapper.updateMySpotZoneStatusAndDate(updateStatusDto, mySpotZone));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<FilterInfo> getAllGroupInfo() {
+        return qGroupRepository.getAllIdAndName();
+    }
+
 
 }

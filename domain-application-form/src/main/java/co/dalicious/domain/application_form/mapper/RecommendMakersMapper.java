@@ -1,6 +1,7 @@
 package co.dalicious.domain.application_form.mapper;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
+import co.dalicious.domain.application_form.dto.makers.AdminRecommendMakersResDto;
 import co.dalicious.domain.application_form.dto.makers.NameAndAddressDto;
 import co.dalicious.domain.application_form.dto.makers.RecommendMakersRequestDto;
 import co.dalicious.domain.application_form.dto.makers.RecommendMakersResponseDto;
@@ -10,6 +11,7 @@ import co.dalicious.domain.application_form.entity.enums.RecommendProgressStatus
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.springframework.data.domain.Page;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -69,5 +71,28 @@ public interface RecommendMakersMapper {
         }
 
         return recommendMakersResponseDtos;
+    }
+
+    default List<AdminRecommendMakersResDto> toRecommendMakersResponseDto(Page<RecommendMakers> recommendMakersList, Map<BigInteger, String> groupIdAndName) {
+        List<AdminRecommendMakersResDto> recommendMakersResponseDtos = new ArrayList<>();
+        for (RecommendMakers recommendMakers : recommendMakersList) {
+            AdminRecommendMakersResDto dto = new AdminRecommendMakersResDto();
+
+            dto.setId(recommendMakers.getId());
+            dto.setStatus(recommendMakers.getProgressStatus().getCode());
+            dto.setName(recommendMakers.getName());
+            dto.setAddress(recommendMakers.getAddress().addressToString());
+            dto.setPhone(recommendMakers.getPhone());
+            dto.setGroupName(groupIdAndName.entrySet().stream().filter(v -> v.getKey().equals(recommendMakers.getGroupId())).map(Map.Entry::getValue).findAny().orElse(null));
+            dto.setCount(recommendMakers.getUserIds().size());
+
+            recommendMakersResponseDtos.add(dto);
+        }
+
+        return recommendMakersResponseDtos;
+    }
+
+    default void updateRecommendMakersStatus(RecommendProgressStatus status, @MappingTarget RecommendMakers recommendMakers) {
+        recommendMakers.setProgressStatus(status);
     }
 }
