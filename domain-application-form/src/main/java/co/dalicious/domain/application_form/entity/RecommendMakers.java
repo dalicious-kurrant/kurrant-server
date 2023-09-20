@@ -2,7 +2,9 @@ package co.dalicious.domain.application_form.entity;
 
 import co.dalicious.domain.address.entity.embeddable.Address;
 import co.dalicious.domain.application_form.converter.ProgressStatusConverter;
+import co.dalicious.domain.application_form.converter.RecommendProgressStatusConverter;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
+import co.dalicious.domain.application_form.entity.enums.RecommendProgressStatus;
 import co.dalicious.system.converter.IdListConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
@@ -66,13 +68,13 @@ public class RecommendMakers {
     @Comment("고객사 Id")
     private BigInteger groupId;
 
-    @Convert(converter = ProgressStatusConverter.class)
+    @Convert(converter = RecommendProgressStatusConverter.class)
     @Comment("진행 상황")
     @Column(name = "e_status")
-    private ProgressStatus progressStatus;
+    private RecommendProgressStatus progressStatus;
 
     @Builder
-    public RecommendMakers(List<BigInteger> userId, Address address, String name, String phone, BigInteger groupId, ProgressStatus progressStatus) {
+    public RecommendMakers(List<BigInteger> userId, Address address, String name, String phone, BigInteger groupId, RecommendProgressStatus progressStatus) {
         this.userIds = userId;
         this.address = address;
         this.name = name;
