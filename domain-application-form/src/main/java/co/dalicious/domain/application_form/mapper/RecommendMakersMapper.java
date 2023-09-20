@@ -6,6 +6,7 @@ import co.dalicious.domain.application_form.dto.makers.RecommendMakersRequestDto
 import co.dalicious.domain.application_form.dto.makers.RecommendMakersResponseDto;
 import co.dalicious.domain.application_form.entity.RecommendMakers;
 import co.dalicious.domain.application_form.entity.enums.ProgressStatus;
+import co.dalicious.domain.application_form.entity.enums.RecommendProgressStatus;
 import org.locationtech.jts.io.ParseException;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -27,7 +28,7 @@ public interface RecommendMakersMapper {
                 .groupId(requestDto.getSpotId())
                 .address(address)
                 .phone(requestDto.getPhone())
-                .progressStatus(ProgressStatus.APPLY)
+                .progressStatus(RecommendProgressStatus.PENDING)
                 .build();
     }
 

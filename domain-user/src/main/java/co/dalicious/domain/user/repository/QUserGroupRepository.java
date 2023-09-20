@@ -4,6 +4,7 @@ import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.entity.enums.UserStatus;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -146,7 +147,7 @@ public class QUserGroupRepository {
         return queryFactory.select(user)
                 .from(userGroup)
                 .leftJoin(userGroup.user, user)
-                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG), user.firebaseToken.isNotNull())
+                .where(userGroup.group.id.in(groupIds), userGroup.clientStatus.eq(ClientStatus.BELONG), user.firebaseToken.isNotNull(), user.userStatus.eq(UserStatus.ACTIVE))
                 .fetch();
     }
 
