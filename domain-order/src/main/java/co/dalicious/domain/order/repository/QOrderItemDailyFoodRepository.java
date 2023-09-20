@@ -114,6 +114,8 @@ public class QOrderItemDailyFoodRepository {
     public List<OrderItemDailyFood> findAllWhichGetMembershipBenefit(User user, LocalDateTime now, LocalDateTime threeMonthAgo) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood).fetchJoin()
+                .innerJoin(dailyFood.group, group).fetchJoin()
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo), Timestamp.valueOf(now)),
                         orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
