@@ -18,8 +18,10 @@ import co.dalicious.domain.user.entity.Membership;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.MembershipSubscriptionType;
 import co.dalicious.domain.user.entity.enums.PaymentType;
+import co.dalicious.domain.user.entity.enums.PointStatus;
 import co.dalicious.domain.user.mapper.MembershipBenefitMapper;
 import co.dalicious.domain.user.repository.MembershipRepository;
+import co.dalicious.domain.user.repository.QPointHistoryRepository;
 import co.dalicious.domain.user.util.FoundersUtil;
 import co.dalicious.domain.user.util.MembershipUtil;
 import co.dalicious.system.util.PeriodDto;
@@ -68,6 +70,7 @@ public class MembershipServiceImpl implements MembershipService {
     private final PaymentCancelHistoryRepository paymentCancelHistoryRepository;
     private final OrderService orderService;
     private final MembershipDiscountEvent membershipDiscountEvent;
+    private final QPointHistoryRepository qPointHistoryRepository;
 
     @Override
     @Transactional
@@ -265,7 +268,10 @@ public class MembershipServiceImpl implements MembershipService {
         // 환불 가능 금액 계산하기
         BigDecimal refundablePrice = getRefundableMembershipPrice(orderItemDailyFoods, orderItemMembership);
 
-        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice);
+        // 정기식사 포인트 적립 조회
+        BigDecimal earnDailyFoodEarnPoint = qPointHistoryRepository.getTotalEarnPointByPeriodAndStatus(user, threeMonthAgo, now, PointStatus.earnDailyFoodPoint());
+
+        return membershipBenefitMapper.toDto(membership, dailyFoodMembershipDiscountDto, refundablePrice, earnDailyFoodEarnPoint);
     }
 
     @Override
@@ -278,7 +284,9 @@ public class MembershipServiceImpl implements MembershipService {
             totalMembershipDiscountPrice = totalMembershipDiscountPrice.add(orderItemDailyFood.getMembershipDiscountPrice());
             orderItemDailyFoodGroups.add(orderItemDailyFood.getOrderItemDailyFoodGroup());
         }
-        totalMembershipDiscountDeliveryFee = totalMembershipDiscountDeliveryFee.add(deliveryFeePolicy.getDeliveryFee().multiply(BigDecimal.valueOf(orderItemDailyFoodGroups.size())));
+        for (OrderItemDailyFoodGroup orderItemDailyFoodGroup : orderItemDailyFoodGroups) {
+            totalMembershipDiscountDeliveryFee = totalMembershipDiscountDeliveryFee.add(deliveryFeePolicy.getNoMembershipGroupDeliveryFee(orderItemDailyFoodGroup.getOrderDailyFoods().get(0).getDailyFood().getGroup()));
+        }
         return new DailyFoodMembershipDiscountDto(totalMembershipDiscountPrice, totalMembershipDiscountDeliveryFee);
     }
 
