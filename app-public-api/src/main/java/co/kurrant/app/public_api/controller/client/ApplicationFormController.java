@@ -3,6 +3,8 @@ package co.kurrant.app.public_api.controller.client;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
+import co.dalicious.domain.application_form.dto.makers.RecommendMakersRequestDto;
+import co.dalicious.domain.application_form.dto.makers.UpdateRecommendMakersReqDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
@@ -107,4 +109,26 @@ public class ApplicationFormController {
                 .message("스팟 신청 알림 설정에 성공했습니다.")
                 .build();
     }
+
+    @Operation(summary = "메이커스 추천 API", description = "유저가 원하는 메이커스를 추천한다.")
+    @PostMapping("/makers")
+    public ResponseMessage registerMakersRecommendation(Authentication authentication,
+                                          @RequestBody RecommendMakersRequestDto requestDto) throws ParseException {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        applicationFormService.registerMakersRecommendation(securityUser, requestDto);
+        return ResponseMessage.builder()
+                .message("메이커스 추천에 성공하였습니다.")
+                .build();
+    }
+
+    @Operation(summary = "메이커스 추천 리스트", description = "메이커스 추천 리스트를 돌려준다.")
+    @GetMapping("/makers")
+    public ResponseMessage getRecommendMakersList(Authentication authentication) {
+        SecurityUser securityUser = UserUtil.securityUser(authentication);
+        return ResponseMessage.builder()
+                .message("메이커스 추천 리스트를 조회하는데 성공하였습니다.")
+                .data(applicationFormService.getRecommendMakersList(securityUser))
+                .build();
+    }
+
 }
