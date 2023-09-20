@@ -57,7 +57,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
 
-    private final ApplicationSlackUtil applicationSlackUtil;
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
@@ -78,12 +77,9 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final SpotRepository spotRepository;
-    private final RequestedMakersRepository requestedMakersRepository;
-    private final RequestedMakersMapper requestedMakersMapper;
-    private final QRequestedMakersRepository qRequestedMakersRepository;
-    private final RequestedCorporationRepository requestedCorporationRepository;
-    private final RequestedCorporationMapper requestedCorporationMapper;
-    private final QRequestedCorporationRepository qRequestedCorporationRepository;
+    private final RequestedPartnershipRepository requestedPartnershipRepository;
+    private final RequestedPartnershipMapper requestedPartnershipMapper;
+    private final QRequestedPartnershipRepository qRequestedPartnershipRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -285,57 +281,57 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable) {
-        Page<RequestedMakers> requestedMakersList = qRequestedMakersRepository.pageFindAllRequestedMakers(pageable);
-        return ListItemResponseDto.<MakersRequestedResDto>builder().items(requestedMakersMapper.toMakersRequestedResDtoList(requestedMakersList)).limit(pageable.getPageSize()).offset(pageable.getOffset())
+        Page<RequestedMakers> requestedMakersList = qRequestedPartnershipRepository.pageFindAllRequestedMakers(pageable);
+        return ListItemResponseDto.<MakersRequestedResDto>builder().items(requestedPartnershipMapper.toMakersRequestedResDtoList(requestedMakersList)).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(requestedMakersList.getNumberOfElements()).total((long) requestedMakersList.getTotalPages()).isLast(requestedMakersList.isLast()).build();
     }
 
     @Override
     @Transactional
     public void createMakersRequest(MakersRequestedReqDto request) {
-        requestedMakersRepository.save(requestedMakersMapper.toRequestedMakersEntity(request));
+        requestedPartnershipRepository.save(requestedPartnershipMapper.toRequestedMakersEntity(request));
     }
 
     @Override
     @Transactional
     public void updateMakerRequestStatus(BigInteger id, StatusUpdateDto request) {
-        RequestedMakers requestedMakers = requestedMakersRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
-        requestedMakersMapper.updateRequestedMakersStatus(request, requestedMakers);
+        RequestedPartnership requestedMakers = requestedPartnershipRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        requestedPartnershipMapper.updateRequestedMakersStatus(request, requestedMakers);
     }
 
     @Override
     @Transactional
     public void deleteMakersRequest(List<BigInteger> ids) {
-        List<RequestedMakers> requestedMakers = requestedMakersRepository.findAllById(ids);
-        requestedMakersRepository.deleteAll(requestedMakers);
+        List<RequestedPartnership> requestedMakers = requestedPartnershipRepository.findAllById(ids);
+        requestedPartnershipRepository.deleteAll(requestedMakers);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<CorporationRequestResDto> getAllCorporationRequestList(OffsetBasedPageRequest pageable) {
-        Page<RequestedCorporation> requestedCorporations = qRequestedCorporationRepository.pageFindAllRequestedCorporation(pageable);
-        return ListItemResponseDto.<CorporationRequestResDto>builder().items(requestedCorporationMapper.toCorporationRequestedResDtoList(requestedCorporations)).limit(pageable.getPageSize()).offset(pageable.getOffset())
+        Page<RequestedCorporation> requestedCorporations = qRequestedPartnershipRepository.pageFindAllRequestedCorporation(pageable);
+        return ListItemResponseDto.<CorporationRequestResDto>builder().items(requestedPartnershipMapper.toCorporationRequestedResDtoList(requestedCorporations)).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(requestedCorporations.getNumberOfElements()).total((long) requestedCorporations.getTotalPages()).isLast(requestedCorporations.isLast()).build();
     }
 
     @Override
     @Transactional
     public void createCorporationRequest(CorporationRequestReqDto request) {
-        requestedCorporationRepository.save(requestedCorporationMapper.toRequestedCorporationEntity(request));
+        requestedPartnershipRepository.save(requestedPartnershipMapper.toRequestedCorporationEntity(request));
     }
 
     @Override
     @Transactional
     public void updateCorporationRequestStatus(BigInteger id, StatusUpdateDto request) {
-        RequestedCorporation requestedCorporation = requestedCorporationRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
-        requestedCorporationMapper.updateRequestedCorporationStatus(request, requestedCorporation);
+        RequestedPartnership requestedCorporation = requestedPartnershipRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        requestedPartnershipMapper.updateRequestedCorporationStatus(request, requestedCorporation);
     }
 
     @Override
     @Transactional
     public void deleteCorporationRequest(List<BigInteger> ids) {
-        List<RequestedCorporation> requestedCorporations = requestedCorporationRepository.findAllById(ids);
-        requestedCorporationRepository.deleteAll(requestedCorporations);
+        List<RequestedPartnership> requestedCorporations = requestedPartnershipRepository.findAllById(ids);
+        requestedPartnershipRepository.deleteAll(requestedCorporations);
     }
 
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {
