@@ -114,7 +114,7 @@ public class QGroupRepository {
             whereCause.and(group.id.in(ids));
         }
         return queryFactory.selectFrom(group)
-                .where(whereCause)
+                .where(whereCause, group.isActive.isTrue())
                 .fetch();
     }
 
