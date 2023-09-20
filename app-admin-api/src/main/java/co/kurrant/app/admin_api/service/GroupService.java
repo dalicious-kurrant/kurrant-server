@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.service;
 import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ItemPageableResponseDto;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
+import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.domain.client.dto.GroupListDto;
 import co.dalicious.domain.client.dto.UpdateGroupListDto;
 import co.dalicious.domain.client.dto.UpdateSpotDetailRequestDto;
@@ -33,4 +34,5 @@ public interface GroupService {
     void deleteMySpotZone(List<BigInteger> id);
     void updateLocation() throws ParseException;
     void updateMySpotZoneStatus(UpdateStatusDto updateStatusDto);
+    List<FilterInfo> getAllGroupInfo();
 }

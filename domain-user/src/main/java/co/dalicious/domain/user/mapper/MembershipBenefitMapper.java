@@ -17,7 +17,9 @@ public interface MembershipBenefitMapper {
     @Mapping(source = "dailyFoodMembershipDiscountDto.totalMembershipDiscountPrice", target = "dailyFoodDiscountPrice")
     @Mapping(source = "dailyFoodMembershipDiscountDto", target = "totalDiscountBenefitPrice", qualifiedByName = "getTotalDiscountBenefitPrice")
     @Mapping(source = "refundablePrice", target = "refundablePrice")
-    MembershipBenefitDto toDto(Membership membership, DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto, BigDecimal refundablePrice);
+    @Mapping(source = "dailyFoodReviewPoint", target = "dailyFoodReviewPoint")
+    @Mapping(source = "totalPointBenefitPrice", target = "totalPointBenefitPrice")
+    MembershipBenefitDto toDto(Membership membership, DailyFoodMembershipDiscountDto dailyFoodMembershipDiscountDto, BigDecimal refundablePrice, BigDecimal dailyFoodReviewPoint, BigDecimal totalPointBenefitPrice);
 
     // TODO: 추후 마켓 추가시 더하는 로직 구현
     @Named("getTotalDiscountBenefitPrice")
