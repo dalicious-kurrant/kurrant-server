@@ -1,5 +1,6 @@
 package co.dalicious.domain.client.repository;
 
+import co.dalicious.domain.client.dto.FilterInfo;
 import co.dalicious.domain.client.dto.OpenGroupResponseDto;
 import co.dalicious.domain.client.entity.*;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
@@ -8,6 +9,7 @@ import co.dalicious.system.enums.DiningType;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.core.types.dsl.StringTemplate;
@@ -221,5 +223,12 @@ public class QGroupRepository {
         }
 
         return nameMap;
+    }
+
+    public List<FilterInfo> getAllIdAndName() {
+        return queryFactory.select(Projections.fields(FilterInfo.class, group.id, group.name))
+                .from(group)
+                .where(group.isActive.isTrue())
+                .fetch();
     }
 }

@@ -194,7 +194,7 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         BigInteger user = userUtil.getUserId(securityUser);
         if(requestDto.getId() != null && !requestDto.getId().isEmpty()) {
             RecommendMakers recommendMakers = qRecommendMakersRepository.findBySpotId(requestDto.getId(), requestDto.getSpotId());
-            if(recommendMakers == null) throw new ApiException(ExceptionEnum.RESOURCE_NOT_FOUND);
+            if(recommendMakers == null) throw new ApiException(ExceptionEnum.NOT_EXIST_REQUEST);
 
             recommendMakersMapper.updateUserIds(user, recommendMakers);
             if (recommendMakers.getUserIds().isEmpty()) recommendMakersRepository.delete(recommendMakers);
