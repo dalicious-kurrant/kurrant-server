@@ -257,7 +257,7 @@ public class QMakersRepository {
         }
         return queryFactory.select(makers.name, makers.managerPhone)
                 .from(makers)
-                .where(whereCause)
+                .where(whereCause, makers.isActive.isTrue())
                 .fetchOne();
     }
 }
