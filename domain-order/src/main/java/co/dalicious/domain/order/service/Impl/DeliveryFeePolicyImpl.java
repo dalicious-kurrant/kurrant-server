@@ -25,6 +25,14 @@ public class DeliveryFeePolicyImpl implements DeliveryFeePolicy {
     }
 
     @Override
+    public BigDecimal getNoMembershipGroupDeliveryFee(Group group) {
+        if (group instanceof Corporation corporation && corporation.getDeliveryFeeOption().equals(DeliveryFeeOption.CORPORATION)) {
+            return BigDecimal.ZERO;
+        }
+        return DELIVERY_FEE;
+    }
+
+    @Override
     public BigDecimal getGroupDeliveryFee(User user, Group group) {
         group = (Group) Hibernate.unproxy(group);
         if (group instanceof Corporation corporation && corporation.getDeliveryFeeOption().equals(DeliveryFeeOption.PERSONAL)) {

@@ -54,4 +54,11 @@ public enum PointStatus {
 
         return pointStatusList;
     }
+
+    public static List<PointStatus> earnDailyFoodPoint() {
+        List<PointStatus> pointStatusList = new ArrayList<>();
+        pointStatusList.add(PointStatus.REVIEW_REWARD);
+        pointStatusList.add(PointStatus.FOUNDERS_REWARD);
+        return pointStatusList;
+    }
 }

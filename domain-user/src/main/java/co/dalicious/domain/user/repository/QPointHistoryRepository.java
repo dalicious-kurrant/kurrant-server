@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -121,5 +122,15 @@ public class QPointHistoryRepository {
         return jpaQueryFactory.selectFrom(pointHistory)
                 .where(pointHistory.user.eq(user), pointHistory.pointStatus.eq(pointStatus), pointHistory.createdDateTime.between(start, end))
                 .fetch();
+    }
+
+    public BigDecimal getTotalEarnPointByPeriodAndStatus(User user, LocalDateTime startDate, LocalDateTime endDate, List<PointStatus> pointStatusList) {
+        return jpaQueryFactory.select(pointHistory.point.sum())
+                .from(pointHistory)
+                .where(pointHistory.user.eq(user),
+                        pointHistory.pointStatus.in(pointStatusList),
+                        pointHistory.createdDateTime.goe(Timestamp.valueOf(startDate)),
+                        pointHistory.createdDateTime.loe(Timestamp.valueOf(endDate)))
+                .fetchOne();
     }
 }

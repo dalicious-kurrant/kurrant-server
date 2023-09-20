@@ -117,6 +117,7 @@ public class QOrderItemDailyFoodRepository {
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo), Timestamp.valueOf(now)),
                         orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
                         orderItemDailyFood.membershipDiscountRate.gt(0))
                 .fetch();
     }
