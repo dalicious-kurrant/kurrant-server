@@ -14,6 +14,8 @@ public class SpotResponseDto {
 
     @Schema(description = "스팟 아이디")
     private BigInteger spotId;
+    @Schema(description = "스팟 타입(기업스팟/마이스팟/매장스팟)")
+    private String spotType;
     @Schema(description = "스팟 상태")
     private Integer status;
     @Schema(description = "스팟 이름")
@@ -68,4 +70,7 @@ public class SpotResponseDto {
     private String updatedDateTime;
     @Schema(description = "메모")
     private String memo;
+
+    @Schema(description = "메이커스 ID(홀매장)")
+    private BigInteger makersId;
 }

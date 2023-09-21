@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -83,6 +84,7 @@ public class Group {
     List<Spot> spots;
 
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)
+    @JsonBackReference(value = "client__department_fk")
     List<Department> departments;
 
     @Comment("메모")
@@ -182,5 +184,11 @@ public class Group {
 
     public void updateAddress(Address address){
         this.address = address;
+    }
+
+    public List<Spot> getSpotByClass(Class<? extends Spot> spotClass) {
+        return this.getSpots().stream()
+                .filter(spot -> spot.getClass().equals(spotClass))
+                .collect(Collectors.toList());
     }
 }

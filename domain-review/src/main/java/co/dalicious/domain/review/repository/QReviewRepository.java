@@ -34,8 +34,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.crypto.spec.PSource;
-import java.beans.Expression;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -44,6 +42,7 @@ import java.util.stream.Collectors;
 
 import static co.dalicious.domain.file.entity.embeddable.QImage.image;
 import static co.dalicious.domain.food.entity.QDailyFood.dailyFood;
+import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.food.entity.QMakers.makers;
 import static co.dalicious.domain.order.entity.QOrder.order;
 import static co.dalicious.domain.food.entity.QFood.food;

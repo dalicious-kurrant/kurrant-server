@@ -47,7 +47,6 @@ import java.util.stream.Collectors;
 public class OrderUtil {
     private final PaymentCancleHistoryMapper paymentCancleHistoryMapper;
     private final PaymentService paymentService;
-    private final EntityManager entityManager;
 
     // 주문 코드 생성
     public static String generateOrderCode(OrderType orderType, BigInteger userId) {

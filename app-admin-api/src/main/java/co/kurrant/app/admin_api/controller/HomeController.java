@@ -7,6 +7,7 @@ import co.dalicious.client.core.enums.ControllerType;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,8 +16,9 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping(value = "/v1/")
 public class HomeController {
-    @ControllerMarker(ControllerType.GROUP)
+    @ControllerMarker(ControllerType.HOME)
     @Operation(summary = "대시보드 조회", description = "오늘, 이번주, 이번달 식수 조회 및 메이커스와 고객사 판매량을 조회한다.")
     @GetMapping("")
     public ResponseMessage getDashboard(@RequestParam Map<String, Object> parameters) {

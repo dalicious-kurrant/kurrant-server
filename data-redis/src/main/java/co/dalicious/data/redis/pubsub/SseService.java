@@ -6,8 +6,6 @@ import co.dalicious.data.redis.entity.NotificationHash;
 import co.dalicious.data.redis.repository.EmitterRepository;
 import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.system.util.DateUtils;
-import exception.ApiException;
-import exception.ExceptionEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.MessageListener;
@@ -26,6 +24,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,7 +58,6 @@ public class SseService {
                 log.info("exception = " + e);
             }
         };
-
         redisMessageListenerContainer.addMessageListener(messageListener, ChannelTopic.of(getChannelName(id)));
 
         //기존 emitter 중 완료 되거나 시간이 초과되어 연결이 끊긴 emitter를 삭제한다.
@@ -171,10 +169,17 @@ public class SseService {
 
     private void checkEmitterStatus(final SseEmitter emitter,final String id, final MessageListener messageListener) {
         emitter.onCompletion(() -> {
+            log.info("완료된 emitter 삭제");
             emitterRepository.deleteById(id);
             redisMessageListenerContainer.removeMessageListener(messageListener);
         });
         emitter.onTimeout(() -> {
+            log.info("time out emitter 삭제");
+            emitterRepository.deleteById(id);
+            redisMessageListenerContainer.removeMessageListener(messageListener);
+        });
+        emitter.onError((error) -> {
+            log.info("error emitter 삭제");
             emitterRepository.deleteById(id);
             redisMessageListenerContainer.removeMessageListener(messageListener);
         });

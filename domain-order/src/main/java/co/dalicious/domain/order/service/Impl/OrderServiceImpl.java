@@ -156,7 +156,6 @@ public class OrderServiceImpl implements OrderService {
         User orderUser = order.getUser();
 
         synchronized (niceItemsLocks.computeIfAbsent(user, u -> new Object())) {
-
             if (!orderUser.equals(user)) {
                 throw new ApiException(ExceptionEnum.UNAUTHORIZED);
             }

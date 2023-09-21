@@ -44,6 +44,7 @@ public interface FoodMapper {
     @Mapping(source = "dailyFood.food.fat", target = "fat")
     @Mapping(source = "dailyFood.food.protein", target = "protein")
     @Mapping(source = "dailyFood.food.carbohydrate", target = "carbohydrate")
+    @Mapping(source = "dailyFood.isEatIn", target = "isEatIn")
     FoodDetailDto toDto(DailyFood dailyFood, DiscountDto discountDto);
 
     @Named("getImageLocation")

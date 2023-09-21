@@ -4,6 +4,9 @@ import co.dalicious.domain.application_form.dto.ApplicationFormDto;
 import co.dalicious.domain.application_form.dto.PushAlarmSettingDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
+import co.dalicious.domain.application_form.dto.makers.RecommendMakersRequestDto;
+import co.dalicious.domain.application_form.dto.makers.RecommendMakersResponseDto;
+import co.dalicious.domain.application_form.dto.makers.UpdateRecommendMakersReqDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.kurrant.app.public_api.dto.client.*;
@@ -30,5 +33,8 @@ public interface ApplicationFormService {
     CorporationApplicationFormResponseDto getCorporationApplicationFormDetail(BigInteger userId, BigInteger id);
     // 스팟 신청 날짜 리스트
     List<ApplicationFormDto> getSpotsApplicationList(BigInteger userId);
+    // 메이커스 추천
+    void registerMakersRecommendation(SecurityUser securityUser, RecommendMakersRequestDto requestDto) throws ParseException;
+    List<RecommendMakersResponseDto> getRecommendMakersList(SecurityUser securityUser);
 
 }

@@ -28,6 +28,10 @@ public class DeliveryUtils {
     private final QDailyFoodDeliveryRepository qDailyFoodDeliveryRepository;
 
     public void saveDeliveryInstance(OrderItemDailyFood orderItemDailyFood, Spot spot, User user, DailyFood dailyFood, LocalTime deliveryTime) {
+        // FIXME: 매장 식사일 경우, 배송은 고려하지 않음. 추후 변경사항이 있을 시 수정.
+        if(spot instanceof EatInSpot) {
+            return;
+        }
         DeliveryInstance deliveryInstance = getDeliveryInstance(spot, user, dailyFood, deliveryTime);
         if(deliveryInstance == null) {
             Integer deliveryOrderNumber = getNewOrderNumber(spot, dailyFood, deliveryTime);

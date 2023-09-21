@@ -31,6 +31,7 @@ public interface CartDailyFoodMapper {
     @Mapping(source = "discountDto.makersDiscountPrice", target = "makersDiscountPrice")
     @Mapping(source = "discountDto.makersDiscountRate", target = "makersDiscountRate")
     @Mapping(source = "discountDto.periodDiscountPrice", target = "periodDiscountPrice")
+    @Mapping(source = "cartDailyFood.dailyFood.isEatIn", target = "isEatIn")
     CartDailyFoodDto.DailyFood toDto(CartDailyFood cartDailyFood, DiscountDto discountDto);
 
     @Named("serviceDateToString")

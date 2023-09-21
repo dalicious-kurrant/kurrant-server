@@ -1,7 +1,6 @@
 package co.kurrant.app.public_api.service.impl;
 
 import co.dalicious.data.redis.dto.SseReceiverDto;
-import co.dalicious.data.redis.repository.NotificationHashRepository;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
 import co.dalicious.domain.application_form.dto.ApplicationFormDto;
@@ -10,6 +9,9 @@ import co.dalicious.domain.application_form.dto.corporation.CorporationApplicati
 import co.dalicious.domain.application_form.dto.corporation.CorporationApplicationFormResponseDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationMealInfoRequestDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationSpotRequestDto;
+import co.dalicious.domain.application_form.dto.makers.RecommendMakersRequestDto;
+import co.dalicious.domain.application_form.dto.makers.RecommendMakersResponseDto;
+import co.dalicious.domain.application_form.dto.makers.UpdateRecommendMakersReqDto;
 import co.dalicious.domain.application_form.dto.mySpotZone.MySpotZoneApplicationFormRequestDto;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.dalicious.domain.application_form.entity.*;
@@ -29,11 +31,11 @@ import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
 import co.dalicious.domain.user.entity.enums.ClientStatus;
+import co.dalicious.domain.user.mapper.UserGroupMapper;
+import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.user.mapper.UserGroupMapper;
-import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.kurrant.app.public_api.dto.client.ApplicationFormMemoDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.ApplicationFormService;
@@ -47,8 +49,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigInteger;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,8 +83,10 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotRepository userSpotRepository;
     private final QRequestedMySpotRepository qRequestedMySpotRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
-    private final NotificationHashRepository notificationHashRepository;
     private final UserRepository userRepository;
+    private final RecommendMakersMapper recommendMakersMapper;
+    private final RecommendMakersRepository recommendMakersRepository;
+    private final QRecommendMakersRepository qRecommendMakersRepository;
 
 
     @Override
@@ -184,6 +186,31 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
         Collections.reverse(applicationFormDtos);
 
         return applicationFormDtos;
+    }
+
+    @Override
+    @Transactional
+    public void registerMakersRecommendation(SecurityUser securityUser, RecommendMakersRequestDto requestDto) throws ParseException {
+        BigInteger user = userUtil.getUserId(securityUser);
+        if(requestDto.getId() != null && !requestDto.getId().isEmpty()) {
+            RecommendMakers recommendMakers = qRecommendMakersRepository.findBySpotId(requestDto.getId(), requestDto.getSpotId());
+            if(recommendMakers == null) throw new ApiException(ExceptionEnum.NOT_EXIST_REQUEST);
+
+            recommendMakersMapper.updateUserIds(user, recommendMakers);
+            if (recommendMakers.getUserIds().isEmpty()) recommendMakersRepository.delete(recommendMakers);
+        }
+        else {
+            recommendMakersRepository.save(recommendMakersMapper.toRecommendMakersEntity(requestDto, user));
+        }
+    }
+
+    @Override
+    @Transactional
+    public List<RecommendMakersResponseDto> getRecommendMakersList(SecurityUser securityUser) {
+        BigInteger userId = userUtil.getUserId(securityUser);
+
+        List<RecommendMakers> recommendMakersList = recommendMakersRepository.findAll();
+        return recommendMakersMapper.toRecommendMakersResponseDto(recommendMakersList, userId);
     }
 
     @Override

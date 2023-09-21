@@ -29,6 +29,7 @@ public enum ControllerType {
     DRIVER("DriverController", "배송 기사", 19),
     BOARD("BoardController", "공지사항", 20),
     HOME("HomeController", "홈", 21),
+    QR("QrController", "QR(넥스트 페이먼츠)", 22),
     ;
     private final String controller;
     private final String type;
