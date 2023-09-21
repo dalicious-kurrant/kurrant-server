@@ -114,9 +114,11 @@ public class QOrderItemDailyFoodRepository {
     public List<OrderItemDailyFood> findAllWhichGetMembershipBenefit(User user, LocalDateTime now, LocalDateTime threeMonthAgo) {
         return queryFactory
                 .selectFrom(orderItemDailyFood)
+                .innerJoin(orderItemDailyFood.dailyFood, dailyFood).fetchJoin()
+                .innerJoin(dailyFood.group, group).fetchJoin()
                 .where(orderItemDailyFood.order.user.eq(user),
                         orderItemDailyFood.createdDateTime.between(Timestamp.valueOf(threeMonthAgo), Timestamp.valueOf(now)),
-                        orderItemDailyFood.orderStatus.eq(OrderStatus.COMPLETED),
+                        orderItemDailyFood.orderStatus.in(OrderStatus.completePayment()),
                         orderItemDailyFood.membershipDiscountRate.gt(0))
                 .fetch();
     }
@@ -684,5 +686,13 @@ public class QOrderItemDailyFoodRepository {
             orderItemDailyFoodGroupMultiValueMap.add(result.get(orderItemDailyFood.dailyFood.group), result.get(orderItemDailyFood.orderItemDailyFoodGroup));
         }
         return orderItemDailyFoodGroupMultiValueMap;
+    }
+
+    public List<OrderItemDailyFood> findByUserAndServiceDateAndOrderStatus(User user, LocalDate serviceDate, List<OrderStatus> orderStatuses) {
+        return queryFactory.selectFrom(orderItemDailyFood)
+                .where(orderItemDailyFood.order.user.eq(user),
+                        orderItemDailyFood.dailyFood.serviceDate.eq(serviceDate),
+                        orderItemDailyFood.orderStatus.in(orderStatuses))
+                .fetch();
     }
 }

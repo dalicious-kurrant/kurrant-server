@@ -3,6 +3,7 @@ package co.kurrant.app.admin_api.controller;
 import co.dalicious.client.core.annotation.ControllerMarker;
 import co.dalicious.client.core.dto.response.ResponseMessage;
 import co.dalicious.client.core.enums.ControllerType;
+import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.dalicious.domain.food.dto.FoodDto;
 import co.kurrant.app.admin_api.dto.UpdateStatusAndIdListDto;
@@ -55,6 +56,17 @@ public class DailyFoodController {
     @PostMapping("/excel")
     public ResponseMessage excelDailyFood(@RequestBody List<FoodDto.DailyFood> dailyFoodList) {
         dailyFoodService.excelDailyFoods(dailyFoodList);
+        return ResponseMessage.builder()
+                .message("식단 엑셀 저장 및 수정에 성공하였습니다.")
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.DAILY_FOOD)
+    @Operation(summary = "매장 식사 식단 생성", description = "매장 식사 타입에 포함된 모든 스팟에 식단을 추가한다.")
+    @PostMapping("/eat-in")
+    public ResponseMessage generateEatInDailyFood(@RequestParam String startDate,
+                                                  @RequestParam String endDate) {
+        dailyFoodService.generateEatInDailyFood(DateUtils.stringToDate(startDate), DateUtils.stringToDate(endDate));
         return ResponseMessage.builder()
                 .message("식단 엑셀 저장 및 수정에 성공하였습니다.")
                 .build();

@@ -2,6 +2,7 @@ package co.kurrant.app.public_api.service;
 
 import co.dalicious.domain.order.dto.*;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
+import co.dalicious.domain.order.dto.QrResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import org.json.simple.parser.ParseException;
 
@@ -25,6 +26,8 @@ public interface OrderDailyFoodService {
     void cancelOrderItemDailyFood(SecurityUser securityUser, BigInteger id) throws IOException, ParseException;
     // 주문 상태값 변경
     void changingOrderItemOrderStatus(SecurityUser securityUser, BigInteger orderItemId);
+    // QR값 내보내기
+    QrResponseDto sendQRInformation(SecurityUser securityUser, List<BigInteger> idList);
 
     Object orderCardQuota(SecurityUser securityUser, OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException;
 }

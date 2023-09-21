@@ -4,11 +4,13 @@ import co.dalicious.client.core.dto.request.OffsetBasedPageRequest;
 import co.dalicious.client.core.dto.response.ListItemResponseDto;
 import co.dalicious.domain.address.entity.Region;
 import co.dalicious.domain.address.repository.QRegionRepository;
+import co.dalicious.domain.application_form.dto.StatusUpdateDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationRequestReqDto;
 import co.dalicious.domain.application_form.dto.corporation.CorporationRequestResDto;
+import co.dalicious.domain.application_form.dto.makers.AdminRecommendMakersResDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedReqDto;
 import co.dalicious.domain.application_form.dto.makers.MakersRequestedResDto;
-import co.dalicious.domain.application_form.dto.StatusUpdateDto;
+import co.dalicious.domain.application_form.dto.makers.RecommendMakersDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.CreateRequestDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.ListResponseDto;
 import co.dalicious.domain.application_form.dto.requestMySpotZone.admin.RequestedMySpotDetailDto;
@@ -16,15 +18,15 @@ import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterD
 import co.dalicious.domain.application_form.dto.requestMySpotZone.filter.FilterInfo;
 import co.dalicious.domain.application_form.dto.share.ShareSpotDto;
 import co.dalicious.domain.application_form.entity.*;
+import co.dalicious.domain.application_form.entity.enums.RecommendProgressStatus;
 import co.dalicious.domain.application_form.mapper.*;
 import co.dalicious.domain.application_form.repository.*;
-import co.dalicious.domain.application_form.utils.ApplicationSlackUtil;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.MySpot;
+import co.dalicious.domain.client.entity.MySpotZone;
 import co.dalicious.domain.client.entity.enums.GroupDataType;
 import co.dalicious.domain.client.mapper.MySpotZoneMealInfoMapper;
-import co.dalicious.domain.client.repository.GroupRepository;
-import co.dalicious.domain.client.repository.MealInfoRepository;
-import co.dalicious.domain.client.repository.SpotRepository;
+import co.dalicious.domain.client.repository.*;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.UserGroup;
 import co.dalicious.domain.user.entity.UserSpot;
@@ -34,9 +36,6 @@ import co.dalicious.domain.user.mapper.UserSpotMapper;
 import co.dalicious.domain.user.repository.QUserRepository;
 import co.dalicious.domain.user.repository.UserGroupRepository;
 import co.dalicious.domain.user.repository.UserSpotRepository;
-import co.dalicious.domain.client.entity.MySpot;
-import co.dalicious.domain.client.entity.MySpotZone;
-import co.dalicious.domain.client.repository.QMySpotZoneRepository;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.StringUtils;
 import co.kurrant.app.admin_api.service.ApplicationFormService;
@@ -57,7 +56,6 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class ApplicationFormServiceImpl implements ApplicationFormService {
 
-    private final ApplicationSlackUtil applicationSlackUtil;
     private final QRequestedMySpotZonesRepository qRequestedMySpotZonesRepository;
     private final RequestedMySpotZonesMapper requestedMySpotZonesMapper;
     private final RequestedMySpotZonesRepository requestedMySpotZonesRepository;
@@ -78,12 +76,13 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     private final UserSpotMapper userSpotMapper;
     private final UserSpotRepository userSpotRepository;
     private final SpotRepository spotRepository;
-    private final RequestedMakersRepository requestedMakersRepository;
-    private final RequestedMakersMapper requestedMakersMapper;
-    private final QRequestedMakersRepository qRequestedMakersRepository;
-    private final RequestedCorporationRepository requestedCorporationRepository;
-    private final RequestedCorporationMapper requestedCorporationMapper;
-    private final QRequestedCorporationRepository qRequestedCorporationRepository;
+    private final RequestedPartnershipRepository requestedPartnershipRepository;
+    private final RequestedPartnershipMapper requestedPartnershipMapper;
+    private final QRequestedPartnershipRepository qRequestedPartnershipRepository;
+    private final QRecommendMakersRepository qRecommendMakersRepository;
+    private final RecommendMakersMapper recommendMakersMapper;
+    private final QGroupRepository qGroupRepository;
+    private final RecommendMakersRepository recommendMakersRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -285,57 +284,83 @@ public class ApplicationFormServiceImpl implements ApplicationFormService {
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<MakersRequestedResDto> getAllMakersRequestList(OffsetBasedPageRequest pageable) {
-        Page<RequestedMakers> requestedMakersList = qRequestedMakersRepository.pageFindAllRequestedMakers(pageable);
-        return ListItemResponseDto.<MakersRequestedResDto>builder().items(requestedMakersMapper.toMakersRequestedResDtoList(requestedMakersList)).limit(pageable.getPageSize()).offset(pageable.getOffset())
+        Page<RequestedMakers> requestedMakersList = qRequestedPartnershipRepository.pageFindAllRequestedMakers(pageable);
+        return ListItemResponseDto.<MakersRequestedResDto>builder().items(requestedPartnershipMapper.toMakersRequestedResDtoList(requestedMakersList)).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(requestedMakersList.getNumberOfElements()).total((long) requestedMakersList.getTotalPages()).isLast(requestedMakersList.isLast()).build();
     }
 
     @Override
     @Transactional
     public void createMakersRequest(MakersRequestedReqDto request) {
-        requestedMakersRepository.save(requestedMakersMapper.toRequestedMakersEntity(request));
+        requestedPartnershipRepository.save(requestedPartnershipMapper.toRequestedMakersEntity(request));
     }
 
     @Override
     @Transactional
     public void updateMakerRequestStatus(BigInteger id, StatusUpdateDto request) {
-        RequestedMakers requestedMakers = requestedMakersRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
-        requestedMakersMapper.updateRequestedMakersStatus(request, requestedMakers);
+        RequestedPartnership requestedMakers = requestedPartnershipRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        requestedPartnershipMapper.updateRequestedMakersStatus(request, requestedMakers);
     }
 
     @Override
     @Transactional
     public void deleteMakersRequest(List<BigInteger> ids) {
-        List<RequestedMakers> requestedMakers = requestedMakersRepository.findAllById(ids);
-        requestedMakersRepository.deleteAll(requestedMakers);
+        List<RequestedPartnership> requestedMakers = requestedPartnershipRepository.findAllById(ids);
+        requestedPartnershipRepository.deleteAll(requestedMakers);
     }
 
     @Override
     @Transactional(readOnly = true)
     public ListItemResponseDto<CorporationRequestResDto> getAllCorporationRequestList(OffsetBasedPageRequest pageable) {
-        Page<RequestedCorporation> requestedCorporations = qRequestedCorporationRepository.pageFindAllRequestedCorporation(pageable);
-        return ListItemResponseDto.<CorporationRequestResDto>builder().items(requestedCorporationMapper.toCorporationRequestedResDtoList(requestedCorporations)).limit(pageable.getPageSize()).offset(pageable.getOffset())
+        Page<RequestedCorporation> requestedCorporations = qRequestedPartnershipRepository.pageFindAllRequestedCorporation(pageable);
+        return ListItemResponseDto.<CorporationRequestResDto>builder().items(requestedPartnershipMapper.toCorporationRequestedResDtoList(requestedCorporations)).limit(pageable.getPageSize()).offset(pageable.getOffset())
                 .count(requestedCorporations.getNumberOfElements()).total((long) requestedCorporations.getTotalPages()).isLast(requestedCorporations.isLast()).build();
     }
 
     @Override
     @Transactional
     public void createCorporationRequest(CorporationRequestReqDto request) {
-        requestedCorporationRepository.save(requestedCorporationMapper.toRequestedCorporationEntity(request));
+        requestedPartnershipRepository.save(requestedPartnershipMapper.toRequestedCorporationEntity(request));
     }
 
     @Override
     @Transactional
     public void updateCorporationRequestStatus(BigInteger id, StatusUpdateDto request) {
-        RequestedCorporation requestedCorporation = requestedCorporationRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
-        requestedCorporationMapper.updateRequestedCorporationStatus(request, requestedCorporation);
+        RequestedPartnership requestedCorporation = requestedPartnershipRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        requestedPartnershipMapper.updateRequestedCorporationStatus(request, requestedCorporation);
     }
 
     @Override
     @Transactional
     public void deleteCorporationRequest(List<BigInteger> ids) {
-        List<RequestedCorporation> requestedCorporations = requestedCorporationRepository.findAllById(ids);
-        requestedCorporationRepository.deleteAll(requestedCorporations);
+        List<RequestedPartnership> requestedCorporations = requestedPartnershipRepository.findAllById(ids);
+        requestedPartnershipRepository.deleteAll(requestedCorporations);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ListItemResponseDto<AdminRecommendMakersResDto> getAllRecommendMakersList(Map<String, Object> parameters, OffsetBasedPageRequest pageable) {
+        RecommendProgressStatus status = parameters.get("status") == null || !parameters.containsKey("status") ? null : RecommendProgressStatus.ofCode(Integer.valueOf(String.valueOf(parameters.get("status"))));
+        BigInteger makersName = parameters.get("makersName") == null || !parameters.containsKey("makersName") ? null : BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("makersName"))));
+        BigInteger groupId = parameters.get("groupId") == null || !parameters.containsKey("groupId") ? null : BigInteger.valueOf(Integer.parseInt(String.valueOf(parameters.get("groupId"))));
+
+        Page<RecommendMakers> recommendMakersList = qRecommendMakersRepository.findAllByFilter(status, makersName, groupId, pageable);
+        Map<BigInteger, String> groupIdAndName = qGroupRepository.findGroupNameByIds(recommendMakersList.stream().map(RecommendMakers::getGroupId).collect(Collectors.toSet()));
+        return ListItemResponseDto.<AdminRecommendMakersResDto>builder().items(recommendMakersMapper.toRecommendMakersResponseDto(recommendMakersList, groupIdAndName)).count(recommendMakersList.getNumberOfElements())
+                .limit(pageable.getPageSize()).offset(pageable.getOffset()).total((long) recommendMakersList.getTotalPages()).isLast(recommendMakersList.isLast()).build();
+    }
+
+    @Override
+    @Transactional
+    public void updateRecommendMakersStatus(BigInteger id, StatusUpdateDto request) {
+        RecommendMakers recommendMakers = recommendMakersRepository.findById(id).orElseThrow(() -> new ApiException(ExceptionEnum.NOT_EXIST_REQUEST));
+        recommendMakersMapper.updateRecommendMakersStatus(RecommendProgressStatus.ofCode(request.getStatus()), recommendMakers);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<RecommendMakersDto> getRecommendMakersName() {
+        return qRecommendMakersRepository.findAllIdAndMakersName();
     }
 
     private void createUserGroupAndUserSpot (List<RequestedMySpot> requestedMySpots, MySpotZone mySpotZone, List<MySpot> mySpotList) {

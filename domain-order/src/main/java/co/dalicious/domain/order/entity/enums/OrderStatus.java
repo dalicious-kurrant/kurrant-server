@@ -57,4 +57,12 @@ public enum OrderStatus {
         orderStatuses.add(OrderStatus.DELIVERING);
         return orderStatuses;
     }
+
+    public static List<OrderStatus> qrShowingStatus() {
+        List<OrderStatus> orderStatuses = new ArrayList<>();
+        orderStatuses.add(OrderStatus.WAIT_DELIVERY);
+        orderStatuses.add(OrderStatus.DELIVERING);
+        orderStatuses.add(OrderStatus.DELIVERED);
+        return orderStatuses;
+    }
 }

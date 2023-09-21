@@ -3,9 +3,12 @@ package co.dalicious.domain.food.entity;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.food.converter.DailyFoodStatusConverter;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.entity.enums.FoodStatus;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.converter.DiningTypeConverter;
 import co.dalicious.system.enums.DiscountType;
+import co.dalicious.system.util.DateUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AccessLevel;
@@ -70,6 +73,9 @@ public class DailyFood {
     @Comment("기간 할인율")
     private Integer periodDiscountRate;
 
+    @Column(name = "is_eat_in", columnDefinition = "BIT(1) DEFAULT 0")
+    private Boolean isEatIn;
+
     @CreationTimestamp
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy/MM/dd HH:mm:ss", timezone = "Asia/Seoul")
     @Column(nullable = false, columnDefinition = "TIMESTAMP(6) DEFAULT NOW(6)")
@@ -108,7 +114,7 @@ public class DailyFood {
     }
 
     @Builder
-    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, BigDecimal supplyPrice, BigDecimal defaultPrice, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
+    public DailyFood(DiningType diningType, DailyFoodStatus dailyFoodStatus, LocalDate serviceDate, BigDecimal supplyPrice, BigDecimal defaultPrice, Integer membershipDiscountRate, Integer makersDiscountRate, Integer periodDiscountRate, Boolean isEatIn, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
         this.diningType = diningType;
         this.dailyFoodStatus = dailyFoodStatus;
         this.serviceDate = serviceDate;
@@ -117,9 +123,27 @@ public class DailyFood {
         this.membershipDiscountRate = membershipDiscountRate;
         this.makersDiscountRate = makersDiscountRate;
         this.periodDiscountRate = periodDiscountRate;
+        this.isEatIn = isEatIn;
         this.food = food;
         this.group = group;
         this.dailyFoodGroup = dailyFoodGroup;
+    }
+
+    public DailyFood createEatInFood(DiningType diningType, DailyFoodStatus dailyFoodStatus,LocalDate serviceDate, Food food, Group group, DailyFoodGroup dailyFoodGroup) {
+        return DailyFood.builder()
+                .diningType(diningType)
+                .dailyFoodStatus(dailyFoodStatus)
+                .serviceDate(serviceDate)
+                .supplyPrice(food.getSupplyPrice())
+                .defaultPrice(food.getPrice())
+                .membershipDiscountRate(food.getFoodDiscountPolicy(DiscountType.MEMBERSHIP_DISCOUNT).getDiscountRate())
+                .makersDiscountRate(food.getFoodDiscountPolicy(DiscountType.MAKERS_DISCOUNT).getDiscountRate())
+                .periodDiscountRate(food.getFoodDiscountPolicy(DiscountType.PERIOD_DISCOUNT).getDiscountRate())
+                .isEatIn(true)
+                .food(food)
+                .group(group)
+                .dailyFoodGroup(dailyFoodGroup)
+                .build();
     }
 
     public void updateDailyFoodStatus(DailyFoodStatus dailyFoodStatus) {
