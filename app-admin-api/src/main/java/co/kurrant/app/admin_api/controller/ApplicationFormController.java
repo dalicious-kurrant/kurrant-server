@@ -238,4 +238,24 @@ public class ApplicationFormController {
                 .build();
     }
 
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 추천 조회", description = "유저가 추천한 메이커스 내역을 조회합니다.")
+    @GetMapping("/recommend/makers")
+    public ResponseMessage getAllRecommendMakersList(@RequestParam(required = false) Map<String, Object> parameters, @RequestParam Integer limit, @RequestParam Integer page) {
+        OffsetBasedPageRequest offsetBasedPageRequest = new OffsetBasedPageRequest(((long) limit * (page - 1)), limit, Sort.unsorted());
+        return ResponseMessage.builder()
+                .message("메이커스 추천 내역 조회를 성공했습니다.")
+                .data(applicationFormService.getAllRecommendMakersList(parameters, offsetBasedPageRequest))
+                .build();
+    }
+
+    @ControllerMarker(ControllerType.APPLICATION_FORM)
+    @Operation(summary = "메이커스 추천 진행 사항 수정", description = "추천된 메이커스의 진행 사항을 수정합니다.")
+    @PatchMapping("recommend/makers/status/{recommendId}")
+    public ResponseMessage updateRecommendMakers(@PathVariable BigInteger recommendId, @RequestBody StatusUpdateDto request) throws ParseException {
+        applicationFormService.updateRecommendMakersStatus(recommendId, request);
+        return ResponseMessage.builder()
+                .message("메이커스 추천 진행 사항 수정을 성공했습니다.")
+                .build();
+    }
 }

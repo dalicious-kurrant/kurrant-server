@@ -189,4 +189,8 @@ public class Spot {
     public void updateName(String name) { this.name = name; }
 
     public void updateAddress2(String address2) { this.address.updateAddress2(address2); }
+
+    public static Boolean isUsableSupportPriceSpot(Spot spot) {
+        return spot instanceof CorporationSpot || spot instanceof EatInSpot;
+    }
 }

@@ -2,9 +2,9 @@ package co.dalicious.domain.board.entity;
 
 import co.dalicious.domain.board.converter.BoardTypeConverter;
 import co.dalicious.domain.board.converter.BoardOptionConverter;
-import co.dalicious.domain.board.converter.GroupIdListConverter;
 import co.dalicious.domain.board.entity.enums.BoardType;
 import co.dalicious.domain.board.entity.enums.BoardOption;
+import co.dalicious.system.converter.IdListConverter;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -49,7 +49,7 @@ public class Notice {
     private String content;
 
     @Column(name = "group_ids")
-    @Convert(converter = GroupIdListConverter.class)
+    @Convert(converter = IdListConverter.class)
     @Comment("스팟 공지일 경우 그룹ID")
     private List<BigInteger> groupIds;
 

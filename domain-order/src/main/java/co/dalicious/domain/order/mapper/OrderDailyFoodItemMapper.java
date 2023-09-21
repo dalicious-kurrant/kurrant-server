@@ -1,6 +1,8 @@
 package co.dalicious.domain.order.mapper;
 
+import co.dalicious.domain.file.entity.embeddable.Image;
 import co.dalicious.domain.order.dto.CartDailyFoodDto;
+import co.dalicious.domain.order.dto.QrResponseDto;
 import co.dalicious.domain.order.entity.CartDailyFood;
 import co.dalicious.domain.order.entity.Order;
 import co.dalicious.domain.order.entity.OrderItemDailyFood;
@@ -9,6 +11,11 @@ import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.enums.DiningType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.springframework.context.annotation.EnableMBeanExport;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper(componentModel = "spring", imports = { DiningType.class, DateUtils.class })
 public interface OrderDailyFoodItemMapper {
@@ -32,5 +39,30 @@ public interface OrderDailyFoodItemMapper {
     @Mapping(target = "diningType", expression = "java(DiningType.ofString(cartDailyFoodDto.getDiningType()))")
     @Mapping(source = "deliveryFee", target = "deliveryFee")
     OrderItemDailyFoodGroup dtoToOrderItemDailyFoodGroup(CartDailyFoodDto cartDailyFoodDto);
+
+    @Mapping(source = "orderStatus.code", target = "orderStatus")
+    @Mapping(source = "dailyFood.food.name", target = "foodName")
+    @Mapping(source = "dailyFood.food.makers.name", target = "makersName")
+    @Mapping(source = "dailyFood.food.images", target = "image", qualifiedByName = "getFirstImage")
+    QrResponseDto.Item entityToQrResponseItemDto(OrderItemDailyFood orderItemDailyFood);
+
+    @Named("getFirstImage")
+    default String getFirstImage(List<Image> images) {
+        return images.isEmpty() ? null : images.get(0).getLocation();
+    }
+
+
+    default QrResponseDto entitiesToQrResponseDto(List<OrderItemDailyFood> orderItemDailyFoods) {
+        LocalDateTime now = LocalDateTime.now();
+        List<QrResponseDto.Item> items = orderItemDailyFoods.stream()
+                .map(this::entityToQrResponseItemDto)
+                .toList();
+
+        return QrResponseDto.builder()
+                .createdDateTime(DateUtils.localDateTimeToString(now))
+                .expiredDateTime(DateUtils.localDateTimeToString(now.plusMinutes(3)))
+                .items(items)
+                .build();
+    }
 
 }

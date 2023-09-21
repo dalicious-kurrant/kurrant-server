@@ -257,7 +257,14 @@ public class QMakersRepository {
         }
         return queryFactory.select(makers.name, makers.managerPhone)
                 .from(makers)
-                .where(whereCause)
+                .where(whereCause, makers.isActive.isTrue())
                 .fetchOne();
+    }
+
+    public List<Makers> findActiveMakersByServiceForm(List<ServiceForm> serviceForm) {
+        return queryFactory.selectFrom(makers)
+                .where(makers.isActive.isTrue(),
+                        makers.serviceForm.in(serviceForm))
+                .fetch();
     }
 }

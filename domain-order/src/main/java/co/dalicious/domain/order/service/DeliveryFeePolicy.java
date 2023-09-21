@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 
 public interface DeliveryFeePolicy {
     BigDecimal getDeliveryFee();
+    BigDecimal getNoMembershipGroupDeliveryFee(Group group);
     BigDecimal getGroupDeliveryFee(User user, Group group);
     BigDecimal getUserDeliveryFee(User user);
     BigDecimal getOpenGroupDeliveryFee(User user, OpenGroup openGroup);

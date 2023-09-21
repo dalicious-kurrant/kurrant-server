@@ -49,4 +49,17 @@ public enum Days {
             default -> throw new IllegalArgumentException("Unknown DayOfWeek: " + dayOfWeek);
         };
     }
+
+    public static DayOfWeek toDayOfWeek(Days days) {
+        return switch (days) {
+            case MON -> DayOfWeek.MONDAY;
+            case TUE -> DayOfWeek.TUESDAY;
+            case WED -> DayOfWeek.WEDNESDAY;
+            case THR -> DayOfWeek.THURSDAY;
+            case FRI -> DayOfWeek.FRIDAY;
+            case SAT -> DayOfWeek.SATURDAY;
+            case SUN -> DayOfWeek.SUNDAY;
+            default -> throw new IllegalArgumentException("Unknown DayOfWeek: " + days.getDays());
+        };
+    }
 }

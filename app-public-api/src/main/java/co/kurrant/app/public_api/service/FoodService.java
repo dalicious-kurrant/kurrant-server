@@ -13,8 +13,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface FoodService {
-    RetrieveDailyFoodDto getDailyFood(SecurityUser securityUser, BigInteger spotId, LocalDate selectedDate, Integer diningType);
-    DailyFoodResDto getDailyFoodByPeriod(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate);
     DailyFoodByDateDto getDailyFoodByPeriodAndServiceDate(SecurityUser securityUser, BigInteger spotId, LocalDate startDate, LocalDate endDate);
     FoodDetailDto getFoodDetail(BigInteger dailyFoodId, SecurityUser securityUser);
     RetrieveDiscountDto getFoodDiscount(BigInteger dailyFoodId);

@@ -9,15 +9,20 @@ import co.dalicious.client.alarm.util.PushUtil;
 import co.dalicious.data.redis.dto.SseReceiverDto;
 import co.dalicious.data.redis.entity.PushAlarmHash;
 import co.dalicious.data.redis.repository.PushAlarmHashRepository;
+import co.dalicious.domain.client.entity.EatInSpot;
 import co.dalicious.domain.client.entity.Group;
 import co.dalicious.domain.client.entity.MealInfo;
+import co.dalicious.domain.client.entity.Spot;
+import co.dalicious.domain.client.repository.QSpotRepository;
 import co.dalicious.domain.delivery.repository.QDeliveryInstanceRepository;
 import co.dalicious.domain.client.repository.GroupRepository;
 import co.dalicious.domain.client.repository.QGroupRepository;
+import co.dalicious.domain.food.dto.DailyFoodDto;
 import co.dalicious.domain.food.dto.DailyFoodGroupDto;
 import co.dalicious.domain.food.entity.*;
 import co.dalicious.domain.food.entity.enums.ConfirmStatus;
 import co.dalicious.domain.food.entity.enums.DailyFoodStatus;
+import co.dalicious.domain.food.entity.enums.ServiceForm;
 import co.dalicious.domain.food.mapper.CapacityMapper;
 import co.dalicious.domain.food.mapper.DailyFoodMapper;
 import co.dalicious.domain.food.repository.*;
@@ -28,6 +33,7 @@ import co.dalicious.domain.order.util.OrderDailyFoodUtil;
 import co.dalicious.domain.user.entity.User;
 import co.dalicious.domain.user.entity.enums.PushCondition;
 import co.dalicious.domain.user.repository.QUserGroupRepository;
+import co.dalicious.system.enums.Days;
 import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
@@ -86,7 +92,8 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     private final PushAlarmHashRepository pushAlarmHashRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final FoodCapacityRepository foodCapacityRepository;
-    private final QDeliveryInstanceRepository qDeliveryInstanceRepository;
+    private final QSpotRepository qSpotRepository;
+
     @Override
     @Transactional
     public void approveSchedule(PeriodDto.PeriodStringDto periodStringDto) {
@@ -130,7 +137,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         // TODO: 메이커스 승인 완료 하면 Push 알림 구현
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
         List<PushAlarmHash> pushAlarmHashes = new ArrayList<>();
-         Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groupIdSet);
+        Map<User, Group> userGroupMap = qUserGroupRepository.findUserGroupFirebaseToken(groupIdSet);
         PushAlarms pushAlarms = qPushAlarmsRepository.findByPushCondition(PushCondition.NEW_DAILYFOOD);
         for (User user : userGroupMap.keySet()) {
             String message = PushUtil.getContextNewDailyFood(pushAlarms.getMessage(), userGroupMap.get(user).getName(), periodDto.getStartDate(), periodDto.getEndDate());
@@ -200,7 +207,7 @@ public class DailyFoodServiceImpl implements DailyFoodService {
     @Override
     @Transactional
     public void excelDailyFoods(List<FoodDto.DailyFood> dailyFoodList) {
-        // 업데이트할 식단
+        // FIXME: 1.업데이트할 식단
         List<BigInteger> dailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)
                 .toList();
@@ -215,38 +222,12 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                 .map(DailyFood::getId)
                 .toList();
 
-        Set<String> updateMakersNames = dailyFoodList.stream()
-                .filter(dailyFood -> currentDailyFoodIds.contains(dailyFood.getDailyFoodId()))
-                .map(FoodDto.DailyFood::getMakersName)
-                .collect(Collectors.toSet());
-        Set<String> updateGroupNames = dailyFoodList.stream()
-                .filter(dailyFood -> currentDailyFoodIds.contains(dailyFood.getDailyFoodId()))
-                .map(FoodDto.DailyFood::getGroupName)
-                .collect(Collectors.toSet());
-
-        List<Makers> updateMakersList = qMakersRepository.getMakersByName(updateMakersNames);
+        List<Makers> updateMakersList = getMakersByNames(dailyFoodList, currentDailyFoodIds);
         List<Food> updateFoods = qFoodRepository.findByMakers(updateMakersList);
-        List<Group> updateGroups = qGroupRepository.findAllByNames(updateGroupNames);
+        List<Group> updateGroups = getGroupsByNames(dailyFoodList, currentDailyFoodIds);
 
         // FIXME: DailyFoodGroup의 재정의. 제대로 사용하지 못하고 있음.
-        MultiValueMap<DailyFoodGroupDto, FoodDto.DailyFood> dailyFoodGroupMap = new LinkedMultiValueMap<>();
-
-        for (FoodDto.DailyFood dailyFood : dailyFoodList) {
-            DailyFoodGroupDto dailyFoodGroupDto = new DailyFoodGroupDto(dailyFood);
-            dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
-        }
-
-        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
-            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
-            List<List<String>> makersPickupTimes = sortedDailyFoodDto.stream()
-                    .map(FoodDto.DailyFood::getMakersPickupTime)
-                    .toList();
-            for (int i = 0; i < sortedDailyFoodDto.size(); i++ ) {
-                if(sortedDailyFoodDto.get(i).getMakersPickupTime().size() != makersPickupTimes.get(i).size()){
-                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFoodGroupDto.getGroupName() + "스팟의 " + dailyFoodGroupDto.getMakersName() + " 상품별 픽업시간이 동일 하지 않습니다.");
-                }
-            }
-        }
+        processDailyFoodGroup(dailyFoodList);
 
         List<FoodCapacity> newFoodCapacities = new ArrayList<>();
         MultiValueMap<Group, DailyFood> groupMap = new LinkedMultiValueMap<>();
@@ -255,42 +236,18 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                     .filter(v -> v.getDailyFoodId() != null && v.getDailyFoodId().equals(dailyFood.getId()))
                     .findAny()
                     .orElseThrow(() -> new ApiException(ExceptionEnum.NOT_FOUND));
+
             Group group = Group.getGroup(updateGroups, dailyFoodDto.getGroupName());
-            // 그룹이 가지고 있지 않은 식사 타입을 추가할 경우
-            DiningType diningType = DiningType.ofCode(dailyFoodDto.getDiningType());
-            if (!group.getDiningTypes().contains(diningType)) {
-                throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
-            }
-            // 메이커스/음식 주문 가능 수량이 존재하지 않을 경우
-            if(dailyFood.getFood().getMakers().getMakersCapacity(diningType) == null) {
-                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getMakers().getId() + "번 메이커스의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
-            }
-            if(dailyFood.getFood().getFoodCapacity(diningType) == null) {
-                throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getId() + "번 음식의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
-            }
-            // 푸시 알림 전송을 위해 등록대기였던 식단 추가
-            DailyFood waitingDailyFood = null;
-            if(dailyFood.getDailyFoodStatus().equals(DailyFoodStatus.WAITING_SALE)) {
-                waitingDailyFood = dailyFood;
-            }
-            dailyFood.updateFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()));
-            if(!DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()).equals(DailyFoodStatus.SALES)) {
-                waitingDailyFood = null;
-            }
+            isValidDiningType(group, DiningType.ofCode(dailyFoodDto.getDiningType()), dailyFood);
 
             List<String> groupDeliveryTimes = dailyFood.getGroup().getMealInfo(dailyFood.getDiningType()).getDeliveryTimes().stream().map(DateUtils::timeToString).toList();
-            // 그룹이 가진 배송시간과 다른 배송시간을 요청한 경우
-            if(dailyFoodDto.getDeliveryTime().size() != groupDeliveryTimes.size() || dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(v))){
-                throw new CustomException(
-                        HttpStatus.BAD_REQUEST,
-                        "CE4000020",
-                        dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다. " + StringUtils.StringListToString(dailyFoodDto.getDeliveryTime()) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
-            }
+            isValidDeliveryTime(groupDeliveryTimes, dailyFoodDto);
+
+            dailyFood.updateFoodStatus(DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()));
             dailyFoodMapper.updateDeliverySchedule(dailyFoodDto.getDeliveryTime(), dailyFoodDto.getMakersPickupTime(), dailyFood.getDailyFoodGroup());
 
             Food food = Food.getFood(updateFoods, dailyFoodDto.getMakersName(), dailyFoodDto.getFoodName());
             FoodCapacity foodCapacity = food.getFoodCapacity(DiningType.ofCode(dailyFoodDto.getDiningType()));
-
             // 수량이 기존과 다르거나 메이커스 수량과 다르면
             if (dailyFoodDto.getMakersCapacity().equals(dailyFoodDto.getFoodCapacity()) && foodCapacity == null) {
                 newFoodCapacities.add(FoodCapacity.builder().food(food).capacity(dailyFoodDto.getFoodCapacity()).diningType(DiningType.ofCode(dailyFoodDto.getDiningType())).build());
@@ -299,19 +256,16 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             }
 
             // 식단을 구매한 사람이 없다면
-            if (dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
-                dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
-                dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
-                dailyFood.updateFood(food);
-                dailyFood.updateDailyFoodPrice(food);
-                dailyFood.updateGroup(group);
-            }
-            if(waitingDailyFood != null) {
-                groupMap.add(waitingDailyFood.getGroup(),waitingDailyFood);
+            updateDailyFoodInfoIfNoOneBuy(dailyFood, food, group, dailyFoodDto);
+
+            // 푸시 알림 전송을 위해 등록대기였던 식단 추가
+            if (dailyFood.getDailyFoodStatus().equals(DailyFoodStatus.WAITING_SALE) && DailyFoodStatus.ofCode(dailyFoodDto.getFoodStatus()).equals(DailyFoodStatus.SALES)) {
+                groupMap.add(dailyFood.getGroup(), dailyFood);
             }
         });
         foodCapacityRepository.saveAll(newFoodCapacities);
 
+        // FIXME: 2. 저장할 식단
         List<BigInteger> newDailyFoodIds = dailyFoodList.stream()
                 .map(FoodDto.DailyFood::getDailyFoodId)
                 .filter(dailyFoodId -> !currentDailyFoodIds.contains(dailyFoodId))
@@ -319,16 +273,10 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         List<FoodDto.DailyFood> newDailyFoodDtos = dailyFoodList.stream()
                 .filter(dailyFood -> newDailyFoodIds.contains(dailyFood.getDailyFoodId()))
                 .toList();
-        Set<String> makersName = newDailyFoodDtos.stream()
-                .map(FoodDto.DailyFood::getMakersName)
-                .collect(Collectors.toSet());
-        Set<String> groupNames = newDailyFoodDtos.stream()
-                .map(FoodDto.DailyFood::getGroupName)
-                .collect(Collectors.toSet());
 
-        List<Makers> makersList = qMakersRepository.getMakersByName(makersName);
+        List<Makers> makersList = getMakersByNames(newDailyFoodDtos, newDailyFoodIds);
         List<Food> foodsByMakers = qFoodRepository.findByMakers(makersList);
-        List<Group> groups = qGroupRepository.findAllByNames(groupNames);
+        List<Group> groups = getGroupsByNames(newDailyFoodDtos, newDailyFoodIds);
 
         // 픽업 시간 저장
         MultiValueMap<DailyFoodGroup, FoodDto.DailyFood> newDailyFoodGroupMap = new LinkedMultiValueMap<>();
@@ -341,12 +289,13 @@ public class DailyFoodServiceImpl implements DailyFoodService {
             List<FoodDto.DailyFood> dailyFoodDtos = dailyFoodGroupDtoMap.get(dailyFoodGroupDto);
 
             Map<String, String> deliveryScheduleMap = new HashMap<>();
-            for(FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
+            for (FoodDto.DailyFood dailyFood : Objects.requireNonNull(dailyFoodDtos)) {
                 List<String> deliveryTimeList = dailyFood.getDeliveryTime();
                 List<String> makersPickupTimeList = dailyFood.getMakersPickupTime();
                 DiningType diningType = DiningType.ofCode(dailyFood.getDiningType());
 
-                if(dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size()) throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
+                if (dailyFood.getDeliveryTime().size() != dailyFood.getMakersPickupTime().size())
+                    throw new ApiException(ExceptionEnum.EXCEL_TIME_LIST_NOT_EQUAL);
 
                 Makers makers = makersList.stream().filter(v -> v.getName().equals(dailyFood.getMakersName())).findAny()
                         .orElse(null);
@@ -355,18 +304,14 @@ public class DailyFoodServiceImpl implements DailyFoodService {
                         .findAny().orElse(null);
 
                 List<String> groupDeliveryTimes = DateUtils.timesToStringList(Objects.requireNonNull(mealInfo).getDeliveryTimes());
+                isValidDeliveryTime(groupDeliveryTimes, dailyFood);
 
-                if(deliveryTimeList.size() != groupDeliveryTimes.size() || deliveryTimeList.stream().anyMatch(v -> !groupDeliveryTimes.contains(v))) {
-                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000020",
-                            dailyFood.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다. " + StringUtils.StringListToString(deliveryTimeList) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
-                }
-
-                if(makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
+                if (makers != null && dailyFood.getMakersPickupTime().size() == dailyFood.getDeliveryTime().size()) {
                     for (int i = 0; i < deliveryTimeList.size(); i++) {
                         String deliveryTime = deliveryTimeList.get(i);
                         LocalTime deliveryLocalTime = DateUtils.stringToLocalTime(deliveryTime);
 
-                        if(FoodUtils.isValidDeliveryTime(makers, diningType, deliveryLocalTime) && Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(deliveryLocalTime)) {
+                        if (FoodUtils.isValidDeliveryTime(makers, diningType, deliveryLocalTime) && Objects.requireNonNull(mealInfo).getDeliveryTimes().contains(deliveryLocalTime)) {
                             deliveryScheduleMap.put(deliveryTime, makersPickupTimeList.get(i));
                         }
                     }
@@ -378,8 +323,119 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         }
 
         List<DailyFood> newDailyFoods = dailyFoodMapper.toDailyFoods(newDailyFoodGroupMap, groups, foodsByMakers);
-        newDailyFoods = dailyFoodRepository.saveAll(newDailyFoods);
+        dailyFoodRepository.saveAll(newDailyFoods);
 
+        sendPushAlarmDailyFoodUpdate(groupMap);
+    }
+
+    @Override
+    @Transactional
+    public void updateAllDailyFoodStatus(UpdateStatusAndIdListDto requestDto) {
+        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByDailyFoodIdsAndStatus(requestDto.getIds(), DailyFoodStatus.ofCode(requestDto.getCurrentStatus()));
+        if (dailyFoods.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND);
+
+        for (DailyFood dailyFood : dailyFoods) {
+            dailyFoodMapper.updateDailyFoodStatus(DailyFoodStatus.ofCode(requestDto.getUpdateStatus()), dailyFood);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void generateEatInDailyFood(LocalDate startDate, LocalDate endDate) {
+        List<Makers> makersList = qMakersRepository.findActiveMakersByServiceForm(ServiceForm.getContainEatIn());
+        if (makersList.isEmpty()) return;
+        List<Food> foods = qFoodRepository.findSellingFoodByMakers(makersList);
+        Map<Makers, List<Food>> foodsByMakers = foods.stream()
+                .collect(Collectors.groupingBy(Food::getMakers));
+        List<EatInSpot> eatInSpots = qSpotRepository.findAllActiveEatInSpotsByMakers(makersList.stream().map(Makers::getId).toList());
+        Set<Group> groups = eatInSpots.stream()
+                .map(EatInSpot::getGroup)
+                .collect(Collectors.toSet());
+        List<DailyFood> existDailyFoods = qDailyFoodRepository.findAllisEatInByGroupAndPeriod(eatInSpots.stream().map(EatInSpot::getGroup).toList(), startDate, endDate);
+        Map<Group, List<DailyFood>> dailyFoodsByGroup = existDailyFoods.stream()
+                .collect(Collectors.groupingBy(DailyFood::getGroup));
+
+        for (Group group : groups) {
+            // 서비스 가능 아/점/저 가져오기
+            List<DiningType> diningTypes = group.getDiningTypes();
+            List<Spot> eatInSpotList = group.getSpotByClass(EatInSpot.class);
+
+            // 기존에 생성된 식단 가져오기
+            List<DailyFood> dailyFoods = dailyFoodsByGroup.computeIfAbsent(group, dailyFoodList -> new ArrayList<>());
+            // 서비스 가능 아/점/저별 .. 메이커스의 MakersCapacity도 가져와야함.
+            for (Spot spot : eatInSpotList) {
+                EatInSpot eatInSpot = (EatInSpot) spot;
+                Makers makers = getMakersById(makersList, eatInSpot.getMakersId());
+                List<Food> foodList = foodsByMakers.get(makers);
+                diningTypes.retainAll(makers.getDiningTypes());
+
+                for (DiningType diningType : diningTypes) {
+                    // 서비스 가능 요일 가져오기
+                    List<Days> days = group.getMealInfo(diningType).getServiceDays();
+                    days.retainAll(makers.getServiceDays());
+                    List<LocalDate> dates = getDatesBetween(startDate, endDate, days);
+
+                    for (LocalDate date : dates) {
+                        DailyFood dailyFoodForGroup = dailyFoods.stream()
+                                .filter(v -> v.getDiningType().equals(diningType) && v.getServiceDate().equals(date) && v.getGroup().equals(group))
+                                .findAny()
+                                .orElse(null);
+                        DailyFoodGroup dailyFoodGroup = dailyFoodForGroup != null ? dailyFoodForGroup.getDailyFoodGroup() : null;
+                        for (Food food : foodList) {
+                            // 이미 만들어진 식단인지 확인
+                            DailyFood dailyFood = dailyFoods.stream()
+                                    .filter(v -> v.getDiningType().equals(diningType) && v.getServiceDate().equals(date) && v.getGroup().equals(group) && v.getFood().equals(food))
+                                    .findAny()
+                                    .orElse(null);
+
+                            // 없다면 생성
+                            if (dailyFood == null) {
+                                dailyFoodGroup = dailyFoodGroup == null ? dailyFoodMapper.toDailyFoodGroup(group.getMealInfo(diningType).getDeliveryTimes()) : dailyFoodGroup;
+                                dailyFoodGroupRepository.save(dailyFoodGroup);
+                                dailyFood = dailyFoodMapper.toEatInDailyFood(food, date, diningType, group, dailyFoodGroup);
+                                dailyFoodRepository.save(dailyFood);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private Makers getMakersById(List<Makers> makers, BigInteger makersId) {
+        return makers.stream()
+                .filter(v -> v.getId().equals(makersId))
+                .findAny()
+                .orElse(null);
+    }
+
+    private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate, List<Days> days) {
+        List<LocalDate> dates = new ArrayList<>();
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            if (days.contains(Days.toDaysEnum(date.getDayOfWeek()))) {
+                dates.add(date);
+            }
+        }
+        return dates;
+    }
+
+    private List<Makers> getMakersByNames(List<FoodDto.DailyFood> dailyFoodList, List<BigInteger> dailyFoodIds) {
+        Set<String> updateMakersNames = dailyFoodList.stream()
+                .filter(dailyFood -> dailyFoodIds.contains(dailyFood.getDailyFoodId()))
+                .map(FoodDto.DailyFood::getMakersName)
+                .collect(Collectors.toSet());
+        return qMakersRepository.getMakersByName(updateMakersNames);
+    }
+
+    private List<Group> getGroupsByNames(List<FoodDto.DailyFood> dailyFoodList, List<BigInteger> dailyFoodIds) {
+        Set<String> updateGroupNames = dailyFoodList.stream()
+                .filter(dailyFood -> dailyFoodIds.contains(dailyFood.getDailyFoodId()))
+                .map(FoodDto.DailyFood::getGroupName)
+                .collect(Collectors.toSet());
+        return qGroupRepository.findAllByNames(updateGroupNames);
+    }
+
+    private void sendPushAlarmDailyFoodUpdate(MultiValueMap<Group, DailyFood> groupMap) {
         // 식단이 생성 됐을 때 푸시알림
         Map<Group, Optional<LocalDate>> earliestDatesByGroup = groupMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
@@ -388,7 +444,6 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         Map<Group, Optional<LocalDate>> latestDatesByGroup = groupMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey,
                         e -> e.getValue().stream().max(Comparator.comparing(DailyFood::getServiceDate)).map(DailyFood::getServiceDate)));
-
 
         // 등록대기 -> 판매중으로 변경된 식단들만 푸시 알림 보내기
         List<PushRequestDtoByUser> pushRequestDtoByUsers = new ArrayList<>();
@@ -419,14 +474,59 @@ public class DailyFoodServiceImpl implements DailyFoodService {
         pushAlarmHashRepository.saveAll(pushAlarmHashes);
     }
 
-    @Override
-    @Transactional
-    public void updateAllDailyFoodStatus(UpdateStatusAndIdListDto requestDto) {
-        List<DailyFood> dailyFoods = qDailyFoodRepository.findAllByDailyFoodIdsAndStatus(requestDto.getIds(), DailyFoodStatus.ofCode(requestDto.getCurrentStatus()));
-        if(dailyFoods.isEmpty()) throw new ApiException(ExceptionEnum.NOT_FOUND);
+    private void processDailyFoodGroup(List<FoodDto.DailyFood> dailyFoodList) {
+        MultiValueMap<DailyFoodGroupDto, FoodDto.DailyFood> dailyFoodGroupMap = new LinkedMultiValueMap<>();
 
-        for (DailyFood dailyFood : dailyFoods) {
-            dailyFoodMapper.updateDailyFoodStatus(DailyFoodStatus.ofCode(requestDto.getUpdateStatus()), dailyFood);
+        for (FoodDto.DailyFood dailyFood : dailyFoodList) {
+            DailyFoodGroupDto dailyFoodGroupDto = new DailyFoodGroupDto(dailyFood);
+            dailyFoodGroupMap.add(dailyFoodGroupDto, dailyFood);
+        }
+
+        for (DailyFoodGroupDto dailyFoodGroupDto : dailyFoodGroupMap.keySet()) {
+            List<FoodDto.DailyFood> sortedDailyFoodDto = dailyFoodGroupMap.get(dailyFoodGroupDto);
+            List<List<String>> makersPickupTimes = sortedDailyFoodDto.stream()
+                    .map(FoodDto.DailyFood::getMakersPickupTime)
+                    .toList();
+            for (int i = 0; i < sortedDailyFoodDto.size(); i++) {
+                if (sortedDailyFoodDto.get(i).getMakersPickupTime().size() != makersPickupTimes.get(i).size()) {
+                    throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000019", dailyFoodGroupDto.getGroupName() + "스팟의 " + dailyFoodGroupDto.getMakersName() + " 상품별 픽업시간이 동일 하지 않습니다.");
+                }
+            }
+        }
+    }
+
+    private void isValidDiningType(Group group, DiningType diningType, DailyFood dailyFood) {
+        // 그룹이 가지고 있지 않은 식사 타입을 추가할 경우
+        if (!group.getDiningTypes().contains(diningType)) {
+            throw new ApiException(ExceptionEnum.GROUP_DOSE_NOT_HAVE_DINING_TYPE);
+        }
+        // 메이커스/음식 주문 가능 수량이 존재하지 않을 경우
+        if (dailyFood.getFood().getMakers().getMakersCapacity(diningType) == null) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getMakers().getId() + "번 메이커스의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+        }
+        if (dailyFood.getFood().getFoodCapacity(diningType) == null) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, "CE4000018", dailyFood.getFood().getId() + "번 음식의 " + dailyFood.getDiningType().getDiningType() + " 주문 가능 수량이 존재하지 않습니다.");
+        }
+    }
+
+    private void isValidDeliveryTime(List<String> groupDeliveryTimes, FoodDto.DailyFood dailyFoodDto) {
+
+        // 그룹이 가진 배송시간과 다른 배송시간을 요청한 경우
+        if (dailyFoodDto.getDeliveryTime().size() != groupDeliveryTimes.size() || dailyFoodDto.getDeliveryTime().stream().anyMatch(v -> !groupDeliveryTimes.contains(v))) {
+            throw new CustomException(
+                    HttpStatus.BAD_REQUEST,
+                    "CE4000020",
+                    dailyFoodDto.getGroupName() + "스팟에서 지원하지 않는 배송시간입니다. " + StringUtils.StringListToString(dailyFoodDto.getDeliveryTime()) + " -> " + StringUtils.StringListToString(groupDeliveryTimes));
+        }
+    }
+
+    private void updateDailyFoodInfoIfNoOneBuy(DailyFood dailyFood, Food food, Group group, FoodDto.DailyFood dailyFoodDto) {
+        if (dailyFoodDto.getFoodCapacity().equals(dailyFoodDto.getFoodCount())) {
+            dailyFood.updateDiningType(DiningType.ofCode(dailyFoodDto.getDiningType()));
+            dailyFood.updateServiceDate(DateUtils.stringToDate(dailyFoodDto.getServiceDate()));
+            dailyFood.updateFood(food);
+            dailyFood.updateDailyFoodPrice(food);
+            dailyFood.updateGroup(group);
         }
     }
 }

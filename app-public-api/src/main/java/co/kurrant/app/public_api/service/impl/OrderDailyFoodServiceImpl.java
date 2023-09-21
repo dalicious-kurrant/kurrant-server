@@ -38,6 +38,7 @@ import co.dalicious.system.enums.DiningType;
 import co.dalicious.system.util.DateUtils;
 import co.dalicious.system.util.PeriodDto;
 import co.kurrant.app.public_api.dto.order.OrderCardQuotaDto;
+import co.dalicious.domain.order.dto.QrResponseDto;
 import co.kurrant.app.public_api.model.SecurityUser;
 import co.kurrant.app.public_api.service.OrderDailyFoodService;
 import co.kurrant.app.public_api.util.UserUtil;
@@ -185,7 +186,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
                 }
 
                 // 5. 지원금 사용 저장
-                if (spot instanceof CorporationSpot) {
+                if (Spot.isUsableSupportPriceSpot(spot)) {
                     BigDecimal usableSupportPrice = UserSupportPriceUtil.getUsableSupportPrice(orderItemGroupTotalPrice, supportPrice);
                     if (usableSupportPrice.compareTo(BigDecimal.ZERO) != 0) {
                         if (supportType.equals(SupportType.PARTIAL)) {
@@ -237,7 +238,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         Order order = orderRepository.findOneByIdAndUser(orderId, user).orElseThrow(
                 () -> new ApiException(ExceptionEnum.NOT_FOUND)
         );
-
+        // FIXME: 구내식당 상품일 경우 환불 로직 처리 필요
         Set<BigInteger> makersIds = orderService.cancelOrderDailyFood((OrderDailyFood) order, user);
         applicationEventPublisher.publishEvent(new ReloadEvent(makersIds));
     }
@@ -465,6 +466,18 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public QrResponseDto sendQRInformation(SecurityUser securityUser, List<BigInteger> idList) {
+        User user = userUtil.getUser(securityUser);
+        LocalDate today = LocalDate.now();
+        List<OrderItemDailyFood> orderItemDailyFoods = qOrderItemDailyFoodRepository.findByUserAndServiceDateAndOrderStatus(user, today, OrderStatus.qrShowingStatus());
+        orderItemDailyFoods = orderItemDailyFoods.stream()
+                .filter(item -> idList.contains(item.getId()))
+                .toList();
+        return orderDailyFoodItemMapper.entitiesToQrResponseDto(orderItemDailyFoods);
+    }
+
+    @Override
     public Object orderCardQuota(SecurityUser securityUser, OrderCardQuotaDto orderCardQuotaDto) throws IOException, ParseException {
 
         User user = userUtil.getUser(securityUser);
@@ -481,7 +494,7 @@ public class OrderDailyFoodServiceImpl implements OrderDailyFoodService {
         List<DailyFoodSupportPrice> userSupportPriceHistories = qDailyFoodSupportPriceRepository.findAllUserSupportPriceHistoryBetweenServiceDate(user, periodDto.getStartDate(), periodDto.getEndDate());
 
         BigDecimal supportPrice = BigDecimal.ZERO;
-        if (spot instanceof CorporationSpot) {
+        if (Spot.isUsableSupportPriceSpot(spot)) {
             supportPrice = UserSupportPriceUtil.getUsableSupportPrice(spot, userSupportPriceHistories, DateUtils.stringToDate(cartDailyFoodDto.getServiceDate()), DiningType.ofString(cartDailyFoodDto.getDiningType()));
             if (spot.getGroup() instanceof Corporation && UserSupportPriceUtil.getSupportType(supportPrice).equals(SupportType.FIXED) && cartDailyFoodDto.getSupportPrice().compareTo(supportPrice) != 0) {
                 throw new ApiException(ExceptionEnum.NOT_MATCHED_SUPPORT_PRICE);

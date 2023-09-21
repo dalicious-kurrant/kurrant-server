@@ -245,7 +245,7 @@ public class QUserRepository {
 
     public List<User> findAllByNotNullFirebaseToken() {
         return queryFactory.selectFrom(user)
-                .where(user.firebaseToken.isNotNull())
+                .where(user.firebaseToken.isNotNull(), user.userStatus.eq(UserStatus.ACTIVE))
                 .fetch();
     }
 
