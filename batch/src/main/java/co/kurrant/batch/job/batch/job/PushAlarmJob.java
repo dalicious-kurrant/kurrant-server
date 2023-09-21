@@ -80,6 +80,7 @@ public class PushAlarmJob {
     public Job pushAlarmJob3() {
         return jobBuilderFactory.get("pushAlarmJob3")
                 .start(pushAlarmJob3_step1())
+                .next(pushAlarmJob3_step2())
                 .build();
     }
 
@@ -242,9 +243,7 @@ public class PushAlarmJob {
 
         if (userIds.isEmpty()) {
             // Return an empty reader if orderItemIds is empty
-            return new JpaPagingItemReaderBuilder<User>()
-                    .name("EmptyReviewReader")
-                    .build();
+            return null;
         }
 
         String queryString = "SELECT u FROM User u WHERE u.id in :userIds";
@@ -255,7 +254,7 @@ public class PushAlarmJob {
                 .pageSize(100)
                 .queryString(queryString)
                 .name("JpaPagingItemReader")
-                .parameterValues(Collections.singletonMap("userIds", userIds))
+                .parameterValues(parameterValues)
                 .build();
     }
 
