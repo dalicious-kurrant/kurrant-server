@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 @Component
+@Primary
 @RequiredArgsConstructor
 public class TossPayServiceImpl implements PaymentService {
     private final TossUtil tossUtil;

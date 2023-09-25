@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 @Service
-@Primary
 @RequiredArgsConstructor
 public class NicePaymentServiceImpl implements PaymentService {
     private final NiceUtil niceUtil;
