@@ -183,6 +183,11 @@ public class SseService {
             emitterRepository.deleteById(id);
             redisMessageListenerContainer.removeMessageListener(messageListener);
         });
+        emitter.onError((error) -> {
+            System.out.println("error = " + error);
+            emitterRepository.deleteById(id);
+            redisMessageListenerContainer.removeMessageListener(messageListener);
+        });
     }
 
     private String getChannelName(final String userId) {

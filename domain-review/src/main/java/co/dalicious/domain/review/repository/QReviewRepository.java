@@ -320,7 +320,7 @@ public class QReviewRepository {
         List<Tuple> results = queryFactory.select(food.id, reviews.satisfaction.avg(), reviews.id.count())
                 .from(reviews)
                 .innerJoin(reviews.food, food)
-                .where(food.id.in(foodIds))
+                .where(food.id.in(foodIds), exceptForMakersAndDeleteAndReport())
                 .groupBy(food.id)
                 .fetch();
         return results.stream()
@@ -370,7 +370,7 @@ public class QReviewRepository {
 
         if (sort == 0){ //별점순
             QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                    .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                    .where(reviews.food.id.eq(id), whereClause,exceptForMakersAndDeleteAndReport())
                     .orderBy(reviews.satisfaction.desc(),
                             reviews.createdDateTime.desc())
                     .offset(pageable.getOffset())
@@ -380,7 +380,7 @@ public class QReviewRepository {
         }
         if (sort == 1){    //최신순
             QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                 .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                 .where(reviews.food.id.eq(id), whereClause, exceptForMakersAndDeleteAndReport())
                  .orderBy(reviews.createdDateTime.desc(),
                          reviews.satisfaction.desc())
                  .offset(pageable.getOffset())
@@ -390,7 +390,7 @@ public class QReviewRepository {
         }
         //추천순
         QueryResults<Reviews> result = queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.eq(id), whereClause, reviews.forMakers.eq(false))
+                .where(reviews.food.id.eq(id), whereClause, exceptForMakersAndDeleteAndReport())
                 .orderBy(reviews.good.desc(),
                         reviews.createdDateTime.desc())
                 .offset(pageable.getOffset())
@@ -512,7 +512,7 @@ public class QReviewRepository {
 
     public List<Reviews> findAllByfoodIdsAndForMakers(BigInteger foodId) {
         return queryFactory.selectFrom(reviews)
-                .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
+                .where(reviews.food.id.eq(foodId), exceptForMakersAndDeleteAndReport())
                 .fetch();
     }
 
@@ -520,5 +520,14 @@ public class QReviewRepository {
         return queryFactory.selectFrom(reviews)
                 .where(reviews.food.id.eq(foodId), reviews.forMakers.eq(Boolean.FALSE))
                 .fetch();
+    }
+
+    private BooleanBuilder exceptForMakersAndDeleteAndReport() {
+        BooleanBuilder whereCause = new BooleanBuilder();
+        whereCause.and(reviews.forMakers.isFalse());
+        whereCause.and(reviews.isDelete.isFalse());
+        whereCause.and(reviews.isReports.isFalse());
+
+        return whereCause;
     }
 }

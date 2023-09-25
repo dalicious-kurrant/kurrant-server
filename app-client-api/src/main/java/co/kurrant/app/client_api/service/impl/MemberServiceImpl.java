@@ -189,10 +189,10 @@ public class MemberServiceImpl implements MemberService {
 
         // 삭제
         List<Employee> employees = employeeRepository.findAllByCorporation(corporation);
-
-        Set<String> employEmails = employees.stream()
-                .map(Employee::getEmail)
-                .collect(Collectors.toSet());
+//
+//        Set<String> employEmails = employees.stream()
+//                .map(Employee::getEmail)
+//                .collect(Collectors.toSet());
 
         List<Employee> deleteEmployee = employees.stream()
                 .filter(v -> !emails.contains(v.getEmail()))
@@ -234,19 +234,22 @@ public class MemberServiceImpl implements MemberService {
                 } else {
                     userGroups.stream()
                             .filter(ug -> ug.getGroup().equals(corporation))
-                            .forEach(ug -> ug.updateStatus(ClientStatus.BELONG));
-                    pushAlarmUserList.add(user);
-                }
+                            .forEach(ug -> {
+                                ClientStatus defaultStatus = ug.getClientStatus();
+                                ug.updateStatus(ClientStatus.BELONG);
 
+                                if (!defaultStatus.equals(ClientStatus.BELONG)) pushAlarmUserList.add(user);
+                            });
+                }
             }
         }
 
         // 생성
         List<ClientUserWaitingListSaveRequestDto> employeeDtos = dtoList.getSaveUserList();
-
-        employeeDtos = employeeDtos.stream()
-                .filter(v -> !employEmails.contains(v.getEmail()))
-                .toList();
+//
+//        employeeDtos = employeeDtos.stream()
+//                .filter(v -> !employEmails.contains(v.getEmail()))
+//                .toList();
 
         for (ClientUserWaitingListSaveRequestDto employeeDto : employeeDtos) {
             Optional<Employee> employee = employees.stream()
